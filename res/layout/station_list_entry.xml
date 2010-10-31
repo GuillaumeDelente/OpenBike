@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent" 
+                android:layout_height="wrap_content"
+                android:padding="10px" >
+	<TextView
+		android:id="@+id/name_entry"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:textSize="24dip" />
+       <TextView
+		android:id="@+id/bikes_entry"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/name_entry"
+		android:textSize="20dip" />
+		       <TextView
+		android:id="@+id/slots_entry"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/name_entry"
+		android:layout_alignParentRight="true"
+		android:textSize="20dip" />
+</RelativeLayout>
