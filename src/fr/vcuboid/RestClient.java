@@ -113,4 +113,22 @@ public class RestClient {
 			return false;
 		}
 	}
+	
+	public static boolean jsonBikesToDb(String json,
+			VcuboidDBAdapter vcuboidDBAdapter) {
+		try {
+			JSONArray jsonArray = new JSONArray(json);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONObject jsonStation = jsonArray.getJSONObject(i);
+				vcuboidDBAdapter.updateStation(jsonStation
+						.getInt("id"), jsonStation
+						.getInt("availableBikes"), jsonStation.getInt("freeSlots"), jsonStation.getBoolean("open"));
+			}
+			return true;
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
 }

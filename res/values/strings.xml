@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Vcuboid</string>
 	<string name="clear_db">Vider la DB</string>
+	<string name="update_all">Rafraichir la liste</string>
 </resources>
