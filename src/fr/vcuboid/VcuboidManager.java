@@ -74,10 +74,19 @@ public class VcuboidManager {
 			mActivity.showGetAllStationsOnProgress();
 			mActivity.updateGetAllStationsOnProgress(mGetAllStationsTask
 					.getProgress());
+		} else {
+			mActivity.finishGetAllStationsOnProgress();
+			mGetAllStationsTask = null;
 		}
 	}
 
 	private void retrieveUpdateAllStationTask() {
+		int progress = mUpdateAllStationsTask.getProgress();
+		if (progress >= 100) {
+			mActivity.finishUpdateAllStationsOnProgress();
+			isUpdating = false;
+			mUpdateAllStationsTask = null;
+		}
 	}
 
 	private class GetAllStationsTask extends AsyncTask<Void, Void, Void> {
@@ -119,6 +128,7 @@ public class VcuboidManager {
 				Log
 						.w("RotationAsync",
 								"onPostExecute() skipped -- no activity");
+				progress = 100;
 			} else {
 				mActivity.finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
@@ -126,12 +136,13 @@ public class VcuboidManager {
 		}
 
 		int getProgress() {
-			return (progress);
+			return progress;
 		}
 	}
 
 	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
 
+		private int progress = 0;
 		protected void onPreExecute() {
 			isUpdating = true;
 			if (mActivity == null) {
@@ -152,15 +163,20 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPostExecute(Void unused) {
-			isUpdating = false;
 			if (mActivity == null) {
+				progress = 100;
 				Log
 						.w("RotationAsync",
 								"onPostExecute() skipped -- no activity");
 			} else {
+				isUpdating = false;
 				mActivity.finishUpdateAllStationsOnProgress();
 				mUpdateAllStationsTask = null;
 			}
+		}
+		
+		public int getProgress() {
+			return progress;
 		}
 	}
 

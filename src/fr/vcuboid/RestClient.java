@@ -104,7 +104,7 @@ public class RestClient {
 								.getDouble("longitude"), jsonStation
 								.getDouble("latitude"), jsonStation
 								.getInt("availableBikes"), jsonStation.getInt("freeSlots"),
-						jsonStation.getBoolean("open")));
+						jsonStation.getBoolean("open"), false));
 			}
 			return true;
 		} catch (JSONException e) {

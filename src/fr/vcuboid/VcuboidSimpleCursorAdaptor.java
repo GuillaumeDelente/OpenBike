@@ -3,6 +3,7 @@ package fr.vcuboid;
 import android.content.Context;
 import android.database.Cursor;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -39,6 +40,8 @@ public class VcuboidSimpleCursorAdaptor extends SimpleCursorAdapter {
 		TextView name;
 		TextView bikes;
 		TextView slots;
+		TextView maintenance;
+		CheckBox favorite;
 		ProgressBar refreshing;
 	}
 	
@@ -50,13 +53,17 @@ public class VcuboidSimpleCursorAdaptor extends SimpleCursorAdapter {
                 viewHolder.name = (TextView) view.findViewById(R.id.name_entry);
                 viewHolder.bikes = (TextView) view.findViewById(R.id.bikes_entry);
                 viewHolder.slots = (TextView) view.findViewById(R.id.slots_entry);
+                viewHolder.maintenance = (TextView) view.findViewById(R.id.station_maintenance);
                 viewHolder.refreshing = (ProgressBar) view.findViewById(R.id.refreshing);
+                viewHolder.favorite = (CheckBox) view.findViewById(R.id.favorite);
                 view.setTag(viewHolder);
         }
         bindName(viewHolder.name, cursor);
         bindBikes(viewHolder.bikes, cursor);
         bindSlots(viewHolder.slots, cursor);
+        bindMaintenance(viewHolder.maintenance, viewHolder.slots, viewHolder.bikes, cursor);
         bindRefreshing(viewHolder.refreshing);
+        bindFavorite(viewHolder.favorite, cursor);
 }
 
 	private void bindName(TextView view, final Cursor cursor) {
@@ -73,5 +80,21 @@ public class VcuboidSimpleCursorAdaptor extends SimpleCursorAdapter {
 	
 	private void bindRefreshing(ProgressBar refreshing) {
 		refreshing.setVisibility(VcuboidManager.isUpdating ? View.VISIBLE : View.INVISIBLE);
+	}
+	
+	private void bindMaintenance(TextView maintenanceView, TextView slotsView, TextView bikesView, final Cursor cursor) {
+		if (cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 1) {
+			maintenanceView.setVisibility(View.INVISIBLE);
+			slotsView.setVisibility(View.VISIBLE);
+			bikesView.setVisibility(View.VISIBLE);
+		} else {
+			maintenanceView.setVisibility(View.VISIBLE);
+			slotsView.setVisibility(View.INVISIBLE);
+			bikesView.setVisibility(View.INVISIBLE);
+		}
+	}
+	
+	private void bindFavorite(CheckBox favorite, Cursor cursor) {
+		favorite.setChecked(cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 1);
 	}
 }

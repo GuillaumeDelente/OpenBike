@@ -17,8 +17,11 @@ public class Station {
 	private int availableBikes;
 	private int freeSlots;
 	boolean isOpen;
+	boolean isFavorite;
 
-	public Station(int id, String network, String name, String address, double longitude, double latitude, int availablesBikes, int freeLocations, boolean isOpen) {
+	public Station(int id, String network, String name, String address,
+			double longitude, double latitude, int availablesBikes,
+			int freeLocations, boolean isOpen, boolean isFavorite) {
 		this.id = id;
 		this.network = network;
 		this.address = address;
@@ -28,6 +31,7 @@ public class Station {
 		this.availableBikes = availablesBikes;
 		this.freeSlots = freeLocations;
 		this.isOpen = isOpen;
+		this.isFavorite = isFavorite;
 	}
 
 	public Station() {
@@ -108,5 +112,13 @@ public class Station {
 
 	public int getId() {
 		return this.id;
+	}
+	
+	public boolean isFavorite() {
+		return isFavorite;
+	}
+
+	public void setFavorite(boolean isFavorite) {
+		this.isFavorite = isFavorite;
 	}
 }

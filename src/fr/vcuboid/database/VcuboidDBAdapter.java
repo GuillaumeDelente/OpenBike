@@ -24,6 +24,7 @@ public class VcuboidDBAdapter {
 	public static final int LONGITUDE_COLUMN = 6;
 	public static final int NAME_COLUMN = 7;
 	public static final int NETWORK_COLUMN = 8;
+	public static final int FAVORITE_COLUMN = 9;
 	private SQLiteDatabase mDb;
 	private final Context mContext;
 	private VcuboidDBOpenHelper mDbHelper;
@@ -37,15 +38,20 @@ public class VcuboidDBAdapter {
 	public static final String KEY_LONGITUDE = "longitude";
 	public static final String KEY_NAME = "name";
 	public static final String KEY_NETWORK = "network";
+	public static final String KEY_FAVORITE = "network";
 	//TODO: remove this, only for debugging
 	private static final String DATABASE_CREATE = "create table "
-		+ DATABASE_TABLE + " (" + KEY_ID + " integer primary key, "
-		+ KEY_NAME + " text not null, " + KEY_OPEN
-		+ " integer not null, " + KEY_BIKES + " integer not null, "
-		+ KEY_SLOTS + " integer not null, " + KEY_ADDRESS
-		+ " text not null, " + KEY_LATITUDE + " real not null, "
-		+ KEY_LONGITUDE + " real not null, " + KEY_NETWORK
-		+ " text not null);";
+		+ DATABASE_TABLE + " (" 
+		+ KEY_ID + " integer primary key, "
+		+ KEY_NAME + " text not null, " 
+		+ KEY_OPEN + " integer not null, " 
+		+ KEY_BIKES + " integer not null, "
+		+ KEY_SLOTS + " integer not null, " 
+		+ KEY_ADDRESS + " text not null, " 
+		+ KEY_LATITUDE + " real not null, "
+		+ KEY_LONGITUDE + " real not null, " 
+		+ KEY_NETWORK + " text not null, " 
+		+ KEY_FAVORITE + " integer not null );";
 
 	public VcuboidDBAdapter(Context context) {
 		mContext = context;
@@ -87,7 +93,7 @@ public class VcuboidDBAdapter {
 		newVcubValues.put(KEY_LONGITUDE, station.getLongitude());
 		newVcubValues.put(KEY_NAME, station.getName());
 		newVcubValues.put(KEY_NETWORK, station.getNetwork());
-
+		newVcubValues.put(KEY_FAVORITE, false);
 		// Insert the row.
 		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
 	}
@@ -116,24 +122,13 @@ public class VcuboidDBAdapter {
 	public Cursor getAllStationsCursor() {
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK }, null, null, null, null, null);
-	}
-
-	public Cursor setCursorToToDoItem(int id) throws SQLException {
-		Cursor result = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
-				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK }, KEY_ID + "=" + id,
-				null, null, null, null, null);
-		if ((result.getCount() == 0) || !result.moveToFirst()) {
-			throw new SQLException("No Station found with ID " + id);
-		}
-		return result;
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
 	}
 
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
 				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK }, KEY_ID + "=" + id,
+				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, KEY_ID + "=" + id,
 				null, null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
@@ -141,11 +136,13 @@ public class VcuboidDBAdapter {
 
 		Station result = new Station(id, cursor.getString(NETWORK_COLUMN),
 				cursor.getString(NAME_COLUMN),
-				cursor.getString(ADDRESS_COLUMN), cursor
-						.getDouble(LONGITUDE_COLUMN), cursor
-						.getDouble(LATITUDE_COLUMN), cursor
-						.getInt(BIKES_COLUMN), cursor.getInt(SLOTS_COLUMN),
-				cursor.getInt(OPEN_COLUMN) != 0);
+				cursor.getString(ADDRESS_COLUMN), 
+				cursor.getDouble(LONGITUDE_COLUMN), 
+				cursor.getDouble(LATITUDE_COLUMN), 
+				cursor.getInt(BIKES_COLUMN), 
+				cursor.getInt(SLOTS_COLUMN),
+				cursor.getInt(OPEN_COLUMN) != 0,
+				cursor.getInt(FAVORITE_COLUMN) != 0);
 		return result;
 	}
 
@@ -154,7 +151,7 @@ public class VcuboidDBAdapter {
 				CursorFactory factory, int version) {
 			super(context, name, factory, version);
 		}
-
+/*
 		// SQL Statement to create a new database.
 		private static final String DATABASE_CREATE = "create table "
 				+ DATABASE_TABLE + " (" + KEY_ID + " integer primary key, "
@@ -164,7 +161,8 @@ public class VcuboidDBAdapter {
 				+ " text not null, " + KEY_LATITUDE + " real not null, "
 				+ KEY_LONGITUDE + " real not null, " + KEY_NETWORK
 				+ " text not null);";
-
+*/
+		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
