@@ -38,7 +38,8 @@ public class VcuboidDBAdapter {
 	public static final String KEY_LONGITUDE = "longitude";
 	public static final String KEY_NAME = "name";
 	public static final String KEY_NETWORK = "network";
-	public static final String KEY_FAVORITE = "network";
+	public static final String KEY_FAVORITE = "isFavorite";
+	
 	//TODO: remove this, only for debugging
 	private static final String DATABASE_CREATE = "create table "
 		+ DATABASE_TABLE + " (" 
@@ -98,18 +99,23 @@ public class VcuboidDBAdapter {
 		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
 	}
 
-	// Remove a task based on its index
 	public boolean removeStation(int id) {
 		return mDb.delete(DATABASE_TABLE, KEY_ID + "=" + id, null) > 0;
 	}
 
-	// Update a task
 	public boolean updateStation(int id, int availableBikes, int freeSlots,
 			boolean isOpen) {
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_BIKES, availableBikes);
 		newValues.put(KEY_SLOTS, freeSlots);
 		newValues.put(KEY_OPEN, isOpen);
+		return mDb.update(DATABASE_TABLE, newValues, KEY_ID + "=" + id, null) > 0;
+	}
+	
+	public boolean updateFavorite(int id, boolean isFavorite) {
+		Log.e("Vcuboid", "updateFavorite " + id + " est " + isFavorite);
+		ContentValues newValues = new ContentValues();
+		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
 		return mDb.update(DATABASE_TABLE, newValues, KEY_ID + "=" + id, null) > 0;
 	}
 

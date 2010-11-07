@@ -57,6 +57,8 @@ public class VcuboidSimpleCursorAdaptor extends SimpleCursorAdapter {
                 viewHolder.refreshing = (ProgressBar) view.findViewById(R.id.refreshing);
                 viewHolder.favorite = (CheckBox) view.findViewById(R.id.favorite);
                 view.setTag(viewHolder);
+        } else {
+        	viewHolder.favorite.setOnCheckedChangeListener(null);
         }
         bindName(viewHolder.name, cursor);
         bindBikes(viewHolder.bikes, cursor);
@@ -96,5 +98,7 @@ public class VcuboidSimpleCursorAdaptor extends SimpleCursorAdapter {
 	
 	private void bindFavorite(CheckBox favorite, Cursor cursor) {
 		favorite.setChecked(cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 1);
+		favorite.setOnCheckedChangeListener(new FavoriteListener());
+		favorite.setTag(cursor.getInt(VcuboidDBAdapter.ID_COLUMN));
 	}
 }

@@ -132,6 +132,7 @@ public class VcuboidManager {
 			} else {
 				mActivity.finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
+				mCursor.requery();
 			}
 		}
 
@@ -172,6 +173,7 @@ public class VcuboidManager {
 				isUpdating = false;
 				mActivity.finishUpdateAllStationsOnProgress();
 				mUpdateAllStationsTask = null;
+				mCursor.requery();
 			}
 		}
 		
@@ -192,5 +194,11 @@ public class VcuboidManager {
 		mVcuboidDBAdapter.reset();
 		mVcuboidDBAdapter.close();
 		mVcuboidDBAdapter.open();
+	}
+	
+	public void setFavorite(int id, boolean isChecked) {
+		Log.e("Vcuboid", "setFavorite");
+		mVcuboidDBAdapter.updateFavorite(id, isChecked);
+		mCursor.requery();
 	}
 }
