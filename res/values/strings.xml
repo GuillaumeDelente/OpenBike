@@ -3,4 +3,11 @@
     <string name="app_name">Vcuboid</string>
 	<string name="clear_db">Vider la DB</string>
 	<string name="update_all">Rafraichir la liste</string>
+	<string name="filters">Filtres</string>
+	<string name="filter_preferences_title">Configuration des filtres</string>
+	<string name="favorite_filter_title">Favoris seulement</string>
+	<string name="favorite_filter_summary">Affiche seulement vos stations favorites.</string>
+				
+				
+	<string name="general_preferences_title">Configuration générale</string>
 </resources>

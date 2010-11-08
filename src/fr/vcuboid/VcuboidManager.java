@@ -1,7 +1,9 @@
 package fr.vcuboid;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
 
@@ -13,17 +15,20 @@ public class VcuboidManager {
 	protected Cursor mCursor = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
+	private SharedPreferences mFilterPreferences = null;
 
 	public VcuboidManager(Vcuboid activity) {
 		Log.e("Vcuboid", "New Manager created");
 		mActivity = activity;
 		mVcuboidDBAdapter = new VcuboidDBAdapter(mActivity);
 		mVcuboidDBAdapter.open();
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
 	}
 
-	void attach(Vcuboid activity) {
+	public void attach(Vcuboid activity) {
 		mActivity = activity;
 		mActivity.startManagingCursor(mCursor);
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
 		if (mGetAllStationsTask != null) {
 			retrieveGetAllStationTask();
 		} else if (mUpdateAllStationsTask != null) {
@@ -31,21 +36,26 @@ public class VcuboidManager {
 		}
 	}
 
-	void detach() {
+	public void detach() {
 		mActivity.stopManagingCursor(mCursor);
 		mActivity = null;
 	}
+	
+	public Cursor getCursor() {
+		if (mCursor != null)
+			mCursor.close();
+		//FIXME: do not retrieve the prefs
+		mCursor = mVcuboidDBAdapter
+				.getFilteredStationsCursor(mFilterPreferences.getBoolean(
+						"favorite_filter", false));
+		mActivity.startManagingCursor(mCursor);
 
-	Cursor getAllStationsCursor() {
-		if (mCursor == null) {
-			mCursor = mVcuboidDBAdapter.getAllStationsCursor();
-			mActivity.startManagingCursor(mCursor);
-		} else {
-			mCursor.requery();
-		}
-		if (mCursor.getCount() == 0) {
-			executeGetAllStationsTask();
-		}
+		 if (mCursor.getCount() == 0)
+		 	if (mVcuboidDBAdapter.getStationCount() == 0) // Because of filters, check the whole table
+		 		executeGetAllStationsTask();	
+		 mCursor.requery();
+
+
 		return mCursor;
 	}
 
@@ -144,6 +154,7 @@ public class VcuboidManager {
 	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
 
 		private int progress = 0;
+
 		protected void onPreExecute() {
 			isUpdating = true;
 			if (mActivity == null) {
@@ -176,7 +187,7 @@ public class VcuboidManager {
 				mCursor.requery();
 			}
 		}
-		
+
 		public int getProgress() {
 			return progress;
 		}
@@ -195,7 +206,7 @@ public class VcuboidManager {
 		mVcuboidDBAdapter.close();
 		mVcuboidDBAdapter.open();
 	}
-	
+
 	public void setFavorite(int id, boolean isChecked) {
 		Log.e("Vcuboid", "setFavorite");
 		mVcuboidDBAdapter.updateFavorite(id, isChecked);

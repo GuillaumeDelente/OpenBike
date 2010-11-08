@@ -2,12 +2,14 @@ package fr.vcuboid.database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import fr.vcuboid.object.Station;
 
@@ -130,6 +132,12 @@ public class VcuboidDBAdapter {
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
 	}
+	
+	public Cursor getFilteredStationsCursor(boolean isOnlyFavorite) {
+		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
+				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, isOnlyFavorite ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
+	}
 
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
@@ -150,6 +158,14 @@ public class VcuboidDBAdapter {
 				cursor.getInt(OPEN_COLUMN) != 0,
 				cursor.getInt(FAVORITE_COLUMN) != 0);
 		return result;
+	}
+	
+	public int getStationCount()  throws SQLException {
+		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM " + DATABASE_TABLE, null);
+		cursor.moveToNext();
+		int count = cursor.getInt(0);
+		cursor.close();
+		return count;
 	}
 
 	private static class VcuboidDBOpenHelper extends SQLiteOpenHelper {

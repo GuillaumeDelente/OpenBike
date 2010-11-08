@@ -95,16 +95,20 @@ public class RestClient {
 			VcuboidDBAdapter vcuboidDBAdapter) {
 		try {
 			JSONArray jsonArray = new JSONArray(json);
+			Station newStation = new Station();
+			newStation.setFavorite(false);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.insertStation(new Station(jsonStation
-						.getInt("id"), jsonStation.getString("network"),
-						jsonStation.getString("name"), jsonStation
-								.getString("address"), jsonStation
-								.getDouble("longitude"), jsonStation
-								.getDouble("latitude"), jsonStation
-								.getInt("availableBikes"), jsonStation.getInt("freeSlots"),
-						jsonStation.getBoolean("open"), false));
+				newStation.setId(jsonStation.getInt("id"));
+				newStation.setNetwork(jsonStation.getString("network"));
+				newStation.setName(jsonStation.getString("name"));
+				newStation.setAddress(jsonStation.getString("address"));
+				newStation.setLongitude(jsonStation.getDouble("longitude"));
+				newStation.setLatitude(jsonStation.getDouble("latitude"));
+				newStation.setAvailableBikes(jsonStation.getInt("availableBikes"));
+				newStation.setFreeSlots(jsonStation.getInt("freeSlots"));
+				newStation.setOpen(jsonStation.getBoolean("open"));
+				vcuboidDBAdapter.insertStation(newStation);
 			}
 			return true;
 		} catch (JSONException e) {

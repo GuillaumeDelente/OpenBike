@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/clear_db"
-          android:icon="@android:drawable/ic_menu_delete"
-          android:title="@string/clear_db" />
-    <item android:id="@+id/update_all"
-          android:title="@string/update_all" />
+	<item android:id="@+id/clear_db" android:icon="@android:drawable/ic_menu_delete"
+		android:title="@string/clear_db" />
+	<item android:id="@+id/update_all" android:title="@string/update_all" />
+	<item android:id="@+id/filters" android:title="@string/filters" />
 </menu>

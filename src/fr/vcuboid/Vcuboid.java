@@ -2,6 +2,7 @@ package fr.vcuboid;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -20,6 +21,10 @@ public class Vcuboid extends ListActivity {
 	private boolean isConfigurationChanged = false;
 	
 	private ProgressDialog mPd = null;
+	private int[] mListAdapterTo = new int[] { R.id.name_entry, R.id.bikes_entry,
+			R.id.slots_entry };
+	String[] mListAdapterFrom = new String[] { VcuboidDBAdapter.KEY_NAME,
+			VcuboidDBAdapter.KEY_BIKES, VcuboidDBAdapter.KEY_SLOTS };
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -33,18 +38,29 @@ public class Vcuboid extends ListActivity {
 				mVcuboidManager.attach(this);
 			}
 			FavoriteListener.vcuboidManager = mVcuboidManager;
-			String[] columns = new String[] { VcuboidDBAdapter.KEY_NAME,
-					VcuboidDBAdapter.KEY_BIKES, VcuboidDBAdapter.KEY_SLOTS };
-			int[] to = new int[] { R.id.name_entry, R.id.bikes_entry,
-					R.id.slots_entry };
+
+
 			mAdapter = new VcuboidSimpleCursorAdaptor(this,
 					R.layout.station_list_entry, mVcuboidManager
-							.getAllStationsCursor(), columns, to);
+							.getCursor(), mListAdapterFrom, mListAdapterTo);
 			this.setListAdapter(mAdapter);
 		} catch (Exception e) {
 			Log.e("ERROR", "ERROR IN CODE:" + e.toString());
 		}
 	}
+	
+	
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mAdapter = new VcuboidSimpleCursorAdaptor(this,
+				R.layout.station_list_entry, mVcuboidManager
+						.getCursor(), mListAdapterFrom, mListAdapterTo);
+		this.setListAdapter(mAdapter);
+	}
+
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,6 +80,13 @@ public class Vcuboid extends ListActivity {
 			return true;
 		case R.id.update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
+			return true;		
+		case R.id.filters:
+			startActivity(new Intent(this, FilterPreferencesActivity.class));
+			mAdapter = new VcuboidSimpleCursorAdaptor(this,
+					R.layout.station_list_entry, mVcuboidManager
+							.getCursor(), mListAdapterFrom, mListAdapterTo);
+			this.setListAdapter(mAdapter);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
