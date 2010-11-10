@@ -134,6 +134,7 @@ public class VcuboidDBAdapter {
 	}
 	
 	public Cursor getFilteredStationsCursor(boolean isOnlyFavorite) {
+		
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, isOnlyFavorite ? KEY_FAVORITE + " = 1" : null, null, null, null, null);

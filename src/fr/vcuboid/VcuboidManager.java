@@ -11,13 +11,13 @@ public class VcuboidManager {
 
 	static public boolean isUpdating = false;
 	protected VcuboidDBAdapter mVcuboidDBAdapter = null;
-	protected Vcuboid mActivity = null;
+	protected VcuboidListActivity mActivity = null;
 	protected Cursor mCursor = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
 	private SharedPreferences mFilterPreferences = null;
 
-	public VcuboidManager(Vcuboid activity) {
+	public VcuboidManager(VcuboidListActivity activity) {
 		Log.e("Vcuboid", "New Manager created");
 		mActivity = activity;
 		mVcuboidDBAdapter = new VcuboidDBAdapter(mActivity);
@@ -25,7 +25,7 @@ public class VcuboidManager {
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
 	}
 
-	public void attach(Vcuboid activity) {
+	public void attach(VcuboidListActivity activity) {
 		mActivity = activity;
 		mActivity.startManagingCursor(mCursor);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -44,18 +44,18 @@ public class VcuboidManager {
 	public Cursor getCursor() {
 		if (mCursor != null)
 			mCursor.close();
-		//FIXME: do not retrieve the prefs
+
 		mCursor = mVcuboidDBAdapter
-				.getFilteredStationsCursor(mFilterPreferences.getBoolean(
-						"favorite_filter", false));
+				.getFilteredStationsCursor(
+						mFilterPreferences.getBoolean("favorite_filter", false));
+						
 		mActivity.startManagingCursor(mCursor);
 
 		 if (mCursor.getCount() == 0)
 		 	if (mVcuboidDBAdapter.getStationCount() == 0) // Because of filters, check the whole table
 		 		executeGetAllStationsTask();	
 		 mCursor.requery();
-
-
+		 
 		return mCursor;
 	}
 
