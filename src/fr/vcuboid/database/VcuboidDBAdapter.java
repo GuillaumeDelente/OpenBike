@@ -2,15 +2,14 @@ package fr.vcuboid.database;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
-import android.preference.PreferenceManager;
 import android.util.Log;
+import fr.vcuboid.VcubFilter;
 import fr.vcuboid.object.Station;
 
 public class VcuboidDBAdapter {
@@ -28,9 +27,8 @@ public class VcuboidDBAdapter {
 	public static final int NETWORK_COLUMN = 8;
 	public static final int FAVORITE_COLUMN = 9;
 	private SQLiteDatabase mDb;
-	private final Context mContext;
 	private VcuboidDBOpenHelper mDbHelper;
-
+	//private Context mContext;
 	public static final String KEY_ID = "_id";
 	public static final String KEY_ADDRESS = "address";
 	public static final String KEY_BIKES = "availableBikes";
@@ -57,7 +55,7 @@ public class VcuboidDBAdapter {
 		+ KEY_FAVORITE + " integer not null );";
 
 	public VcuboidDBAdapter(Context context) {
-		mContext = context;
+		//mContext = context;
 		mDbHelper = new VcuboidDBOpenHelper(context, DATABASE_NAME, null,
 				DATABASE_VERSION);
 	}
@@ -133,11 +131,11 @@ public class VcuboidDBAdapter {
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
 	}
 	
-	public Cursor getFilteredStationsCursor(boolean isOnlyFavorite) {
-		
+	public Cursor getFilteredStationsCursor(VcubFilter filter) {
+		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, isOnlyFavorite ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, filter.getShowOnlyFavorites() ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
 	}
 
 	public Station getStation(int id) throws SQLException {

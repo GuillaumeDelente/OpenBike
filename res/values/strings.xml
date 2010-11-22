@@ -19,6 +19,6 @@
 	<string name="slots_filter_title">Emplacements seulement</string>
 	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un emplacement.</string>
 	<string name="always_on_my_position_title">Centrer sur ma position</string>
-	<string name="always_on_my_position_summary">Toujours centrer la carte sur ma position.</string>
+	<string name="always_on_my_position_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
 </resources>

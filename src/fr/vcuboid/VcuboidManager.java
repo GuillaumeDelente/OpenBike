@@ -1,65 +1,91 @@
 package fr.vcuboid;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
+import fr.vcuboid.list.VcuboidListActivity;
 
 public class VcuboidManager {
 
-	static public boolean isUpdating = false;
-	protected VcuboidDBAdapter mVcuboidDBAdapter = null;
-	protected VcuboidListActivity mActivity = null;
-	protected Cursor mCursor = null;
+	public static boolean isUpdating = false;
+	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
+	protected static IVcuboidActivity mActivity = null;
+	private static Cursor mCursor = null;
+	private static VcuboidManager mThis;
+	private static SharedPreferences mFilterPreferences = null;
+	private static VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
-	private SharedPreferences mFilterPreferences = null;
+	private OnVcubFilterChangeListener mOnVcubFilterChangeListener = null;
 
-	public VcuboidManager(VcuboidListActivity activity) {
+
+	private VcuboidManager(IVcuboidActivity activity) {
 		Log.e("Vcuboid", "New Manager created");
 		mActivity = activity;
-		mVcuboidDBAdapter = new VcuboidDBAdapter(mActivity);
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
+		initializeFilter();
+		mVcuboidDBAdapter = new VcuboidDBAdapter((Context) mActivity);
 		mVcuboidDBAdapter.open();
-		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
+	}
+	
+	public static synchronized VcuboidManager getVcuboidManagerInstance(IVcuboidActivity activity) {
+		Log.e("Vcuboid", "Getting VcuboidManager instance");
+		if (mThis == null) {
+			mThis = new VcuboidManager(activity);
+		} else {
+			mVcuboidDBAdapter.open();
+			mActivity = activity;
+			mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
+		}
+		return mThis;
+	}
+	
+	public static synchronized VcuboidManager getVcuboidManagerInstance() {
+		return mThis;
 	}
 
 	public void attach(VcuboidListActivity activity) {
 		mActivity = activity;
-		mActivity.startManagingCursor(mCursor);
-		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
+		((Activity) mActivity).startManagingCursor(mCursor);
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		if (mGetAllStationsTask != null) {
-			retrieveGetAllStationTask();
+			mThis.retrieveGetAllStationTask();
 		} else if (mUpdateAllStationsTask != null) {
-			retrieveUpdateAllStationTask();
+			mThis.retrieveUpdateAllStationTask();
 		}
 	}
 
 	public void detach() {
-		mActivity.stopManagingCursor(mCursor);
+		((Activity) mActivity).stopManagingCursor(mCursor);
 		mActivity = null;
 	}
 	
 	public Cursor getCursor() {
-		if (mCursor != null)
+		if (mCursor != null) {
+			((Activity) mActivity).stopManagingCursor(mCursor);
 			mCursor.close();
+		}
 
 		mCursor = mVcuboidDBAdapter
-				.getFilteredStationsCursor(
-						mFilterPreferences.getBoolean("favorite_filter", false));
-						
-		mActivity.startManagingCursor(mCursor);
+				.getFilteredStationsCursor(mVcubFilter);
+		
+		((Activity) mActivity).startManagingCursor(mCursor);
 
 		 if (mCursor.getCount() == 0)
-		 	if (mVcuboidDBAdapter.getStationCount() == 0) // Because of filters, check the whole table
-		 		executeGetAllStationsTask();	
+		 	if (mVcuboidDBAdapter.getStationCount() == 0 && mGetAllStationsTask == null) // Because of filters, check the whole table
+		 		mThis.executeGetAllStationsTask();	
 		 mCursor.requery();
 		 
 		return mCursor;
 	}
 
-	public boolean executeGetAllStationsTask() {
+	private boolean executeGetAllStationsTask() {
 		Log.e("executeGetAllStationsTask", "Ok");
 		if (mGetAllStationsTask == null) {
 			mGetAllStationsTask = (GetAllStationsTask) new GetAllStationsTask()
@@ -81,11 +107,11 @@ public class VcuboidManager {
 	private void retrieveGetAllStationTask() {
 		int progress = mGetAllStationsTask.getProgress();
 		if (progress < 100) {
-			mActivity.showGetAllStationsOnProgress();
-			mActivity.updateGetAllStationsOnProgress(mGetAllStationsTask
+			((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
+			((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(mGetAllStationsTask
 					.getProgress());
 		} else {
-			mActivity.finishGetAllStationsOnProgress();
+			((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 			mGetAllStationsTask = null;
 		}
 	}
@@ -93,104 +119,18 @@ public class VcuboidManager {
 	private void retrieveUpdateAllStationTask() {
 		int progress = mUpdateAllStationsTask.getProgress();
 		if (progress >= 100) {
-			mActivity.finishUpdateAllStationsOnProgress();
+			((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 			isUpdating = false;
 			mUpdateAllStationsTask = null;
 		}
 	}
-
-	private class GetAllStationsTask extends AsyncTask<Void, Void, Void> {
-
-		private int progress = 0;
-
-		protected void onPreExecute() {
-			if (mActivity == null) {
-				Log.w("RotationAsync",
-						"onProgressUpdate() skipped -- no activity");
-			} else {
-				Log.w("GetAllStationsTask", "GOOOOOO");
-				mActivity.showGetAllStationsOnProgress();
-			}
-		}
-
-		protected Void doInBackground(Void... unused) {
-			String json = RestClient
-					.connect("http://vcuboid.appspot.com/stations");
-			publishProgress();
-			RestClient.jsonStationsToDb(json, mVcuboidDBAdapter);
-			publishProgress();
-			Log.i("Finished !", "Ok!");
-			return (null);
-		}
-
-		protected void onProgressUpdate(Void... unused) {
-			if (mActivity == null) {
-				Log.w("RotationAsync",
-						"onProgressUpdate() skipped -- no activity");
-			} else {
-				mActivity.updateGetAllStationsOnProgress(progress += 50);
-			}
-		}
-
-		@Override
-		protected void onPostExecute(Void unused) {
-			if (mActivity == null) {
-				Log
-						.w("RotationAsync",
-								"onPostExecute() skipped -- no activity");
-				progress = 100;
-			} else {
-				mActivity.finishGetAllStationsOnProgress();
-				mGetAllStationsTask = null;
-				mCursor.requery();
-			}
-		}
-
-		int getProgress() {
-			return progress;
-		}
-	}
-
-	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
-
-		private int progress = 0;
-
-		protected void onPreExecute() {
-			isUpdating = true;
-			if (mActivity == null) {
-				Log.w("RotationAsync",
-						"onProgressUpdate() skipped -- no activity");
-			} else {
-				mActivity.showUpdateAllStationsOnProgress();
-			}
-		}
-
-		protected Void doInBackground(Void... unused) {
-			RestClient.jsonBikesToDb(RestClient
-					.connect("http://vcuboid.appspot.com/stations"),
-					mVcuboidDBAdapter);
-			Log.i("Finished !", "Ok!");
-			return (null);
-		}
-
-		@Override
-		protected void onPostExecute(Void unused) {
-			if (mActivity == null) {
-				progress = 100;
-				Log
-						.w("RotationAsync",
-								"onPostExecute() skipped -- no activity");
-			} else {
-				isUpdating = false;
-				mActivity.finishUpdateAllStationsOnProgress();
-				mUpdateAllStationsTask = null;
-				mCursor.requery();
-			}
-		}
-
-		public int getProgress() {
-			return progress;
-		}
+	
+	private void initializeFilter() {
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
+		// Keep a reference on the listener for GC
+		mOnVcubFilterChangeListener = new OnVcubFilterChangeListener();
+		mFilterPreferences.registerOnSharedPreferenceChangeListener(mOnVcubFilterChangeListener);
+		mVcubFilter = new VcubFilter(mFilterPreferences.getBoolean("favorite_filter", false));
 	}
 
 	public void onDestroy() {
@@ -208,8 +148,106 @@ public class VcuboidManager {
 	}
 
 	public void setFavorite(int id, boolean isChecked) {
-		Log.e("Vcuboid", "setFavorite");
 		mVcuboidDBAdapter.updateFavorite(id, isChecked);
 		mCursor.requery();
+	}
+	
+	public void onPause() {
+		mVcuboidDBAdapter.close();
+	}
+	
+	/************************************/
+	/************************************/
+	/*******					*********/
+	/*******   Private Classes	*********/
+	/*******					*********/
+	/************************************/
+	/************************************/
+	
+	private class GetAllStationsTask extends AsyncTask<Void, Void, Void> {
+
+		private int progress = 0;
+
+		protected void onPreExecute() {
+			if (mActivity != null) {
+				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
+			}
+		}
+
+		protected Void doInBackground(Void... unused) {
+			String json = RestClient
+					.connect("http://vcuboid.appspot.com/stations");
+			publishProgress();
+			RestClient.jsonStationsToDb(json, mVcuboidDBAdapter);
+			publishProgress();
+			Log.i("Vcuboid", "Async task finished");
+			return (null);
+		}
+
+		protected void onProgressUpdate(Void... unused) {
+			if (mActivity != null) {
+				((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(progress += 50);
+			}
+		}
+
+		@Override
+		protected void onPostExecute(Void unused) {
+			if (mActivity != null) {
+				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
+				mGetAllStationsTask = null;
+				mCursor.requery();
+			}
+		}
+
+		int getProgress() {
+			return progress;
+		}
+	}
+
+	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
+
+		private int progress = 0;
+
+		protected void onPreExecute() {
+			isUpdating = true;
+			if (mActivity != null) {
+				((IVcuboidActivity) mActivity).showUpdateAllStationsOnProgress();
+			}
+		}
+
+		protected Void doInBackground(Void... unused) {
+			RestClient.jsonBikesToDb(RestClient
+					.connect("http://vcuboid.appspot.com/stations"),
+					mVcuboidDBAdapter);
+			Log.i("Vcuboid", "Async task finished");
+			return (null);
+		}
+
+		@Override
+		protected void onPostExecute(Void unused) {
+			if (mActivity == null) {
+				progress = 100;
+			} else {
+				isUpdating = false;
+				((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
+				mUpdateAllStationsTask = null;
+				mCursor.requery();
+			}
+		}
+
+		public int getProgress() {
+			return progress;
+		}
+	}
+	
+	private class OnVcubFilterChangeListener implements OnSharedPreferenceChangeListener {
+
+		@Override
+		public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+			Log.e("Vcuboid", "Filter changed");
+			if (key.equals("favorite_filter")) {
+				mVcubFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(key, false));
+			}
+		}
 	}
 }
