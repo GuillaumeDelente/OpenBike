@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+   <PreferenceCategory
+            android:title="@string/map_preferences_title">
+            
+        <CheckBoxPreference
+                android:key = "map_always_on_my_position"
+                android:title = "@string/always_on_my_position_title"
+                android:summary = "@string/always_on_my_position_summary" 
+                />           
+    </PreferenceCategory>
+</PreferenceScreen>

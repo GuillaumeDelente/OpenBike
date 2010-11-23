@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+   <PreferenceCategory
+            android:title="@string/filter_preferences_title">
+            
+        <CheckBoxPreference
+                android:key="favorite_filter"
+                android:title="@string/favorite_filter_title"
+                android:summary="@string/favorite_filter_summary" 
+                />
+        <CheckBoxPreference
+				android:key="bikes_filter"
+				android:title="@string/bikes_filter_title"
+				android:summary="@string/bikes_filter_summary" 
+				/>
+        <CheckBoxPreference
+				android:key="slots_filter"
+				android:title="@string/slots_filter_title"
+				android:summary="@string/slots_filter_summary" 
+				/>
+            
+    </PreferenceCategory>
+</PreferenceScreen>
