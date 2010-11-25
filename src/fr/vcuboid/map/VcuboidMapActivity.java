@@ -27,8 +27,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	//private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
 
-	// TODO: Globalize Shared preferences
-
 	/** {@inheritDoc} */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -143,6 +141,12 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onFilterChanged() {
 		// TODO Auto-generated method stub
 		
 	}

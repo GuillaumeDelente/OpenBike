@@ -16,7 +16,6 @@ public class VcuboidManager {
 	public static boolean isUpdating = false;
 	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
 	protected static IVcuboidActivity mActivity = null;
-	private static Cursor mCursor = null;
 	private static VcuboidManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
 	private static VcubFilter mVcubFilter = null;
@@ -39,7 +38,6 @@ public class VcuboidManager {
 		if (mThis == null) {
 			mThis = new VcuboidManager(activity);
 		} else {
-			mVcuboidDBAdapter.open();
 			mActivity = activity;
 			mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		}
@@ -52,7 +50,6 @@ public class VcuboidManager {
 
 	public void attach(VcuboidListActivity activity) {
 		mActivity = activity;
-		((Activity) mActivity).startManagingCursor(mCursor);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		if (mGetAllStationsTask != null) {
 			mThis.retrieveGetAllStationTask();
@@ -62,30 +59,19 @@ public class VcuboidManager {
 	}
 
 	public void detach() {
-		((Activity) mActivity).stopManagingCursor(mCursor);
 		mActivity = null;
 	}
 	
 	public Cursor getCursor() {
-		if (mCursor != null) {
-			((Activity) mActivity).stopManagingCursor(mCursor);
-			mCursor.close();
-		}
-
-		mCursor = mVcuboidDBAdapter
+		if (mVcuboidDBAdapter.getStationCount() == 0)
+			executeGetAllStationsTask();
+		Cursor cursor = mVcuboidDBAdapter
 				.getFilteredStationsCursor(mVcubFilter);
-		
-		((Activity) mActivity).startManagingCursor(mCursor);
-
-		 if (mCursor.getCount() == 0)
-		 	if (mVcuboidDBAdapter.getStationCount() == 0 && mGetAllStationsTask == null) // Because of filters, check the whole table
-		 		mThis.executeGetAllStationsTask();	
-		 mCursor.requery();
-		 
-		return mCursor;
+		((Activity) mActivity).startManagingCursor(cursor);
+		return cursor;
 	}
 
-	private boolean executeGetAllStationsTask() {
+	public boolean executeGetAllStationsTask() {
 		Log.e("executeGetAllStationsTask", "Ok");
 		if (mGetAllStationsTask == null) {
 			mGetAllStationsTask = (GetAllStationsTask) new GetAllStationsTask()
@@ -133,14 +119,6 @@ public class VcuboidManager {
 		mVcubFilter = new VcubFilter(mFilterPreferences.getBoolean("favorite_filter", false));
 	}
 
-	public void onDestroy() {
-		mVcuboidDBAdapter.close();
-		/*
-		 * if (mGetAllStationsTask == null && mUpdateAllStationsTask == null)
-		 * mVcuboidDBAdapter.close();
-		 */
-	}
-
 	public void clearDB() {
 		mVcuboidDBAdapter.reset();
 		mVcuboidDBAdapter.close();
@@ -149,11 +127,6 @@ public class VcuboidManager {
 
 	public void setFavorite(int id, boolean isChecked) {
 		mVcuboidDBAdapter.updateFavorite(id, isChecked);
-		mCursor.requery();
-	}
-	
-	public void onPause() {
-		mVcuboidDBAdapter.close();
 	}
 	
 	/************************************/
@@ -195,7 +168,6 @@ public class VcuboidManager {
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
-				mCursor.requery();
 			}
 		}
 
@@ -231,7 +203,6 @@ public class VcuboidManager {
 				isUpdating = false;
 				((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 				mUpdateAllStationsTask = null;
-				mCursor.requery();
 			}
 		}
 
@@ -247,6 +218,7 @@ public class VcuboidManager {
 			Log.e("Vcuboid", "Filter changed");
 			if (key.equals("favorite_filter")) {
 				mVcubFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(key, false));
+				mActivity.onFilterChanged();
 			}
 		}
 	}

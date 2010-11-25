@@ -20,53 +20,48 @@ import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.database.VcuboidDBAdapter;
 import fr.vcuboid.map.VcuboidMapActivity;
 
-public class VcuboidListActivity extends ListActivity  implements IVcuboidActivity {
+public class VcuboidListActivity extends ListActivity implements
+		IVcuboidActivity {
 
 	private VcuboidManager mVcuboidManager = null;
 	private SimpleCursorAdapter mAdapter = null;
 	private boolean isConfigurationChanged = false;
-	
+
 	private ProgressDialog mPd = null;
-	private int[] mListAdapterTo = new int[] { R.id.name_entry, R.id.bikes_entry,
-			R.id.slots_entry };
+	private int[] mListAdapterTo = new int[] { R.id.name_entry,
+			R.id.bikes_entry, R.id.slots_entry };
 	String[] mListAdapterFrom = new String[] { VcuboidDBAdapter.KEY_NAME,
 			VcuboidDBAdapter.KEY_BIKES, VcuboidDBAdapter.KEY_SLOTS };
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		try {
-			Log.e("Vcuboid", "OnCreate");
-			setContentView(R.layout.station_list);
-			mVcuboidManager = (VcuboidManager) getLastNonConfigurationInstance();
-			if (mVcuboidManager == null) { // No AsyncTask running
-				Log.e("Vcuboid", "No AsyncTask running");
-				mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
-			} else {
-				Log.e("Vcuboid", "AsyncTask running, attaching it to the activity");
-				mVcuboidManager.attach(this);
-			}
-		} catch (Exception e) {
-			Log.e("ERROR", "ERROR IN CODE:" + e.toString());
+		Log.e("Vcuboid", "OnCreate");
+		setContentView(R.layout.station_list);
+		mVcuboidManager = (VcuboidManager) getLastNonConfigurationInstance();
+		if (mVcuboidManager == null) { // No AsyncTask running
+			Log.e("Vcuboid", "No AsyncTask running");
+			mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
+		} else {
+			Log.e("Vcuboid", "AsyncTask running, attaching it to the activity");
+			mVcuboidManager.attach(this);
 		}
+		mAdapter = new VcuboidSimpleCursorAdaptor(this,
+				R.layout.station_list_entry, mVcuboidManager.getCursor(),
+				mListAdapterFrom, mListAdapterTo);
+		this.setListAdapter(mAdapter);
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
 		Log.e("Vcuboid", "onResume");
-		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
-		mAdapter = new VcuboidSimpleCursorAdaptor(this,
-				R.layout.station_list_entry, mVcuboidManager
-						.getCursor(), mListAdapterFrom, mListAdapterTo);
-		this.setListAdapter(mAdapter);
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
 		Log.e("Vcuboid", "onPause");
-		mVcuboidManager.onPause();
 	}
 
 	@Override
@@ -83,17 +78,13 @@ public class VcuboidListActivity extends ListActivity  implements IVcuboidActivi
 		case R.id.menu_clear_db:
 			mVcuboidManager.clearDB();
 			finish();
-			//mAdapter.getCursor().requery();
+			// mAdapter.getCursor().requery();
 			return true;
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
 			return true;
 		case R.id.menu_filters:
 			startActivity(new Intent(this, FilterPreferencesActivity.class));
-			mAdapter = new VcuboidSimpleCursorAdaptor(this,
-					R.layout.station_list_entry, mVcuboidManager
-							.getCursor(), mListAdapterFrom, mListAdapterTo);
-			this.setListAdapter(mAdapter);
 			return true;
 		case R.id.menu_map:
 			startActivity(new Intent(this, VcuboidMapActivity.class));
@@ -114,8 +105,6 @@ public class VcuboidListActivity extends ListActivity  implements IVcuboidActivi
 
 	@Override
 	protected void onDestroy() {
-		if (!isConfigurationChanged)
-			mVcuboidManager.onDestroy();
 		super.onDestroy();
 	}
 
@@ -128,7 +117,7 @@ public class VcuboidListActivity extends ListActivity  implements IVcuboidActivi
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
-		//String title = "Récuperation de la liste des stations";
+		// String title = "Récuperation de la liste des stations";
 		mPd
 				.setMessage("Données recues, sauvegarde dans la base de donnée en cours...");
 	}
@@ -137,10 +126,10 @@ public class VcuboidListActivity extends ListActivity  implements IVcuboidActivi
 	public void finishGetAllStationsOnProgress() {
 		// TODO : registerDataSetObserver for automatying refresh
 		// when cursor changes
-		//mAdapter.getCursor().requery();
+		mAdapter.getCursor().requery();
 		mPd.dismiss();
 	}
-	
+
 	@Override
 	public void showUpdateAllStationsOnProgress() {
 		for (int i = 0; i < this.getListView().getChildCount(); i++) {
@@ -148,13 +137,19 @@ public class VcuboidListActivity extends ListActivity  implements IVcuboidActivi
 					.setVisibility(View.VISIBLE);
 		}
 	}
-	
+
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
+		mAdapter.getCursor().requery();
 		for (int i = 0; i < this.getListView().getChildCount(); i++) {
 			this.getListView().getChildAt(i).findViewById(R.id.refreshing)
 					.setVisibility(View.INVISIBLE);
 		}
+	}
+
+	@Override
+	public void onFilterChanged() {
+		mAdapter.changeCursor(mVcuboidManager.getCursor());
 	}
 }
 
@@ -162,6 +157,7 @@ class FavoriteListener implements OnCheckedChangeListener {
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		VcuboidManager.getVcuboidManagerInstance().setFavorite((Integer) buttonView.getTag(), isChecked);
+		VcuboidManager.getVcuboidManagerInstance().setFavorite(
+				(Integer) buttonView.getTag(), isChecked);
 	}
 }

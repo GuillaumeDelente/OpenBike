@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 import fr.vcuboid.VcubFilter;
+import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.object.Station;
 
 public class VcuboidDBAdapter {

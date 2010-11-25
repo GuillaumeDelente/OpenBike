@@ -7,5 +7,7 @@ public interface IVcuboidActivity {
 	public void finishGetAllStationsOnProgress();
 	public void showUpdateAllStationsOnProgress();
 	public void finishUpdateAllStationsOnProgress();
+	public void onFilterChanged();
+	
 
 }
