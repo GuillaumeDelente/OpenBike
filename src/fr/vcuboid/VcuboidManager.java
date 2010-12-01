@@ -1,5 +1,7 @@
 package fr.vcuboid;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
 import fr.vcuboid.list.VcuboidListActivity;
+import fr.vcuboid.map.StationOverlay;
 
 public class VcuboidManager {
 
@@ -18,6 +21,7 @@ public class VcuboidManager {
 	protected static IVcuboidActivity mActivity = null;
 	private static VcuboidManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
+	private static ArrayList<StationOverlay> mVisibleStations = null;
 	private static VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
@@ -46,6 +50,10 @@ public class VcuboidManager {
 	
 	public static synchronized VcuboidManager getVcuboidManagerInstance() {
 		return mThis;
+	}
+	
+	public void setCurrentActivity(IVcuboidActivity activity) {
+		mActivity = activity;
 	}
 
 	public void attach(VcuboidListActivity activity) {
@@ -127,6 +135,36 @@ public class VcuboidManager {
 
 	public void setFavorite(int id, boolean isChecked) {
 		mVcuboidDBAdapter.updateFavorite(id, isChecked);
+	}
+	
+	public ArrayList<StationOverlay> getVisibleStations() {
+		mVisibleStations = new ArrayList<StationOverlay>();
+		Cursor c = getCursor();
+		StationOverlay s;
+		int i = 0;
+		while(c.moveToNext()) {
+			s = new StationOverlay(
+					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
+					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN),
+					i
+					/*
+					c.getInt(VcuboidDBAdapter.ID_COLUMN), 
+					c.getString(VcuboidDBAdapter.NETWORK_COLUMN),
+					c.getString(VcuboidDBAdapter.NAME_COLUMN), 
+					c.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
+					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
+					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
+					c.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ? false : true, 
+					c.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ? false : true
+					*/
+					);
+			mVisibleStations.add(s);
+		}
+		return mVisibleStations;
 	}
 	
 	/************************************/
@@ -218,6 +256,7 @@ public class VcuboidManager {
 			Log.e("Vcuboid", "Filter changed");
 			if (key.equals("favorite_filter")) {
 				mVcubFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(key, false));
+				Log.e("Vcuboid", "Filter changed for " + mActivity);
 				mActivity.onFilterChanged();
 			}
 		}

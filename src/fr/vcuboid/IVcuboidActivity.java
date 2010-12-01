@@ -9,5 +9,4 @@ public interface IVcuboidActivity {
 	public void finishUpdateAllStationsOnProgress();
 	public void onFilterChanged();
 	
-
 }

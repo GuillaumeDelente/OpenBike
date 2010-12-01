@@ -1,8 +1,12 @@
 package fr.vcuboid.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -13,6 +17,7 @@ import android.view.MenuItem;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.Overlay;
 
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.R;
@@ -22,18 +27,20 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	private MapController mMapController;
 	private MyCustomLocationOverlay mMyLocationOverlay;
+	private ArrayList<StationOverlay> mStationsOverlay;
+	private List<Overlay> mMapOverlays;
 	private boolean mIsVeryFirstFix = true;
 	private SharedPreferences mMapPreferences = null;
-	//private MapView mMapView = null;
+	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
 
 	/** {@inheritDoc} */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.e("Vcuboid", "Map on create");
 		setContentView(R.layout.map_layout);
-
-		MapView mMapView = (MapView) findViewById(R.id.map_view);
+		mMapView = (MapView) findViewById(R.id.map_view);
 		mMapController = mMapView.getController();
 		mMapView.setSatellite(true);
 		mMapView.setStreetView(false);
@@ -48,7 +55,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		} else {
 			mMyLocationOverlay = new MyCustomLocationOverlay(this, mMapView);
 		}
-		
+
 		mMyLocationOverlay.runOnFirstFix(new Runnable() {
 
 			@Override
@@ -62,9 +69,14 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			}
 		});
 		mMyLocationOverlay.enableMyLocation();
-		mMapView.getOverlays().add(mMyLocationOverlay);
-		Cursor c = mVcuboidManager.getCursor();
-		Log.e("Vcuboid", "Cursor est de taille " + c.getCount());
+		mMapOverlays = mMapView.getOverlays();
+		Bitmap marker = BitmapFactory.decodeResource(getResources(),
+				R.drawable.v3);
+		StationOverlay.setMarker(marker);
+		mStationsOverlay = mVcuboidManager.getVisibleStations();
+		mMapOverlays.addAll(mStationsOverlay);
+		mMapOverlays.add(mMyLocationOverlay);
+
 	}
 
 	@Override
@@ -89,6 +101,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	/** {@inheritDoc} */
 	@Override
 	protected void onResume() {
+		mVcuboidManager.setCurrentActivity(this);
 		if (mMapPreferences.getBoolean("map_always_on_my_position", false)) {
 			mMyLocationOverlay.setAlwaysCentered(mMapController);
 		} else {
@@ -118,36 +131,36 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	@Override
 	public void finishGetAllStationsOnProgress() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void showGetAllStationsOnProgress() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void showUpdateAllStationsOnProgress() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onFilterChanged() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

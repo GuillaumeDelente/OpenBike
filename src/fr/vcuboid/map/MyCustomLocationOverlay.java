@@ -2,7 +2,6 @@ package fr.vcuboid.map;
 
 import android.content.Context;
 import android.location.Location;
-import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapController;
@@ -35,12 +34,9 @@ public class MyCustomLocationOverlay extends MyLocationOverlay {
 	public void onLocationChanged(Location location) {
 		super.onLocationChanged(location);
 		if (mMapController != null) {
-			Double latitude = location.getLatitude() * 1E6;
-			Double longitude = location.getLongitude() * 1E6;
-			mMapController.animateTo(new GeoPoint(latitude.intValue(),
-					longitude.intValue()));
-		} else {
-			Log.e("Vcuboid", "MyCustomLocationOverlay : controller NULL !");
+			int latitude = (int) (location.getLatitude() * 1E6);
+			int longitude = (int) (location.getLongitude() * 1E6);
+			mMapController.animateTo(new GeoPoint(latitude, longitude));
 		}
 	}
 

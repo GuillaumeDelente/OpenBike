@@ -10,7 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 import fr.vcuboid.VcubFilter;
-import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.object.Station;
 
 public class VcuboidDBAdapter {
@@ -45,13 +44,13 @@ public class VcuboidDBAdapter {
 	private static final String DATABASE_CREATE = "create table "
 		+ DATABASE_TABLE + " (" 
 		+ KEY_ID + " integer primary key, "
-		+ KEY_NAME + " text not null, " 
-		+ KEY_OPEN + " integer not null, " 
+		+ KEY_NAME + " text not null, "
+		+ KEY_OPEN + " integer not null, "
 		+ KEY_BIKES + " integer not null, "
-		+ KEY_SLOTS + " integer not null, " 
-		+ KEY_ADDRESS + " text not null, " 
-		+ KEY_LATITUDE + " real not null, "
-		+ KEY_LONGITUDE + " real not null, " 
+		+ KEY_SLOTS + " integer not null, "
+		+ KEY_ADDRESS + " text not null, "
+		+ KEY_LATITUDE + " integer not null, "
+		+ KEY_LONGITUDE + " integer not null, "
 		+ KEY_NETWORK + " text not null, " 
 		+ KEY_FAVORITE + " integer not null );";
 

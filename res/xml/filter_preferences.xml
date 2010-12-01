@@ -19,6 +19,5 @@
 				android:title="@string/slots_filter_title"
 				android:summary="@string/slots_filter_summary" 
 				/>
-            
     </PreferenceCategory>
 </PreferenceScreen>

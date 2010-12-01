@@ -12,5 +12,6 @@ public class MapPreferencesActivity extends PreferenceActivity {
 
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.map_preferences);
+        addPreferencesFromResource(R.xml.filter_preferences);
     }
 }

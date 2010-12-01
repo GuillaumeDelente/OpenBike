@@ -3,7 +3,6 @@ package fr.vcuboid.list;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -25,7 +24,6 @@ public class VcuboidListActivity extends ListActivity implements
 
 	private VcuboidManager mVcuboidManager = null;
 	private SimpleCursorAdapter mAdapter = null;
-	private boolean isConfigurationChanged = false;
 
 	private ProgressDialog mPd = null;
 	private int[] mListAdapterTo = new int[] { R.id.name_entry,
@@ -55,7 +53,8 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.e("Vcuboid", "onResume");
+		mVcuboidManager.setCurrentActivity(this);
+		Log.e("Vcuboid", "onResume " + this);
 	}
 
 	@Override
@@ -99,7 +98,6 @@ public class VcuboidListActivity extends ListActivity implements
 		if (mPd != null)
 			mPd.dismiss();
 		mVcuboidManager.detach();
-		isConfigurationChanged = true;
 		return (mVcuboidManager);
 	}
 
@@ -149,6 +147,7 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void onFilterChanged() {
+		Log.e("Vcuboid", "Changing cursor");
 		mAdapter.changeCursor(mVcuboidManager.getCursor());
 	}
 }

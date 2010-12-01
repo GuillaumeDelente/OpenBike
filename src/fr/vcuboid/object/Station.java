@@ -4,7 +4,7 @@ package fr.vcuboid.object;
  * Model class which will store the Station Items
  * 
  * @author Guillaume Delente
- *
+ * 
  */
 
 public class Station {
@@ -12,8 +12,8 @@ public class Station {
 	private String network;
 	private String name;
 	private String address;
-	private double longitude;
-	private double latitude;
+	private int longitude;
+	private int latitude;
 	private int availableBikes;
 	private int freeSlots;
 	boolean isOpen;
@@ -21,6 +21,14 @@ public class Station {
 
 	public Station(int id, String network, String name, String address,
 			double longitude, double latitude, int availablesBikes,
+			int freeLocations, boolean isOpen, boolean isFavorite) {
+		this(id, network, name, address, (int) (longitude * 1E6),
+				(int) (latitude * 1E6), availablesBikes, freeLocations,
+				isOpen, isFavorite);
+	}
+
+	public Station(int id, String network, String name, String address,
+			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite) {
 		this.id = id;
 		this.network = network;
@@ -45,7 +53,7 @@ public class Station {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public void setAddress(String address) {
 		this.address = address;
 	}
@@ -53,21 +61,21 @@ public class Station {
 	public String getAddress() {
 		return address;
 	}
-	
-	public double getLongitude() {
+
+	public int getLongitude() {
 		return longitude;
 	}
 
 	public void setLongitude(double longitude) {
-		this.longitude = longitude;
+		this.longitude = (int) (longitude * 1E6);
 	}
 
-	public double getLatitude() {
+	public int getLatitude() {
 		return latitude;
 	}
 
 	public void setLatitude(double latitude) {
-		this.latitude = latitude;
+		this.latitude = (int) (latitude * 1E6);
 	}
 
 	public int getAvailableBikes() {
@@ -91,13 +99,13 @@ public class Station {
 	}
 
 	public void setOpen(boolean isOpen) {
-		if((this.isOpen = isOpen) == false) {
+		if ((this.isOpen = isOpen) == false) {
 			setAvailableBikes(0);
 			setFreeSlots(0);
 		}
-		
+
 	}
-	
+
 	public String getNetwork() {
 		return network;
 	}
@@ -105,7 +113,7 @@ public class Station {
 	public void setNetwork(String network) {
 		this.network = network;
 	}
-	
+
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -113,7 +121,7 @@ public class Station {
 	public int getId() {
 		return this.id;
 	}
-	
+
 	public boolean isFavorite() {
 		return isFavorite;
 	}
