@@ -1,12 +1,14 @@
 package fr.vcuboid.map;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -27,7 +29,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	private MapController mMapController;
 	private MyCustomLocationOverlay mMyLocationOverlay;
-	private ArrayList<StationOverlay> mStationsOverlay;
 	private List<Overlay> mMapOverlays;
 	private boolean mIsVeryFirstFix = true;
 	private SharedPreferences mMapPreferences = null;
@@ -73,10 +74,17 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
 				R.drawable.v3);
 		StationOverlay.setMarker(marker);
-		mStationsOverlay = mVcuboidManager.getVisibleStations();
-		mMapOverlays.addAll(mStationsOverlay);
+		StationOverlay.setMapView(mMapView);
+		ArrayList<StationOverlay> stations = mVcuboidManager
+				.getVisibleStations();
+		Collections.reverse(stations);
+		mMapOverlays.addAll(stations);
 		mMapOverlays.add(mMyLocationOverlay);
+	}
 
+	@Override
+	protected boolean isLocationDisplayed() {
+		return true;
 	}
 
 	@Override
@@ -162,5 +170,28 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	public void onFilterChanged() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		StationOverlay current = (StationOverlay) mMapOverlays
+		.get(mMapOverlays.size() - 2);
+		// TODO: Debuging only -------------------------
+		if (mMapOverlays.get(mMapOverlays.size() - 1) instanceof MyCustomLocationOverlay) {
+			Log.e("Vcuboid2", "Location OK");
+		}
+		if (!(mMapOverlays.get(mMapOverlays.size() - 2) instanceof StationOverlay)) {
+			Log.e("Vcuboid2", "Pas bon ! ");
+		}
+		// ---------------------------------------------
+		if (!current.isCurrent)
+			current = null;
+		mMapOverlays.clear();
+		ArrayList stations = mVcuboidManager.onLocationChanged(location,
+				current);
+		Collections.reverse(stations);
+		mMapOverlays.addAll(stations);
+		mMapOverlays.add(mMyLocationOverlay);
+		mMapView.invalidate();
 	}
 }

@@ -1,18 +1,21 @@
 package fr.vcuboid;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
 import fr.vcuboid.list.VcuboidListActivity;
 import fr.vcuboid.map.StationOverlay;
+import fr.vcuboid.utils.Utils;
 
 public class VcuboidManager {
 
@@ -141,14 +144,14 @@ public class VcuboidManager {
 		mVisibleStations = new ArrayList<StationOverlay>();
 		Cursor c = getCursor();
 		StationOverlay s;
-		int i = 0;
 		while(c.moveToNext()) {
 			s = new StationOverlay(
+					c.getInt(VcuboidDBAdapter.ID_COLUMN),
 					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
 					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
 					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
 					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN),
-					i
+					-1
 					/*
 					c.getInt(VcuboidDBAdapter.ID_COLUMN), 
 					c.getString(VcuboidDBAdapter.NETWORK_COLUMN),
@@ -164,6 +167,35 @@ public class VcuboidManager {
 					);
 			mVisibleStations.add(s);
 		}
+		return mVisibleStations;
+	}
+	
+	public ArrayList<StationOverlay> onLocationChanged(Location location, StationOverlay current) {
+		mVisibleStations.clear();
+		Cursor c = getCursor();
+		StationOverlay station = null;
+		Location l = new Location(location);
+		int distance = 0;
+		while(c.moveToNext()) {
+			l.setLatitude((double) c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
+			l.setLongitude((double) c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
+			distance = (int) location.distanceTo(l);
+			int id = c.getInt(VcuboidDBAdapter.ID_COLUMN);
+			if (current != null && current.getId() == id) {
+				current.setdistance(distance);
+			} else {
+				station = new StationOverlay(
+					id,
+					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
+					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
+					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN),
+					distance
+					);		
+			}
+			mVisibleStations.add(station);
+		}
+		Utils.sortStations(mVisibleStations);
 		return mVisibleStations;
 	}
 	
