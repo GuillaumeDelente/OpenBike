@@ -1,6 +1,5 @@
 package fr.vcuboid.map;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,11 +10,8 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.Paint.Align;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 
 import com.google.android.maps.GeoPoint;
@@ -24,8 +20,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
-import fr.vcuboid.BalloonOverlayView;
-import fr.vcuboid.R;
+import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
 public class StationOverlay extends Overlay {
@@ -34,35 +29,22 @@ public class StationOverlay extends Overlay {
 	static private int mMarkerHeight = 0;
 	static private int mMarkerWidth = 0;
 	static private MapView mMapView;
-	static private BalloonOverlayView balloonView;
+	static public BalloonOverlayView balloonView;
 	static MapController mMc;
-	static private View mClickRegion;
-	private GeoPoint mPoint = null;
-	private int mBikes = 0;
-	private int mSlots = 0;
-	private int mDistance = 0;
-	private int mId;
+	private Station mStation;
+	
+	public Station getStation() {
+		return mStation;
+	}
+
+	public void setmStation(Station station) {
+		mStation = station;
+	}
+
 	public boolean isCurrent = false;
-
-	public int getDistance() {
-		return mDistance;
-	}
-
-	public void setdistance(int distance) {
-		this.mDistance = distance;
-	}
-
-	public int getId() {
-		return mId;
-	}
-
-	public StationOverlay(int id, int latitude, int longitude, int bikes,
-			int slots, int distance) {
-		mId = id;
-		mPoint = new GeoPoint(latitude, longitude);
-		mBikes = bikes;
-		mSlots = slots;
-		mDistance = distance;
+	
+	public StationOverlay(Station station) {
+		mStation = station;
 	}
 
 	@Override
@@ -79,14 +61,14 @@ public class StationOverlay extends Overlay {
 			int longMin = longCenter - (longSpan / 2);
 			Projection projection = mapView.getProjection();
 			longMin += projection.fromPixels(mMarkerWidth, 0).getLongitudeE6();
-			int stationLon = mPoint.getLongitudeE6();
-			int stationLat = mPoint.getLatitudeE6();
+			int stationLon = mStation.getGeoPoint().getLongitudeE6();
+			int stationLat = mStation.getGeoPoint().getLatitudeE6();
 			if (stationLat < latMin || stationLat > latMax
 			|| stationLon < longMin || stationLon> longMax) { 
 				return;
 			}
 			Point out = new Point();
-			projection.toPixels(mPoint, out);
+			projection.toPixels(mStation.getGeoPoint(), out);
 			Paint p1 = new Paint();
 			p1.setAntiAlias(true);
 			p1.setTextSize(15);
@@ -95,8 +77,8 @@ public class StationOverlay extends Overlay {
 			p1.setTypeface(Typeface.DEFAULT_BOLD);
 			out.y -= mMarkerHeight;
 			canvas.drawBitmap(mMarker, out.x, out.y, null);
-			canvas.drawText(String.valueOf(mBikes), out.x + 20, out.y + 20, p1);
-			canvas.drawText(String.valueOf(mSlots), out.x + 20, out.y + 35, p1);
+			canvas.drawText(String.valueOf(mStation.getBikes()), out.x + 20, out.y + 20, p1);
+			canvas.drawText(String.valueOf(mStation.getSlots()), out.x + 20, out.y + 35, p1);
 			p1.setTextAlign(Align.LEFT);
 			p1.setTextSize(12);
 			canvas.drawText("Vélos", out.x + 25, out.y + 20, p1);
@@ -111,7 +93,7 @@ public class StationOverlay extends Overlay {
 		Point marker = new Point();
 		Projection projection = mapView.getProjection();
 		projection.toPixels(p, touched);
-		projection.toPixels(mPoint, marker);
+		projection.toPixels(mStation.getGeoPoint(), marker);
 		if (touched.x >= marker.x && touched.x <= marker.x + mMarkerWidth
 				&& touched.y <= marker.y
 				&& touched.y >= marker.y - mMarkerHeight) {
@@ -119,13 +101,10 @@ public class StationOverlay extends Overlay {
 			if (balloonView == null) {
 				balloonView = new BalloonOverlayView(mapView.getContext(),
 						mMarkerWidth, mMarkerHeight);
-				mClickRegion = (View) balloonView
-						.findViewById(R.id.balloon_inner_layout);
 				isRecycled = false;
 			} else {
 				isRecycled = true;
 			}
-			balloonView.setVisibility(View.GONE);
 			List<Overlay> mapOverlays = mapView.getOverlays();
 			Log.e("Vcuboid2", "Removing ballons");
 			// Debuging only -------------------------------------
@@ -144,29 +123,32 @@ public class StationOverlay extends Overlay {
 			Utils.sortStations(mapOverlays);
 			Collections.reverse(mapOverlays);
 			Log.e("Vcuboid2", "After adding ballons");
-			if (mapOverlays.get(mapOverlays.size() - 1) instanceof MyCustomLocationOverlay) {
-				Log.e("Vcuboid2", "MyPosition OK");
+			if (!(mapOverlays.get(mapOverlays.size() - 1) instanceof MyCustomLocationOverlay)) {
+				Log.e("Balloon", "onTap, Last not MyCustomLocationOverlay");
 			}
 			if (!(mapOverlays.get(mapOverlays.size() - 2) instanceof StationOverlay)) {
-				Log.e("Vcuboid2", "First Station OK");
+				Log.e("Balloon", "onTap, before last not a StationOverlay");
 			}
-			balloonView.setData(null, mDistance);
+			balloonView.setData(null, mStation.getDistance());
 			MapView.LayoutParams params = new MapView.LayoutParams(
 					LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
-					mPoint, MapView.LayoutParams.BOTTOM_CENTER);
+					mStation.getGeoPoint(), MapView.LayoutParams.BOTTOM_CENTER);
 			params.mode = MapView.LayoutParams.MODE_MAP;
-			setBalloonTouchListener(mId);
+			//setBalloonTouchListener(mId);
 			balloonView.setVisibility(View.VISIBLE);
-
 			if (isRecycled) {
 				balloonView.setLayoutParams(params);
 			} else {
 				mapView.addView(balloonView, params);
 			}
-
-			mMc.animateTo(mPoint);
-
+			mMc.animateTo(mStation.getGeoPoint());
+			Log.e("Balloon", "Overlay size : " + mapOverlays.size());
 			return true;
+		} else {
+			List<Overlay> mapOverlays = mapView.getOverlays();
+			hideOtherBalloons(mapOverlays);
+			Utils.sortStations(mapOverlays);
+			Collections.reverse(mapOverlays);
 		}
 		return false;
 	}
@@ -179,7 +161,7 @@ public class StationOverlay extends Overlay {
 		return false;
 	}
 
-	private void hideBalloon() {
+	public void hideBalloon() {
 		isCurrent = false;
 		if (balloonView != null) {
 			balloonView.setVisibility(View.GONE);
@@ -191,9 +173,11 @@ public class StationOverlay extends Overlay {
 		Overlay overlay = overlays.get(baloonPosition);
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
+		} else {
+			Log.e("Balloon", "hideOtherBalloons, before last not a StationOverlay");
 		}
 	}
-
+/*
 	private void setBalloonTouchListener(final int thisIndex) {
 
 		try {
@@ -238,7 +222,7 @@ public class StationOverlay extends Overlay {
 			return;
 		}
 	}
-
+*/
 	public static void setMarker(Bitmap marker) {
 		mMarker = marker;
 		mMarkerHeight = marker.getHeight();

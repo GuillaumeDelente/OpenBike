@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
-import fr.vcuboid.VcubFilter;
+import fr.vcuboid.filter.VcubFilter;
 import fr.vcuboid.object.Station;
 
 public class VcuboidDBAdapter {
@@ -81,19 +81,21 @@ public class VcuboidDBAdapter {
 	}
 
 	// Insert a new task
-	public long insertStation(Station station) {
+	public long insertStation(int id, String name, String address,
+			String network, double latitude, double longitude, int bikes, int slots,
+			 boolean open) {
 		// Create a new row of values to insert.
 		ContentValues newVcubValues = new ContentValues();
 		// Assign values for each row.
-		newVcubValues.put(KEY_ID, station.getId());
-		newVcubValues.put(KEY_ADDRESS, station.getAddress());
-		newVcubValues.put(KEY_BIKES, station.getAvailableBikes());
-		newVcubValues.put(KEY_SLOTS, station.getFreeSlots());
-		newVcubValues.put(KEY_OPEN, station.isOpen() ? 1 : 0);
-		newVcubValues.put(KEY_LATITUDE, station.getLatitude());
-		newVcubValues.put(KEY_LONGITUDE, station.getLongitude());
-		newVcubValues.put(KEY_NAME, station.getName());
-		newVcubValues.put(KEY_NETWORK, station.getNetwork());
+		newVcubValues.put(KEY_ID, id);
+		newVcubValues.put(KEY_ADDRESS, address);
+		newVcubValues.put(KEY_BIKES, bikes);
+		newVcubValues.put(KEY_SLOTS, slots);
+		newVcubValues.put(KEY_OPEN, open ? 1 : 2);
+		newVcubValues.put(KEY_LATITUDE, (int) (latitude * 1E6));
+		newVcubValues.put(KEY_LONGITUDE, (int) (longitude * 1E6));
+		newVcubValues.put(KEY_NAME, name);
+		newVcubValues.put(KEY_NETWORK, network);
 		newVcubValues.put(KEY_FAVORITE, false);
 		// Insert the row.
 		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
@@ -135,7 +137,7 @@ public class VcuboidDBAdapter {
 		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, filter.getShowOnlyFavorites() ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, filter.isShowOnlyFavorites() ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
 	}
 
 	public Station getStation(int id) throws SQLException {

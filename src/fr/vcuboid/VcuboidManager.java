@@ -1,7 +1,7 @@
 package fr.vcuboid;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,9 +12,15 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.google.android.maps.GeoPoint;
+
 import fr.vcuboid.database.VcuboidDBAdapter;
+import fr.vcuboid.filter.Filtering;
+import fr.vcuboid.filter.VcubFilter;
 import fr.vcuboid.list.VcuboidListActivity;
 import fr.vcuboid.map.StationOverlay;
+import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
 public class VcuboidManager {
@@ -25,11 +31,17 @@ public class VcuboidManager {
 	private static VcuboidManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
 	private static ArrayList<StationOverlay> mVisibleStations = null;
-	private static VcubFilter mVcubFilter = null;
+	private VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
-	private OnVcubFilterChangeListener mOnVcubFilterChangeListener = null;
+	
+	public VcubFilter getVcubFilter() {
+		return mVcubFilter;
+	}
 
+	public void setVcubFilter(VcubFilter vcubFilter) {
+		mVcubFilter = vcubFilter;
+	}
 
 	private VcuboidManager(IVcuboidActivity activity) {
 		Log.e("Vcuboid", "New Manager created");
@@ -50,11 +62,11 @@ public class VcuboidManager {
 		}
 		return mThis;
 	}
-	
+
 	public static synchronized VcuboidManager getVcuboidManagerInstance() {
 		return mThis;
 	}
-	
+
 	public void setCurrentActivity(IVcuboidActivity activity) {
 		mActivity = activity;
 	}
@@ -71,15 +83,6 @@ public class VcuboidManager {
 
 	public void detach() {
 		mActivity = null;
-	}
-	
-	public Cursor getCursor() {
-		if (mVcuboidDBAdapter.getStationCount() == 0)
-			executeGetAllStationsTask();
-		Cursor cursor = mVcuboidDBAdapter
-				.getFilteredStationsCursor(mVcubFilter);
-		((Activity) mActivity).startManagingCursor(cursor);
-		return cursor;
 	}
 
 	public boolean executeGetAllStationsTask() {
@@ -124,9 +127,6 @@ public class VcuboidManager {
 	
 	private void initializeFilter() {
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
-		// Keep a reference on the listener for GC
-		mOnVcubFilterChangeListener = new OnVcubFilterChangeListener();
-		mFilterPreferences.registerOnSharedPreferenceChangeListener(mOnVcubFilterChangeListener);
 		mVcubFilter = new VcubFilter(mFilterPreferences.getBoolean("favorite_filter", false));
 	}
 
@@ -136,65 +136,74 @@ public class VcuboidManager {
 		mVcuboidDBAdapter.open();
 	}
 
-	public void setFavorite(int id, boolean isChecked) {
-		mVcuboidDBAdapter.updateFavorite(id, isChecked);
+	public void setFavorite(int position, boolean isChecked) {
+		Station s = mVisibleStations.get(position).getStation();
+		s.setFavorite(isChecked);
+		mVcuboidDBAdapter.updateFavorite(s.getId(), isChecked);
+		if (mVcubFilter.isShowOnlyFavorites()) {
+			mVisibleStations.remove(position);
+			mActivity.onListUpdated();
+		}
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
-		mVisibleStations = new ArrayList<StationOverlay>();
-		Cursor c = getCursor();
+		if (mVisibleStations != null) {
+			return mVisibleStations;
+		} else {
+			mVisibleStations = new ArrayList<StationOverlay>();
+			updateListFromDb();
+			Log.e("Vcuboid", "List : " + mVisibleStations);
+			return mVisibleStations;
+		}
+	}
+	
+	private void updateListFromDb() {
+		if (mVcuboidDBAdapter.getStationCount() == 0) {
+			executeGetAllStationsTask();
+			return;
+		}
+		mVisibleStations.clear();
+		Cursor cursor = mVcuboidDBAdapter
+				.getFilteredStationsCursor(mVcubFilter);
 		StationOverlay s;
-		while(c.moveToNext()) {
+		while(cursor.moveToNext()) {
 			s = new StationOverlay(
-					c.getInt(VcuboidDBAdapter.ID_COLUMN),
-					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
-					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN),
-					-1
-					/*
-					c.getInt(VcuboidDBAdapter.ID_COLUMN), 
-					c.getString(VcuboidDBAdapter.NETWORK_COLUMN),
-					c.getString(VcuboidDBAdapter.NAME_COLUMN), 
-					c.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
-					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
-					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
-					c.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ? false : true, 
-					c.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ? false : true
-					*/
-					);
+					new Station(cursor.getInt(VcuboidDBAdapter.ID_COLUMN), 
+							cursor.getString(VcuboidDBAdapter.NETWORK_COLUMN), 
+							cursor.getString(VcuboidDBAdapter.NAME_COLUMN), 
+							cursor.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
+							cursor.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
+							cursor.getInt(VcuboidDBAdapter.LATITUDE_COLUMN),
+							cursor.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
+							cursor.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
+							cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ? false : true,
+									cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ? false : true));
 			mVisibleStations.add(s);
 		}
-		return mVisibleStations;
+		cursor.close();
+		Utils.sortStations(mVisibleStations);
+	}
+	
+	public void updateDistance(Location location) {
+		if (mVisibleStations == null)
+			getVisibleStations();
+		StationOverlay overlay;
+		Station station;
+		Location l = new Location(location);
+		GeoPoint point;
+		Iterator<StationOverlay> it = mVisibleStations.iterator();
+		while(it.hasNext()) {
+			overlay = it.next();
+			station = overlay.getStation();
+			point = station.getGeoPoint();
+			l.setLatitude((double) point.getLatitudeE6()*1E-6);
+			l.setLongitude((double) point.getLongitudeE6()*1E-6);
+			station.setDistance((int) location.distanceTo(l));
+		}
 	}
 	
 	public ArrayList<StationOverlay> onLocationChanged(Location location, StationOverlay current) {
-		mVisibleStations.clear();
-		Cursor c = getCursor();
-		StationOverlay station = null;
-		Location l = new Location(location);
-		int distance = 0;
-		while(c.moveToNext()) {
-			l.setLatitude((double) c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
-			l.setLongitude((double) c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
-			distance = (int) location.distanceTo(l);
-			int id = c.getInt(VcuboidDBAdapter.ID_COLUMN);
-			if (current != null && current.getId() == id) {
-				current.setdistance(distance);
-			} else {
-				station = new StationOverlay(
-					id,
-					c.getInt(VcuboidDBAdapter.LATITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
-					c.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
-					c.getInt(VcuboidDBAdapter.SLOTS_COLUMN),
-					distance
-					);		
-			}
-			mVisibleStations.add(station);
-		}
+		updateDistance(location);
 		Utils.sortStations(mVisibleStations);
 		return mVisibleStations;
 	}
@@ -235,6 +244,7 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPostExecute(Void unused) {
+			updateListFromDb();
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
@@ -280,17 +290,12 @@ public class VcuboidManager {
 			return progress;
 		}
 	}
-	
-	private class OnVcubFilterChangeListener implements OnSharedPreferenceChangeListener {
 
-		@Override
-		public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-			Log.e("Vcuboid", "Filter changed");
-			if (key.equals("favorite_filter")) {
-				mVcubFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(key, false));
-				Log.e("Vcuboid", "Filter changed for " + mActivity);
-				mActivity.onFilterChanged();
-			}
-		}
+	public void applyFilter() {
+		if (mVcubFilter.isNeedDbQuery())
+			updateListFromDb();
+		else
+			Filtering.filter(mVisibleStations, mVcubFilter);
+		mActivity.onListUpdated();
 	}
 }

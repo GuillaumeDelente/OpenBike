@@ -34,6 +34,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
+	
+	static final int SET_FILTER = 0;
 
 	/** {@inheritDoc} */
 	@Override
@@ -81,6 +83,16 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mMapOverlays.addAll(stations);
 		mMapOverlays.add(mMyLocationOverlay);
 	}
+	
+	public void hideOverlayBalloon() {
+		int baloonPosition = mMapOverlays.size() - 2;
+		Overlay overlay = mMapOverlays.get(baloonPosition);
+		if (overlay instanceof StationOverlay) {
+			((StationOverlay) overlay).hideBalloon();
+		} else {
+			Log.e("Balloon", "hideOtherBalloons, before last not a StationOverlay");
+		}
+	}
 
 	@Override
 	protected boolean isLocationDisplayed() {
@@ -99,7 +111,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.menu_map_preferences:
-			startActivity(new Intent(this, MapPreferencesActivity.class));
+			startActivityForResult(new Intent(this, MapFilterActivity.class), SET_FILTER);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -121,9 +133,20 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onPause() {
+		hideOverlayBalloon();
+		StationOverlay.balloonView = null;
 		mMyLocationOverlay.disableMyLocation();
 		super.onPause();
 	}
+	
+    protected void onActivityResult(int requestCode, int resultCode,
+            Intent data) {
+        if (requestCode == SET_FILTER) {
+            if (resultCode == RESULT_OK) {
+				mVcuboidManager.applyFilter();
+            }
+        }
+    }
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -167,12 +190,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void onFilterChanged() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void onLocationChanged(Location location) {
 		StationOverlay current = (StationOverlay) mMapOverlays
 		.get(mMapOverlays.size() - 2);
@@ -184,14 +201,20 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			Log.e("Vcuboid2", "Pas bon ! ");
 		}
 		// ---------------------------------------------
-		if (!current.isCurrent)
+		if (!current.isCurrent) {
 			current = null;
+		}
 		mMapOverlays.clear();
-		ArrayList stations = mVcuboidManager.onLocationChanged(location,
+		ArrayList<StationOverlay> stations = mVcuboidManager.onLocationChanged(location,
 				current);
 		Collections.reverse(stations);
 		mMapOverlays.addAll(stations);
 		mMapOverlays.add(mMyLocationOverlay);
-		mMapView.invalidate();
+	}
+
+	@Override
+	public void onListUpdated() {
+		// TODO Auto-generated method stub
+		
 	}
 }

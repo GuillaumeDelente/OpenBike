@@ -9,7 +9,7 @@ public interface IVcuboidActivity {
 	public void finishGetAllStationsOnProgress();
 	public void showUpdateAllStationsOnProgress();
 	public void finishUpdateAllStationsOnProgress();
-	public void onFilterChanged();
 	public void onLocationChanged(Location location);
+	void onListUpdated();
 	
 }

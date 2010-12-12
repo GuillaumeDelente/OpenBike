@@ -1,5 +1,7 @@
 package fr.vcuboid.object;
 
+import com.google.android.maps.GeoPoint;
+
 /**
  * Model class which will store the Station Items
  * 
@@ -8,16 +10,16 @@ package fr.vcuboid.object;
  */
 
 public class Station {
-	private int id;
-	private String network;
-	private String name;
-	private String address;
-	private int longitude;
-	private int latitude;
-	private int availableBikes;
-	private int freeSlots;
-	boolean isOpen;
-	boolean isFavorite;
+	private int mId;
+	private String mNetwork;
+	private String mName;
+	private String mAddress;
+	private GeoPoint mGeoPoint;
+	private int mBikes;
+	private int mSlots;
+	private int mDistance;
+	private boolean mIsOpen;
+	private boolean mIsFavorite;
 
 	public Station(int id, String network, String name, String address,
 			double longitude, double latitude, int availablesBikes,
@@ -30,16 +32,16 @@ public class Station {
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite) {
-		this.id = id;
-		this.network = network;
-		this.address = address;
-		this.name = name;
-		this.longitude = longitude;
-		this.latitude = latitude;
-		this.availableBikes = availablesBikes;
-		this.freeSlots = freeLocations;
-		this.isOpen = isOpen;
-		this.isFavorite = isFavorite;
+		mId = id;
+		mNetwork = network;
+		mAddress = address;
+		mName = name;
+		setGeoPoint(new GeoPoint(latitude, longitude));
+		mBikes = availablesBikes;
+		mSlots = freeLocations;
+		mIsOpen = isOpen;
+		mIsFavorite = isFavorite;
+		mDistance = -1;
 	}
 
 	public Station() {
@@ -47,86 +49,85 @@ public class Station {
 	}
 
 	public String getName() {
-		return name;
+		return mName;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		mName = name;
 	}
 
 	public void setAddress(String address) {
-		this.address = address;
+		mAddress = address;
 	}
 
 	public String getAddress() {
-		return address;
+		return mAddress;
 	}
 
-	public int getLongitude() {
-		return longitude;
+	public int getBikes() {
+		return mBikes;
 	}
 
-	public void setLongitude(double longitude) {
-		this.longitude = (int) (longitude * 1E6);
+	public void setBikes(int bikes) {
+		mBikes = bikes;
 	}
 
-	public int getLatitude() {
-		return latitude;
+	public int getSlots() {
+		return mSlots;
 	}
 
-	public void setLatitude(double latitude) {
-		this.latitude = (int) (latitude * 1E6);
-	}
-
-	public int getAvailableBikes() {
-		return availableBikes;
-	}
-
-	public void setAvailableBikes(int availablesBikes) {
-		this.availableBikes = availablesBikes;
-	}
-
-	public int getFreeSlots() {
-		return freeSlots;
-	}
-
-	public void setFreeSlots(int freeSlots) {
-		this.freeSlots = freeSlots;
+	public void setSlots(int slots) {
+		mSlots = slots;
 	}
 
 	public boolean isOpen() {
-		return isOpen;
+		return mIsOpen;
 	}
 
 	public void setOpen(boolean isOpen) {
-		if ((this.isOpen = isOpen) == false) {
-			setAvailableBikes(0);
-			setFreeSlots(0);
+		if ((mIsOpen = isOpen) == false) {
+			mSlots = 0;
+			mBikes = 0;
 		}
-
 	}
 
 	public String getNetwork() {
-		return network;
+		return mNetwork;
 	}
 
 	public void setNetwork(String network) {
-		this.network = network;
+		this.mNetwork = network;
 	}
 
 	public void setId(int id) {
-		this.id = id;
+		this.mId = id;
 	}
 
 	public int getId() {
-		return this.id;
+		return this.mId;
 	}
 
 	public boolean isFavorite() {
-		return isFavorite;
+		return mIsFavorite;
 	}
 
 	public void setFavorite(boolean isFavorite) {
-		this.isFavorite = isFavorite;
+		mIsFavorite = isFavorite;
+	}
+
+	public void setGeoPoint(GeoPoint geoPoint) {
+		mGeoPoint = geoPoint;
+	}
+
+	public GeoPoint getGeoPoint() {
+		return mGeoPoint;
+	}
+
+	public void setDistance(int distance) {
+		mDistance = distance;
+	}
+
+	public int getDistance() {
+		return mDistance;
 	}
 }

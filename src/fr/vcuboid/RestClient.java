@@ -95,20 +95,18 @@ public class RestClient {
 			VcuboidDBAdapter vcuboidDBAdapter) {
 		try {
 			JSONArray jsonArray = new JSONArray(json);
-			Station newStation = new Station();
-			newStation.setFavorite(false);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				newStation.setId(jsonStation.getInt("id"));
-				newStation.setNetwork(jsonStation.getString("network"));
-				newStation.setName(jsonStation.getString("name"));
-				newStation.setAddress(jsonStation.getString("address"));
-				newStation.setLongitude(jsonStation.getDouble("longitude"));
-				newStation.setLatitude(jsonStation.getDouble("latitude"));
-				newStation.setAvailableBikes(jsonStation.getInt("availableBikes"));
-				newStation.setFreeSlots(jsonStation.getInt("freeSlots"));
-				newStation.setOpen(jsonStation.getBoolean("open"));
-				vcuboidDBAdapter.insertStation(newStation);
+				vcuboidDBAdapter.insertStation(
+						jsonStation.getInt("id"), 
+						jsonStation.getString("name"),
+						jsonStation.getString("address"),
+						jsonStation.getString("network"),
+						jsonStation.getDouble("latitude"),
+						jsonStation.getDouble("longitude"), 
+						jsonStation.getInt("availableBikes"), 
+						jsonStation.getInt("freeSlots"),
+						jsonStation.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {
@@ -126,7 +124,8 @@ public class RestClient {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
 				vcuboidDBAdapter.updateStation(jsonStation
 						.getInt("id"), jsonStation
-						.getInt("availableBikes"), jsonStation.getInt("freeSlots"), jsonStation.getBoolean("open"));
+						.getInt("availableBikes"), jsonStation.getInt("freeSlots"), 
+						jsonStation.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {

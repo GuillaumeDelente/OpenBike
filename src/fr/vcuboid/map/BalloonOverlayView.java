@@ -13,18 +13,16 @@
  * 
  */
 
-package fr.vcuboid;
+package fr.vcuboid.map;
 
 import android.content.Context;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.google.android.maps.OverlayItem;
+import fr.vcuboid.R;
 
 /**
  * A view representing a MapView marker information balloon.
@@ -56,9 +54,7 @@ public class BalloonOverlayView extends FrameLayout {
 	 * when rendering this view.
 	 */
 	public BalloonOverlayView(Context context, int balloonBottomOffset, int ballonLeftOffset) {
-
 		super(context);
-
 		setPadding(ballonLeftOffset, 0, 10, balloonBottomOffset);
 		mLayout = new LinearLayout(context);
 		mLayout.setVisibility(VISIBLE);
@@ -68,13 +64,6 @@ public class BalloonOverlayView extends FrameLayout {
 		View v = inflater.inflate(R.layout.balloon_overlay, mLayout);
 		mTitle = (TextView) v.findViewById(R.id.balloon_item_title);
 		mSnippet = (TextView) v.findViewById(R.id.balloon_item_snippet);
-
-		ImageView close = (ImageView) v.findViewById(R.id.close_img_button);
-		close.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				mLayout.setVisibility(GONE);
-			}
-		});
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);

@@ -11,26 +11,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.SimpleCursorAdapter;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import fr.vcuboid.FilterPreferencesActivity;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.R;
 import fr.vcuboid.VcuboidManager;
-import fr.vcuboid.database.VcuboidDBAdapter;
 import fr.vcuboid.map.VcuboidMapActivity;
 
 public class VcuboidListActivity extends ListActivity implements
 		IVcuboidActivity {
 
+	private static final int SET_FILTER = 0;
 	private VcuboidManager mVcuboidManager = null;
-	private SimpleCursorAdapter mAdapter = null;
-
+	private VcuboidArrayAdaptor mAdapter = null;
 	private ProgressDialog mPd = null;
-	private int[] mListAdapterTo = new int[] { R.id.name_entry,
-			R.id.bikes_entry, R.id.slots_entry };
-	String[] mListAdapterFrom = new String[] { VcuboidDBAdapter.KEY_NAME,
-			VcuboidDBAdapter.KEY_BIKES, VcuboidDBAdapter.KEY_SLOTS };
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -45,9 +38,8 @@ public class VcuboidListActivity extends ListActivity implements
 			Log.e("Vcuboid", "AsyncTask running, attaching it to the activity");
 			mVcuboidManager.attach(this);
 		}
-		mAdapter = new VcuboidSimpleCursorAdaptor(this,
-				R.layout.station_list_entry, mVcuboidManager.getCursor(),
-				mListAdapterFrom, mListAdapterTo);
+		mAdapter = new VcuboidArrayAdaptor(this, R.layout.station_list_entry,
+				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
 	}
 
@@ -84,7 +76,8 @@ public class VcuboidListActivity extends ListActivity implements
 			mVcuboidManager.executeUpdateAllStationsTask();
 			return true;
 		case R.id.menu_filters:
-			startActivity(new Intent(this, FilterPreferencesActivity.class));
+			startActivityForResult(new Intent(this,
+					ListFilterActivity.class), SET_FILTER);
 			return true;
 		case R.id.menu_map:
 			startActivity(new Intent(this, VcuboidMapActivity.class));
@@ -123,9 +116,7 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void finishGetAllStationsOnProgress() {
-		// TODO : registerDataSetObserver for automatying refresh
-		// when cursor changes
-		mAdapter.getCursor().requery();
+		onListUpdated();
 		mPd.dismiss();
 	}
 
@@ -139,23 +130,29 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
-		mAdapter.getCursor().requery();
+		// mAdapter.getCursor().requery();
 		for (int i = 0; i < this.getListView().getChildCount(); i++) {
 			this.getListView().getChildAt(i).findViewById(R.id.refreshing)
 					.setVisibility(View.INVISIBLE);
 		}
 	}
 
-	@Override
-	public void onFilterChanged() {
-		Log.e("Vcuboid", "Changing cursor");
-		mAdapter.changeCursor(mVcuboidManager.getCursor());
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == SET_FILTER) {
+			if (resultCode == RESULT_OK) {
+				mVcuboidManager.applyFilter();
+			}
+		}
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
 		// TODO Auto-generated method stub
-		
+	}
+	
+	@Override
+	public void onListUpdated() {
+		mAdapter.notifyDataSetChanged();
 	}
 }
 
@@ -163,6 +160,7 @@ class FavoriteListener implements OnCheckedChangeListener {
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		buttonView.getTag();
 		VcuboidManager.getVcuboidManagerInstance().setFavorite(
 				(Integer) buttonView.getTag(), isChecked);
 	}
