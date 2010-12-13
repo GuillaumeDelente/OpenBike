@@ -1,22 +1,21 @@
 package fr.vcuboid.filter;
 
+import android.content.SharedPreferences;
+
 public class VcubFilter implements Cloneable {
 
 	private boolean mShowOnlyFavorites = false;
+	private boolean mEnableLocation = false;
 	private boolean mNeedDbQuery = false;
-
-	public VcubFilter() {
+	
+	public void setEnableLocation(boolean mEnableLocation) {
+		this.mEnableLocation = mEnableLocation;
 	}
 
-	public VcubFilter(boolean showOnlyFavorites) {
-		setShowOnlyFavorites(showOnlyFavorites);
+	public boolean isEnableLocation() {
+		return mEnableLocation;
 	}
-
-	@Override
-	public VcubFilter clone() throws CloneNotSupportedException {
-		return (VcubFilter) super.clone();
-	}
-
+	
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
 		mShowOnlyFavorites = showOnlyFavorites;
 	}
@@ -36,6 +35,17 @@ public class VcubFilter implements Cloneable {
 		return mNeedDbQuery;
 	}
 
+	public VcubFilter(SharedPreferences preferences) {
+		mShowOnlyFavorites = preferences.getBoolean("favorite_filter", false);
+		mEnableLocation = preferences.getBoolean("location_filter", true);
+	}
+
+
+	@Override
+	public VcubFilter clone() throws CloneNotSupportedException {
+		return (VcubFilter) super.clone();
+	}
+
 	@Override
 	public boolean equals(Object aThat) {
 		// check for self-comparison
@@ -48,6 +58,9 @@ public class VcubFilter implements Cloneable {
 		VcubFilter that = (VcubFilter) aThat;
 
 		// now a proper field-by-field evaluation can be made
-		return mShowOnlyFavorites == that.mShowOnlyFavorites;
+		return mShowOnlyFavorites == that.mShowOnlyFavorites && 
+		mEnableLocation == that.mEnableLocation;
 	}
+
+
 }

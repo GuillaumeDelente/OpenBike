@@ -28,10 +28,18 @@ public class Station {
 				(int) (latitude * 1E6), availablesBikes, freeLocations,
 				isOpen, isFavorite);
 	}
-
+	
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite) {
+		this(id, network, name, address, longitude,
+				latitude, availablesBikes, freeLocations,
+				isOpen, isFavorite, -1);
+	}
+
+	public Station(int id, String network, String name, String address,
+			int longitude, int latitude, int availablesBikes,
+			int freeLocations, boolean isOpen, boolean isFavorite, int distance) {
 		mId = id;
 		mNetwork = network;
 		mAddress = address;
@@ -41,7 +49,7 @@ public class Station {
 		mSlots = freeLocations;
 		mIsOpen = isOpen;
 		mIsFavorite = isFavorite;
-		mDistance = -1;
+		mDistance = distance;
 	}
 
 	public Station() {

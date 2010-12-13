@@ -214,7 +214,14 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void onListUpdated() {
-		// TODO Auto-generated method stub
-		
+		mMapOverlays.clear();
+		ArrayList<StationOverlay> stations = mVcuboidManager.getVisibleStations();
+		Collections.reverse(stations);
+		mMapOverlays.addAll(stations);
+		mMapOverlays.add(mMyLocationOverlay);
+	}
+	
+	public Location getCurrentLocation() {
+		return mMyLocationOverlay.getLastFix();
 	}
 }

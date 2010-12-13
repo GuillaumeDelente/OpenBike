@@ -14,12 +14,14 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapActivity;
 
 import fr.vcuboid.database.VcuboidDBAdapter;
 import fr.vcuboid.filter.Filtering;
 import fr.vcuboid.filter.VcubFilter;
 import fr.vcuboid.list.VcuboidListActivity;
 import fr.vcuboid.map.StationOverlay;
+import fr.vcuboid.map.VcuboidMapActivity;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -126,8 +128,8 @@ public class VcuboidManager {
 	}
 	
 	private void initializeFilter() {
-		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
-		mVcubFilter = new VcubFilter(mFilterPreferences.getBoolean("favorite_filter", false));
+		mVcubFilter = new VcubFilter(PreferenceManager
+				.getDefaultSharedPreferences((Context) mActivity));
 	}
 
 	public void clearDB() {
@@ -165,9 +167,19 @@ public class VcuboidManager {
 		mVisibleStations.clear();
 		Cursor cursor = mVcuboidDBAdapter
 				.getFilteredStationsCursor(mVcubFilter);
-		StationOverlay s;
+		StationOverlay stationOverlay;
+		Location stationLocation = null;
+		Location location = null;
+		if (mVcubFilter.isEnableLocation()) {
+			location = ((VcuboidMapActivity) mActivity).getCurrentLocation();
+			stationLocation = new Location(location);
+		}
 		while(cursor.moveToNext()) {
-			s = new StationOverlay(
+			if (mVcubFilter.isEnableLocation()) {
+				stationLocation.setLatitude((double) cursor.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
+				stationLocation.setLongitude((double) cursor.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
+			}
+			stationOverlay = new StationOverlay(
 					new Station(cursor.getInt(VcuboidDBAdapter.ID_COLUMN), 
 							cursor.getString(VcuboidDBAdapter.NETWORK_COLUMN), 
 							cursor.getString(VcuboidDBAdapter.NAME_COLUMN), 
@@ -177,8 +189,9 @@ public class VcuboidManager {
 							cursor.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
 							cursor.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
 							cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ? false : true,
-									cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ? false : true));
-			mVisibleStations.add(s);
+							cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ? false : true,
+							mVcubFilter.isEnableLocation() ? (int) stationLocation.distanceTo(location) : -1));
+			mVisibleStations.add(stationOverlay);
 		}
 		cursor.close();
 		Utils.sortStations(mVisibleStations);
@@ -296,6 +309,7 @@ public class VcuboidManager {
 			updateListFromDb();
 		else
 			Filtering.filter(mVisibleStations, mVcubFilter);
+		Utils.sortStations(mVisibleStations);
 		mActivity.onListUpdated();
 	}
 }
