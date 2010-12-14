@@ -79,8 +79,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		StationOverlay.setMapView(mMapView);
 		ArrayList<StationOverlay> stations = mVcuboidManager
 				.getVisibleStations();
-		Collections.reverse(stations);
 		mMapOverlays.addAll(stations);
+		Collections.reverse(mMapOverlays);
 		mMapOverlays.add(mMyLocationOverlay);
 	}
 	
@@ -207,8 +207,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mMapOverlays.clear();
 		ArrayList<StationOverlay> stations = mVcuboidManager.onLocationChanged(location,
 				current);
-		Collections.reverse(stations);
 		mMapOverlays.addAll(stations);
+		Collections.reverse(mMapOverlays);
 		mMapOverlays.add(mMyLocationOverlay);
 	}
 
@@ -216,8 +216,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	public void onListUpdated() {
 		mMapOverlays.clear();
 		ArrayList<StationOverlay> stations = mVcuboidManager.getVisibleStations();
-		Collections.reverse(stations);
 		mMapOverlays.addAll(stations);
+		Collections.reverse(mMapOverlays);
 		mMapOverlays.add(mMyLocationOverlay);
 	}
 	

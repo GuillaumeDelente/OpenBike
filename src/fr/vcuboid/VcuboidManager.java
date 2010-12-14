@@ -150,11 +150,11 @@ public class VcuboidManager {
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
 		if (mVisibleStations != null) {
+			Log.e("Vcuboid", "First in List : " + mVisibleStations.get(0).getStation().getName());
 			return mVisibleStations;
 		} else {
 			mVisibleStations = new ArrayList<StationOverlay>();
 			updateListFromDb();
-			Log.e("Vcuboid", "List : " + mVisibleStations);
 			return mVisibleStations;
 		}
 	}

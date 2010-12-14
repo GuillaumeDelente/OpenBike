@@ -56,15 +56,15 @@ public class StationOverlay extends Overlay {
 			int latSpan = mapView.getLatitudeSpan();
 			int longSpan = mapView.getLongitudeSpan();
 			int latMax = latCenter + (latSpan / 2);
-			int latMin = latCenter - (latSpan / 2);
 			int longMax = longCenter + (longSpan / 2);
-			int longMin = longCenter - (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			longMin += projection.fromPixels(mMarkerWidth, 0).getLongitudeE6();
+			// FIXME
+			int longMin = projection.fromPixels(-mMarkerWidth, 0).getLongitudeE6();
+			int latMin = projection.fromPixels(0, mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
 			int stationLon = mStation.getGeoPoint().getLongitudeE6();
 			int stationLat = mStation.getGeoPoint().getLatitudeE6();
 			if (stationLat < latMin || stationLat > latMax
-			|| stationLon < longMin || stationLon> longMax) { 
+			|| stationLon < longMin || stationLon > longMax) { 
 				return;
 			}
 			Point out = new Point();
