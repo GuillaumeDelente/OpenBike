@@ -22,12 +22,15 @@ public class Filtering {
 			Station s = ((StationOverlay) it.next()).getStation();
 			if (mVcubFilter.isShowOnlyFavorites() && !s.isFavorite()) {
 				it.remove();
+				continue;
 			}
 			if (mVcubFilter.isShowOnlyWithBikes() && s.getBikes() <= 1) {
 				it.remove();
+				continue;
 			}
 			if (mVcubFilter.isShowOnlyWithSlots() && s.getSlots() <= 1) {
 				it.remove();
+				continue;
 			}
 			;
 		}

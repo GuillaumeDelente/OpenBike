@@ -45,14 +45,16 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		setContentView(R.layout.map_layout);
 		mMapView = (MapView) findViewById(R.id.map_view);
 		mMapController = mMapView.getController();
-		mMapView.setSatellite(true);
+		mMapView.setSatellite(false);
 		mMapView.setStreetView(false);
-		mMapView.displayZoomControls(true);
 		mMapView.setBuiltInZoomControls(true);
+		mVcuboidManager.setCurrentActivity(this);
+		mMapView.displayZoomControls(true);
+		mMapView.invalidate();
 
 		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (mMapPreferences.getBoolean("map_always_on_my_position", false)) {
+		if (mMapPreferences.getBoolean(getString(R.string.center_on_location), false)) {
 			mMyLocationOverlay = new MyCustomLocationOverlay(this, mMapView,
 					mMapController);
 		} else {
@@ -121,7 +123,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	/** {@inheritDoc} */
 	@Override
 	protected void onResume() {
-		mVcuboidManager.setCurrentActivity(this);
 		if (mMapPreferences.getBoolean("map_always_on_my_position", false)) {
 			mMyLocationOverlay.setAlwaysCentered(mMapController);
 		} else {
@@ -133,9 +134,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onPause() {
+		mMyLocationOverlay.disableMyLocation();
 		hideOverlayBalloon();
 		StationOverlay.balloonView = null;
-		mMyLocationOverlay.disableMyLocation();
 		super.onPause();
 	}
 	
