@@ -7,13 +7,16 @@ import android.preference.CheckBoxPreference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 import android.view.KeyEvent;
+import fr.vcuboid.R;
 import fr.vcuboid.VcuboidManager;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 	
 	protected VcubFilter mActualFilter;
     protected VcubFilter mModifiedFilter;
-    protected CheckBoxPreference mCheckBoxPreference;
+    protected CheckBoxPreference mCheckBoxFavorite;
+    protected CheckBoxPreference mCheckBoxBikes;
+    protected CheckBoxPreference mCheckBoxSlots;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +26,10 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity imple
 	@Override
 	protected void onResume() {
 		super.onResume();
-	    mCheckBoxPreference = (CheckBoxPreference) getPreferenceScreen().findPreference("favorite_filter");
-        mActualFilter = VcuboidManager.getVcuboidManagerInstance().getVcubFilter();
+	    mCheckBoxFavorite = (CheckBoxPreference) getPreferenceScreen().findPreference(getString(R.string.favorite_filter));
+	    mCheckBoxBikes = (CheckBoxPreference) getPreferenceScreen().findPreference(getString(R.string.bikes_filter));
+	    mCheckBoxSlots = (CheckBoxPreference) getPreferenceScreen().findPreference(getString(R.string.slots_filter));
+	    mActualFilter = VcuboidManager.getVcuboidManagerInstance().getVcubFilter();
         try {
 			mModifiedFilter = mActualFilter.clone();
 		} catch (CloneNotSupportedException e) {
@@ -62,9 +67,15 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity imple
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Let's do something a preference value changes
-        if (key.equals("favorite_filter")) {
+        if (key.equals(getString(R.string.favorite_filter))) {
         	Log.e("Vcuboid", "Favorites changed");
-			mModifiedFilter.setShowOnlyFavorites(mCheckBoxPreference.isChecked());
+			mModifiedFilter.setShowOnlyFavorites(mCheckBoxFavorite.isChecked());
+        } else if (key.equals(getString(R.string.bikes_filter))) {
+        	Log.e("Vcuboid", "Bikes changed");
+			mModifiedFilter.setShowOnlyWithBikes(mCheckBoxBikes.isChecked());
+        } else if (key.equals(getString(R.string.slots_filter))) {
+        	Log.e("Vcuboid", "Slots changed");
+			mModifiedFilter.setShowOnlyWithSlots(mCheckBoxSlots.isChecked());
         }
 	}
 }

@@ -3,9 +3,12 @@ package fr.vcuboid.utils;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Vector;
 
 import com.google.android.maps.Overlay;
 
+import fr.vcuboid.database.VcuboidDBAdapter;
+import fr.vcuboid.filter.VcubFilter;
 import fr.vcuboid.map.MyCustomLocationOverlay;
 import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
@@ -39,5 +42,23 @@ public class Utils {
 				return 0;
 			}
 		});
+	}
+	
+	static public String whereClauseFromFilter(VcubFilter filter) {
+		Vector<String> selection = new Vector<String>();
+		if (filter.isShowOnlyFavorites())
+			selection.add("(" + VcuboidDBAdapter.KEY_FAVORITE + " = 1 )");
+		if (filter.isShowOnlyWithBikes())
+			selection.add("(" + VcuboidDBAdapter.KEY_BIKES + " > 1 )");
+		else if (filter.isShowOnlyWithSlots())
+			selection.add("(" + VcuboidDBAdapter.KEY_SLOTS + " > 1 )");
+		int size = selection.size();
+		if (size == 0)
+			return null;
+		String where = selection.firstElement();
+		for (int i = 1; i < selection.size(); i++) {
+			where += " AND " + selection.elementAt(i) ;
+		}
+		return where;
 	}
 }

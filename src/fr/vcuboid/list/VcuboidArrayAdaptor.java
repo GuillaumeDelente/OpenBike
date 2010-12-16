@@ -67,10 +67,12 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
 			viewHolder.maintenance.setVisibility(View.VISIBLE);
-			viewHolder.bikes.setText("0");
-			viewHolder.slots.setText("0");
+			viewHolder.bikes.setVisibility(View.INVISIBLE);
+			viewHolder.slots.setVisibility(View.INVISIBLE);
 		} else {
 			viewHolder.maintenance.setVisibility(View.INVISIBLE);
+			viewHolder.bikes.setVisibility(View.VISIBLE);
+			viewHolder.slots.setVisibility(View.VISIBLE);
 			viewHolder.bikes.setText(String.valueOf(station.getBikes()));
 			viewHolder.slots.setText(String.valueOf(station.getSlots()));
 		}

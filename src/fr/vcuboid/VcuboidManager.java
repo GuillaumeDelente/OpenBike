@@ -128,8 +128,7 @@ public class VcuboidManager {
 	}
 	
 	private void initializeFilter() {
-		mVcubFilter = new VcubFilter(PreferenceManager
-				.getDefaultSharedPreferences((Context) mActivity));
+		mVcubFilter = new VcubFilter((Context) mActivity);
 	}
 
 	public void clearDB() {
@@ -166,7 +165,7 @@ public class VcuboidManager {
 		}
 		mVisibleStations.clear();
 		Cursor cursor = mVcuboidDBAdapter
-				.getFilteredStationsCursor(mVcubFilter);
+				.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter));
 		StationOverlay stationOverlay;
 		Location stationLocation = null;
 		Location location = null;

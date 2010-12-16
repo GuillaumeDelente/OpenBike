@@ -1,10 +1,15 @@
 package fr.vcuboid.filter;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import fr.vcuboid.R;
 
 public class VcubFilter implements Cloneable {
 
 	private boolean mShowOnlyFavorites = false;
+	private boolean mShowOnlyWithSlots = false;
+	private boolean mShowOnlyWithBikes = false;
 	private boolean mEnableLocation = false;
 	private boolean mNeedDbQuery = false;
 	
@@ -23,21 +28,45 @@ public class VcubFilter implements Cloneable {
 	public boolean isShowOnlyFavorites() {
 		return mShowOnlyFavorites;
 	}
+	
+	public void setShowOnlyWithSlots(boolean showOnlyWithSlots) {
+		mShowOnlyWithSlots = showOnlyWithSlots;
+	}
+
+	public boolean isShowOnlyWithSlots() {
+		return mShowOnlyWithSlots;
+	}
+
+	public void setShowOnlyWithBikes(boolean showOnlyWithBikes) {
+		mShowOnlyWithBikes = showOnlyWithBikes;
+	}
+
+	public boolean isShowOnlyWithBikes() {
+		return mShowOnlyWithBikes;
+	}
 
 	public void setNeedDbQuery(VcubFilter actualFilter) {
-		if (actualFilter.isShowOnlyFavorites() && !mShowOnlyFavorites)
+		if (actualFilter.isShowOnlyFavorites() && !mShowOnlyFavorites) {
 			mNeedDbQuery = true;
-		else
-			mNeedDbQuery = false;
+			return;
+		} if (actualFilter.isShowOnlyWithBikes() && !mShowOnlyWithBikes ||
+				actualFilter.isShowOnlyWithSlots() && !mShowOnlyWithSlots) {
+			mNeedDbQuery = true;
+			return;
+		}
+		mNeedDbQuery = false;
 	}
 
 	public boolean isNeedDbQuery() {
 		return mNeedDbQuery;
 	}
 
-	public VcubFilter(SharedPreferences preferences) {
-		mShowOnlyFavorites = preferences.getBoolean("favorite_filter", false);
-		mEnableLocation = preferences.getBoolean("location_filter", true);
+	public VcubFilter(Context context) {
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+		mShowOnlyFavorites = preferences.getBoolean(context.getString(R.string.favorite_filter), false);
+		mShowOnlyWithBikes = preferences.getBoolean(context.getString(R.string.bikes_filter), false);
+		mShowOnlyWithSlots = preferences.getBoolean(context.getString(R.string.slots_filter), false);
+		mEnableLocation = preferences.getBoolean(context.getString(R.string.location_filter), true);
 	}
 
 
@@ -59,8 +88,8 @@ public class VcubFilter implements Cloneable {
 
 		// now a proper field-by-field evaluation can be made
 		return mShowOnlyFavorites == that.mShowOnlyFavorites && 
-		mEnableLocation == that.mEnableLocation;
+		mEnableLocation == that.mEnableLocation &&
+		mShowOnlyWithBikes == that.mShowOnlyWithBikes &&
+		mShowOnlyWithSlots == that.mShowOnlyWithSlots;
 	}
-
-
 }

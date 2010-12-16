@@ -133,11 +133,11 @@ public class VcuboidDBAdapter {
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
 	}
 	
-	public Cursor getFilteredStationsCursor(VcubFilter filter) {
+	public Cursor getFilteredStationsCursor(String where) {
 		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, filter.isShowOnlyFavorites() ? KEY_FAVORITE + " = 1" : null, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, where, null, null, null, null);
 	}
 
 	public Station getStation(int id) throws SQLException {
