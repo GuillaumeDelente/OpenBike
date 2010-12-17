@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
-import fr.vcuboid.filter.VcubFilter;
 import fr.vcuboid.object.Station;
 
 public class VcuboidDBAdapter {
@@ -133,11 +132,11 @@ public class VcuboidDBAdapter {
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
 	}
 	
-	public Cursor getFilteredStationsCursor(String where) {
+	public Cursor getFilteredStationsCursor(String where, String orderBy) {
 		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, where, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, where, null, null, null, orderBy);
 	}
 
 	public Station getStation(int id) throws SQLException {

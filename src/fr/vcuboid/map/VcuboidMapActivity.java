@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -28,16 +27,15 @@ import fr.vcuboid.VcuboidManager;
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
 
 	private MapController mMapController;
-	private MyCustomLocationOverlay mMyLocationOverlay;
+	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
 	private boolean mIsVeryFirstFix = true;
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
-	
+
 	static final int SET_FILTER = 0;
 
-	/** {@inheritDoc} */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -48,57 +46,27 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mMapView.setSatellite(false);
 		mMapView.setStreetView(false);
 		mMapView.setBuiltInZoomControls(true);
+		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
 		mVcuboidManager.setCurrentActivity(this);
 		mMapView.displayZoomControls(true);
 		mMapView.invalidate();
-
-		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (mMapPreferences.getBoolean(getString(R.string.center_on_location), false)) {
-			mMyLocationOverlay = new MyCustomLocationOverlay(this, mMapView,
-					mMapController);
-		} else {
-			mMyLocationOverlay = new MyCustomLocationOverlay(this, mMapView);
-		}
-
-		mMyLocationOverlay.runOnFirstFix(new Runnable() {
-
-			@Override
-			public void run() {
-				if (mIsVeryFirstFix) {
-					mMapController
-							.animateTo(mMyLocationOverlay.getMyLocation());
-					mIsVeryFirstFix = false;
-					mMapController.setZoom(17);
-				}
-			}
-		});
-		mMyLocationOverlay.enableMyLocation();
 		mMapOverlays = mMapView.getOverlays();
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
 				R.drawable.v3);
 		StationOverlay.setMarker(marker);
 		StationOverlay.setMapView(mMapView);
-		ArrayList<StationOverlay> stations = mVcuboidManager
-				.getVisibleStations();
-		mMapOverlays.addAll(stations);
-		Collections.reverse(mMapOverlays);
-		mMapOverlays.add(mMyLocationOverlay);
 	}
-	
+
 	public void hideOverlayBalloon() {
-		int baloonPosition = mMapOverlays.size() - 2;
-		Overlay overlay = mMapOverlays.get(baloonPosition);
+		Overlay overlay = mMapOverlays.get(mMapOverlays.size()
+				- (mMyLocationOverlay == null ? 1 : 2));
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			Log.e("Balloon", "hideOtherBalloons, before last not a StationOverlay");
+			Log.e("Balloon",
+					"hideOtherBalloons, before last not a StationOverlay");
 		}
-	}
-
-	@Override
-	protected boolean isLocationDisplayed() {
-		return true;
 	}
 
 	@Override
@@ -113,41 +81,60 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.menu_map_preferences:
-			startActivityForResult(new Intent(this, MapFilterActivity.class), SET_FILTER);
+			startActivityForResult(new Intent(this, MapFilterActivity.class),
+					SET_FILTER);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	protected void onResume() {
-		if (mMapPreferences.getBoolean("map_always_on_my_position", false)) {
-			mMyLocationOverlay.setAlwaysCentered(mMapController);
+		mMapOverlays.clear();
+		mMapOverlays.addAll(mVcuboidManager.getVisibleStations());
+		Collections.reverse(mMapOverlays);
+		if (mMapPreferences.getBoolean(getString(R.string.use_location), true)) {
+			if (mMyLocationOverlay == null) {
+				// FIXME centered map on location
+				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
+				mMyLocationOverlay.runOnFirstFix(new Runnable() {
+
+					@Override
+					public void run() {
+						if (mIsVeryFirstFix) {
+							mMapController.animateTo(mMyLocationOverlay
+									.getMyLocation());
+							mIsVeryFirstFix = false;
+							mMapController.setZoom(17);
+						}
+					}
+				});
+			}
+			mMyLocationOverlay.enableMyLocation();
+			mMapOverlays.add(mMyLocationOverlay);
 		} else {
-			mMyLocationOverlay.unsetAlwaysCentered();
+			mMyLocationOverlay = null;
 		}
-		mMyLocationOverlay.enableMyLocation();
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		mMyLocationOverlay.disableMyLocation();
+		if (mMyLocationOverlay != null)
+			mMyLocationOverlay.disableMyLocation();
 		hideOverlayBalloon();
 		StationOverlay.balloonView = null;
 		super.onPause();
 	}
-	
-    protected void onActivityResult(int requestCode, int resultCode,
-            Intent data) {
-        if (requestCode == SET_FILTER) {
-            if (resultCode == RESULT_OK) {
+
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == SET_FILTER) {
+			if (resultCode == RESULT_OK) {
 				mVcuboidManager.applyFilter();
-            }
-        }
-    }
+			}
+		}
+	}
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -156,8 +143,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	public void setCenteredMap(boolean isCentered) {
-		mMyLocationOverlay
-				.setmMapController(isCentered ? mMapController : null);
+		// mMyLocationOverlay
+		// .setmMapController(isCentered ? mMapController : null);
 	}
 
 	@Override
@@ -191,23 +178,15 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void onLocationChanged(Location location) {
-		StationOverlay current = (StationOverlay) mMapOverlays
-		.get(mMapOverlays.size() - 2);
-		// TODO: Debuging only -------------------------
-		if (mMapOverlays.get(mMapOverlays.size() - 1) instanceof MyCustomLocationOverlay) {
-			Log.e("Vcuboid2", "Location OK");
-		}
-		if (!(mMapOverlays.get(mMapOverlays.size() - 2) instanceof StationOverlay)) {
-			Log.e("Vcuboid2", "Pas bon ! ");
-		}
-		// ---------------------------------------------
+	public void onLocationChanged() {
+		StationOverlay current = (StationOverlay) mMapOverlays.get(mMapOverlays
+				.size() - 2);
 		if (!current.isCurrent) {
 			current = null;
 		}
 		mMapOverlays.clear();
-		ArrayList<StationOverlay> stations = mVcuboidManager.onLocationChanged(location,
-				current);
+		ArrayList<StationOverlay> stations = mVcuboidManager
+				.getVisibleStations();
 		mMapOverlays.addAll(stations);
 		Collections.reverse(mMapOverlays);
 		mMapOverlays.add(mMyLocationOverlay);
@@ -216,13 +195,11 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	@Override
 	public void onListUpdated() {
 		mMapOverlays.clear();
-		ArrayList<StationOverlay> stations = mVcuboidManager.getVisibleStations();
+		ArrayList<StationOverlay> stations = mVcuboidManager
+				.getVisibleStations();
 		mMapOverlays.addAll(stations);
 		Collections.reverse(mMapOverlays);
-		mMapOverlays.add(mMyLocationOverlay);
-	}
-	
-	public Location getCurrentLocation() {
-		return mMyLocationOverlay.getLastFix();
+		if (mMyLocationOverlay != null)
+			mMapOverlays.add(mMyLocationOverlay);
 	}
 }

@@ -3,7 +3,6 @@ package fr.vcuboid.list;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -38,8 +37,6 @@ public class VcuboidListActivity extends ListActivity implements
 			Log.e("Vcuboid", "AsyncTask running, attaching it to the activity");
 			mVcuboidManager.attach(this);
 		}
-		//FIXME
-		mVcuboidManager.getVcubFilter().setEnableLocation(false);
 		mAdapter = new VcuboidArrayAdaptor(this, R.layout.station_list_entry,
 				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
@@ -48,8 +45,6 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		//FIXME
-		mVcuboidManager.getVcubFilter().setEnableLocation(false);
 		mVcuboidManager.setCurrentActivity(this);
 		onListUpdated();
 		Log.e("Vcuboid", "onResume " + this);
@@ -58,8 +53,6 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//FIXME
-		mVcuboidManager.getVcubFilter().setEnableLocation(true);
 		Log.e("Vcuboid", "onPause");
 	}
 
@@ -147,16 +140,14 @@ public class VcuboidListActivity extends ListActivity implements
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == SET_FILTER) {
 			if (resultCode == RESULT_OK) {
-				//FIXME
-				mVcuboidManager.getVcubFilter().setEnableLocation(false);
 				mVcuboidManager.applyFilter();
 			}
 		}
 	}
 
 	@Override
-	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
+	public void onLocationChanged() {
+		onListUpdated();
 	}
 	
 	@Override

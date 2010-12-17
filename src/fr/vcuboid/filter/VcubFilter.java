@@ -10,16 +10,7 @@ public class VcubFilter implements Cloneable {
 	private boolean mShowOnlyFavorites = false;
 	private boolean mShowOnlyWithSlots = false;
 	private boolean mShowOnlyWithBikes = false;
-	private boolean mEnableLocation = false;
 	private boolean mNeedDbQuery = false;
-	
-	public void setEnableLocation(boolean mEnableLocation) {
-		this.mEnableLocation = mEnableLocation;
-	}
-
-	public boolean isEnableLocation() {
-		return mEnableLocation;
-	}
 	
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
 		mShowOnlyFavorites = showOnlyFavorites;
@@ -66,7 +57,6 @@ public class VcubFilter implements Cloneable {
 		mShowOnlyFavorites = preferences.getBoolean(context.getString(R.string.favorite_filter), false);
 		mShowOnlyWithBikes = preferences.getBoolean(context.getString(R.string.bikes_filter), false);
 		mShowOnlyWithSlots = preferences.getBoolean(context.getString(R.string.slots_filter), false);
-		mEnableLocation = preferences.getBoolean(context.getString(R.string.location_filter), true);
 	}
 
 
@@ -88,7 +78,6 @@ public class VcubFilter implements Cloneable {
 
 		// now a proper field-by-field evaluation can be made
 		return mShowOnlyFavorites == that.mShowOnlyFavorites && 
-		mEnableLocation == that.mEnableLocation &&
 		mShowOnlyWithBikes == that.mShowOnlyWithBikes &&
 		mShowOnlyWithSlots == that.mShowOnlyWithSlots;
 	}

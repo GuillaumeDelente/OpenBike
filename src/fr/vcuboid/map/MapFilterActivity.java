@@ -1,8 +1,8 @@
 package fr.vcuboid.map;
 
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import fr.vcuboid.R;
+import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.filter.FilterPreferencesActivity;
 
 public class MapFilterActivity extends FilterPreferencesActivity {
@@ -10,6 +10,7 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.map_preferences);
+	    addPreferencesFromResource(R.xml.location_preferences);
 	    addPreferencesFromResource(R.xml.filter_preferences);
 	}
 
@@ -18,6 +19,10 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 		super.onResume();
 		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 	}
-	
-	
+
+	@Override
+	protected void onPause() {
+		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		super.onPause();
+	}
 }

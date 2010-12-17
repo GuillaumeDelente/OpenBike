@@ -1,10 +1,9 @@
 package fr.vcuboid.list;
 
-import fr.vcuboid.R;
-import fr.vcuboid.R.xml;
-import fr.vcuboid.filter.FilterPreferencesActivity;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
+import fr.vcuboid.R;
+import fr.vcuboid.VcuboidManager;
+import fr.vcuboid.filter.FilterPreferencesActivity;
 
 public class ListFilterActivity extends FilterPreferencesActivity {
 	
@@ -12,11 +11,18 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 	    addPreferencesFromResource(R.xml.filter_preferences);
+	    addPreferencesFromResource(R.xml.location_preferences);
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+	}
+	
+	@Override
+	protected void onPause() {
+		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		super.onPause();
 	}
 }

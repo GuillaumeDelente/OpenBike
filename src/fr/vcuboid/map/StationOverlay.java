@@ -29,16 +29,13 @@ public class StationOverlay extends Overlay {
 	static private int mMarkerHeight = 0;
 	static private int mMarkerWidth = 0;
 	static private MapView mMapView;
+	static private List<Overlay> mMapOverlays;
 	static public BalloonOverlayView balloonView;
 	static MapController mMc;
 	private Station mStation;
 	
 	public Station getStation() {
 		return mStation;
-	}
-
-	public void setmStation(Station station) {
-		mStation = station;
 	}
 
 	public boolean isCurrent = false;
@@ -58,7 +55,6 @@ public class StationOverlay extends Overlay {
 			int latMax = latCenter + (latSpan / 2);
 			int longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			// FIXME
 			int longMin = projection.fromPixels(-mMarkerWidth, 0).getLongitudeE6();
 			int latMin = projection.fromPixels(0, mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
 			int stationLon = mStation.getGeoPoint().getLongitudeE6();
@@ -105,30 +101,13 @@ public class StationOverlay extends Overlay {
 			} else {
 				isRecycled = true;
 			}
-			List<Overlay> mapOverlays = mapView.getOverlays();
-			Log.e("Vcuboid2", "Removing ballons");
-			// Debuging only -------------------------------------
-			if (mapOverlays.get(mapOverlays.size() - 1) instanceof MyCustomLocationOverlay) {
-				Log.e("Vcuboid2", "MyPosition OK");
-			}
-			if (!(mapOverlays.get(mapOverlays.size() - 2) instanceof StationOverlay)) {
-				Log.e("Vcuboid2", "First Station OK, baloon : "
-						+ ((StationOverlay) (mapOverlays
-								.get(mapOverlays.size() - 2))).isCurrent);
-
-			}
-			// --------------------------------------------------
-			hideOtherBalloons(mapOverlays);
+			hideOtherBalloons(mMapOverlays);
 			isCurrent = true;
-			Utils.sortStations(mapOverlays);
-			Collections.reverse(mapOverlays);
-			Log.e("Vcuboid2", "After adding ballons");
-			if (!(mapOverlays.get(mapOverlays.size() - 1) instanceof MyCustomLocationOverlay)) {
-				Log.e("Balloon", "onTap, Last not MyCustomLocationOverlay");
-			}
-			if (!(mapOverlays.get(mapOverlays.size() - 2) instanceof StationOverlay)) {
-				Log.e("Balloon", "onTap, before last not a StationOverlay");
-			}
+			if (mStation.getDistance() !=-1)
+				Utils.sortStationsByDistance(mMapOverlays);
+			else
+				Utils.sortStationsByName(mMapOverlays);
+			Collections.reverse(mMapOverlays);
 			balloonView.setData(null, mStation.getDistance());
 			MapView.LayoutParams params = new MapView.LayoutParams(
 					LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
@@ -142,15 +121,12 @@ public class StationOverlay extends Overlay {
 				mapView.addView(balloonView, params);
 			}
 			mMc.animateTo(mStation.getGeoPoint());
-			Log.e("Balloon", "Overlay size : " + mapOverlays.size());
 			return true;
 		} else {
-			List<Overlay> mapOverlays = mapView.getOverlays();
-			hideOtherBalloons(mapOverlays);
-			Utils.sortStations(mapOverlays);
-			Collections.reverse(mapOverlays);
+			if (this == mMapOverlays.get(0))
+				hideOtherBalloons(mMapOverlays);
+			return false;
 		}
-		return false;
 	}
 
 	public void setBalloonBottomOffset(int pixels) {
@@ -169,7 +145,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	private void hideOtherBalloons(List<Overlay> overlays) {
-		int baloonPosition = overlays.size() - 2;
+		int baloonPosition = overlays.size() - (mStation.getDistance() !=-1 ? 2 : 1);
 		Overlay overlay = overlays.get(baloonPosition);
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
@@ -231,6 +207,7 @@ public class StationOverlay extends Overlay {
 
 	public static void setMapView(MapView mapview) {
 		mMapView = mapview;
-		mMc = mMapView.getController();
+		mMc = mapview.getController();
+		mMapOverlays = mapview.getOverlays();
 	}
 }
