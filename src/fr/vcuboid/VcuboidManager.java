@@ -33,7 +33,7 @@ public class VcuboidManager {
 	private VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
-	private CreateVisibleStationsTask mCreateVisibleStationsTask= null;
+	private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	
 	public VcubFilter getVcubFilter() {
 		return mVcubFilter;
@@ -303,12 +303,14 @@ public class VcuboidManager {
 
 		private int progress = 0;
 
+		@Override
 		protected void onPreExecute() {
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
 			}
 		}
 
+		@Override
 		protected Void doInBackground(Void... unused) {
 			String json = RestClient
 					.connect("http://vcuboid.appspot.com/stations");
@@ -319,9 +321,10 @@ public class VcuboidManager {
 			return (null);
 		}
 
+		@Override
 		protected void onProgressUpdate(Void... unused) {
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(progress += 50);
+				mActivity.updateGetAllStationsOnProgress(progress += 50);
 			}
 		}
 
@@ -340,22 +343,33 @@ public class VcuboidManager {
 	}
 
 	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
-
+		String json = null;
 		private int progress = 0;
 
 		protected void onPreExecute() {
 			mIsUpdating = true;
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).showUpdateAllStationsOnProgress();
+				mActivity.showUpdateAllStationsOnProgress();
 			}
 		}
 
 		protected Void doInBackground(Void... unused) {
-			RestClient.jsonBikesToDb(RestClient
-					.connect("http://vcuboid.appspot.com/stations"),
+			json = RestClient
+			.connect("http://vcuboid.appspot.com/stations");
+			RestClient.updateListFromJson(json,
+					mVisibleStations);
+			publishProgress();
+			RestClient.updateDbFromJson(json,
 					mVcuboidDBAdapter);
 			Log.i("Vcuboid", "Async task finished");
-			return (null);
+			return null;
+		}
+		
+		@Override
+		protected void onProgressUpdate(Void... unused) {
+			if (mActivity != null) {
+				mActivity.finishUpdateAllStationsOnProgress();
+			}
 		}
 
 		@Override
@@ -364,7 +378,6 @@ public class VcuboidManager {
 				progress = 100;
 			} else {
 				mIsUpdating = false;
-				((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 				mUpdateAllStationsTask = null;
 			}
 		}

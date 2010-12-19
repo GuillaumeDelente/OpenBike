@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,6 +18,8 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
+import fr.vcuboid.map.StationOverlay;
+import fr.vcuboid.object.Station;
 
 public class RestClient {
 
@@ -96,16 +99,15 @@ public class RestClient {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.insertStation(
-						jsonStation.getInt("id"), 
-						jsonStation.getString("name"),
-						jsonStation.getString("address"),
-						jsonStation.getString("network"),
-						jsonStation.getDouble("latitude"),
-						jsonStation.getDouble("longitude"), 
-						jsonStation.getInt("availableBikes"), 
-						jsonStation.getInt("freeSlots"),
-						jsonStation.getBoolean("open"));
+				vcuboidDBAdapter.insertStation(jsonStation.getInt("id"),
+						jsonStation.getString("name"), jsonStation
+								.getString("address"), jsonStation
+								.getString("network"), jsonStation
+								.getDouble("latitude"), jsonStation
+								.getDouble("longitude"), jsonStation
+								.getInt("availableBikes"), jsonStation
+								.getInt("freeSlots"), jsonStation
+								.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {
@@ -114,17 +116,49 @@ public class RestClient {
 			return false;
 		}
 	}
-	
-	public static boolean jsonBikesToDb(String json,
+
+	public static boolean updateListFromJson(String json,
+			ArrayList<StationOverlay> mVisibleStations) {
+		try {
+			JSONArray jsonArray = new JSONArray(json);
+			JSONObject jsonStation;
+			Station station;
+			int id = 0;
+			// FIXME Maybe JSON are in station id order
+			// and we should access them for each item in the list
+			for (int i = 0; i < jsonArray.length(); i++) {
+				jsonStation = jsonArray.getJSONObject(i);
+				for (int j = 0; j < mVisibleStations.size(); j++) {
+					id = jsonStation.getInt("id");
+					station = mVisibleStations.get(j).getStation();
+					if (id == station.getId()) {
+						station.setBikes(jsonStation.getInt("availableBikes"));
+						station.setSlots(jsonStation.getInt("freeSlots"));
+						station.setOpen(jsonStation.getBoolean("open"));
+						break;
+					}
+				}
+			}
+			return true;
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public static boolean updateDbFromJson(String json,
 			VcuboidDBAdapter vcuboidDBAdapter) {
 		try {
 			JSONArray jsonArray = new JSONArray(json);
+			JSONObject jsonStation;
 			for (int i = 0; i < jsonArray.length(); i++) {
-				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.updateStation(jsonStation
-						.getInt("id"), jsonStation
-						.getInt("availableBikes"), jsonStation.getInt("freeSlots"), 
-						jsonStation.getBoolean("open"));
+				jsonStation = jsonArray.getJSONObject(i);
+				vcuboidDBAdapter.updateStation(jsonStation.getInt("id"),
+						jsonStation.getInt("availableBikes"), jsonStation
+								.getInt("freeSlots"), jsonStation
+								.getBoolean("open"));
+
 			}
 			return true;
 		} catch (JSONException e) {
