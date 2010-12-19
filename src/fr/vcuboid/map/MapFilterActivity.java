@@ -2,7 +2,6 @@ package fr.vcuboid.map;
 
 import android.os.Bundle;
 import fr.vcuboid.R;
-import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.filter.FilterPreferencesActivity;
 
 public class MapFilterActivity extends FilterPreferencesActivity {

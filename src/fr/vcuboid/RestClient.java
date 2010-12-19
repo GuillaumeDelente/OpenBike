@@ -17,7 +17,6 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
-import fr.vcuboid.object.Station;
 
 public class RestClient {
 

@@ -25,6 +25,7 @@ public class VcuboidListActivity extends ListActivity implements
 	private VcuboidManager mVcuboidManager = null;
 	private VcuboidArrayAdaptor mAdapter = null;
 	private ProgressDialog mPd = null;
+	private AlertDialog mAlert = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class VcuboidListActivity extends ListActivity implements
 	protected void onResume() {
 		super.onResume();
 		mVcuboidManager.setCurrentActivity(this);
+		mVcuboidManager.startLocation();
 		onListUpdated();
 		Log.e("Vcuboid", "onResume " + this);
 	}
@@ -55,6 +57,7 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
+		mVcuboidManager.stopLocation();
 		Log.e("Vcuboid", "onPause");
 	}
 
@@ -137,12 +140,12 @@ public class VcuboidListActivity extends ListActivity implements
 					.setVisibility(View.INVISIBLE);
 		}
 	}
-	
+
 	@Override
 	public void onLocationChanged(Location l) {
 		onListUpdated();
 	}
-	
+
 	@Override
 	public void onListUpdated() {
 		mAdapter.notifyDataSetChanged();
@@ -150,25 +153,27 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void showAskForGps() {
+		if (mAlert != null && mAlert.isShowing())
+			return;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(getString(R.string.show_location_parameters))
-				.setCancelable(false).setPositiveButton(
-						getString(R.string.yes),
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								Intent gpsOptionsIntent = new Intent(
-										android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-								startActivity(gpsOptionsIntent);
-							}
-						});
+		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
+				getString(R.string.show_location_parameters)).setCancelable(
+				false).setPositiveButton(getString(R.string.yes),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						Intent gpsOptionsIntent = new Intent(
+								android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+						startActivity(gpsOptionsIntent);
+					}
+				});
 		builder.setNegativeButton(getString(R.string.no),
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						dialog.cancel();
 					}
 				});
-		AlertDialog alert = builder.create();
-		alert.show();
+		mAlert = builder.create();
+		mAlert.show();
 	}
 }
 

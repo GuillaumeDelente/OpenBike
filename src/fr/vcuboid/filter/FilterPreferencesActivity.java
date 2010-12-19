@@ -87,41 +87,10 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			if (mCheckBoxLocation.isChecked()) {
 				Log.e("Vcuboid", "useLocation");
 				vcubManager.useLocation();
-				if (vcubManager.askForGps()) {
-					vcubManager.setAskForGps(false);
-					showGpsDialog();
-				}
 			} else {
 				Log.e("Vcuboid", "dontUseLocation");
 				vcubManager.dontUseLocation();
 			}
 		}
 	}
-
-	private void showGpsDialog() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(getString(R.string.show_location_parameters))
-				.setCancelable(false).setPositiveButton(
-						getString(R.string.yes),
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								showGpsOptions();
-							}
-						});
-		builder.setNegativeButton(getString(R.string.no),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-					}
-				});
-		AlertDialog alert = builder.create();
-		alert.show();
-	}
-	
-	private void showGpsOptions(){
-		Intent gpsOptionsIntent = new Intent(
-				android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-		startActivity(gpsOptionsIntent);
-	}
-
 }

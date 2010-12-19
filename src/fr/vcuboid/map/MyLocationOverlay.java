@@ -59,7 +59,7 @@ public class MyLocationOverlay extends Overlay {
 			}
 			paint.setColor(Color.TRANSPARENT);
 			paint.setAlpha(255);
-			canvas.drawBitmap(mMarker, loc.x - mShiftX, loc.y - mShiftX, paint);
+			canvas.drawBitmap(mMarker, loc.x - mShiftX, loc.y - mShiftY, paint);
 		}
 		return false;
 	}

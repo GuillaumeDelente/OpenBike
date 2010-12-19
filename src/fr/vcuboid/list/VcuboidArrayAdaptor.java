@@ -1,7 +1,6 @@
 package fr.vcuboid.list;
 
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 import android.content.Context;
 import android.util.Log;

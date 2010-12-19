@@ -265,12 +265,9 @@ public class VcuboidManager {
 		}
 	}
 
-	public boolean useLocation() {
+	public void useLocation() {
 		if (mLocationProvider == null)
 			mLocationProvider = new MyLocationProvider((Context) mActivity, this);
-		else
-			Log.e("Vcuboid", "Location Manager !!!!!");
-		return mLocationProvider.enableMyLocation();
 	}
 	
 	public void dontUseLocation() {
@@ -279,40 +276,19 @@ public class VcuboidManager {
 		resetDistances();
 		Utils.sortStationsByName(mVisibleStations);
 	}
-	
-	public boolean isMyLocationAvailable() {
-		if (mLocationProvider != null)
-			return mLocationProvider.isLocationAvailable();
-		return false;
-	}
-	
-	public Location getLocation() {
-		if (mLocationProvider != null)
-			return mLocationProvider.getMyLocation();
-		return null;
-	}
-	
-	public boolean askForGps() {
-		if (mLocationProvider != null)
-			return mLocationProvider.isAskForGps();
-		return false;
-	}
-	
+
 	public void showAskForGps() {
 		mActivity.showAskForGps();
 	}
 	
-	public void setAskForGps(boolean ask) {
-		if (mLocationProvider != null)
-			mLocationProvider.setAskForGps(ask);
-	}
-	
 	public void startLocation() {
-		mLocationProvider.enableMyLocation();
+		if (mLocationProvider != null)
+			mLocationProvider.enableMyLocation();
 	}
 	
 	public void stopLocation() {
-		mLocationProvider.disableMyLocation();
+		if (mLocationProvider != null)
+			mLocationProvider.disableMyLocation();
 	}
 	
 	/************************************/

@@ -37,6 +37,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
+	private AlertDialog mAlert = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -92,6 +93,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onResume() {
+		mVcuboidManager.startLocation();
 		mMapOverlays.clear();
 		mMapOverlays.addAll(mVcuboidManager.getVisibleStations());
 		Collections.reverse(mMapOverlays);
@@ -109,6 +111,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onPause() {
+		mVcuboidManager.stopLocation();
 		hideOverlayBalloon();
 		StationOverlay.balloonView = null;
 		super.onPause();
@@ -195,6 +198,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void showAskForGps() {
+		if (mAlert != null && mAlert.isShowing())
+			return;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
 				getString(R.string.show_location_parameters)).setCancelable(
@@ -212,7 +217,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 						dialog.cancel();
 					}
 				});
-		AlertDialog alert = builder.create();
-		alert.show();
+		mAlert = builder.create();
+		mAlert.show();
 	}
 }

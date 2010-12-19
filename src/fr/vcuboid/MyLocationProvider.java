@@ -13,7 +13,8 @@ public class MyLocationProvider implements LocationListener {
 
 	private boolean mIsGpsUsed = false;
 	private boolean mIsNetworkUsed = false;
-	private boolean mAskForGps = false;
+	private boolean mAskForGps = true;
+	private boolean mIsInPause = true;
 	private VcuboidManager mVcuboidManager = null;
 	private LocationManager mLocationManager = null;
 	private Runnable mRunOnFirstFix = null;
@@ -25,6 +26,7 @@ public class MyLocationProvider implements LocationListener {
 		mLocationManager = (LocationManager) context
 				.getSystemService(Context.LOCATION_SERVICE);
 		mVcuboidManager = vcuboidManager;
+		enableMyLocation();
 	}
 
 	public boolean isAskForGps() {
@@ -45,8 +47,11 @@ public class MyLocationProvider implements LocationListener {
 		return mIsGpsUsed || mIsNetworkUsed;
 	}
 
-	public synchronized boolean enableMyLocation() {
+	public synchronized void enableMyLocation() {
+		if (!mIsInPause)
+			return;
 		Log.e("Vcuboid", "MyLocationProvider : enable location");
+		mIsInPause = false;
 		List<String> providers = mLocationManager.getProviders(false);
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			Log.e("Vcuboid", "Updates for Network provider");
@@ -58,12 +63,15 @@ public class MyLocationProvider implements LocationListener {
 			mLocationManager.requestLocationUpdates(
 					LocationManager.GPS_PROVIDER, 30000, 20, this);
 		}
-		return mIsGpsUsed || mIsNetworkUsed;
 	}
 
 	public synchronized void disableMyLocation() {
+		if (mIsInPause)
+			return;
+		mIsInPause = true;
 		mLocationManager.removeUpdates(this);
 		mIsGpsUsed = mIsNetworkUsed = false;
+		Log.e("Vcuboid", "Location provider On Pause");
 	}
 
 	public Location getMyLocation() {
@@ -101,8 +109,10 @@ public class MyLocationProvider implements LocationListener {
 	public void onProviderDisabled(String provider) {
 		Log.e("Vcuboid", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
-			setAskForGps(true);
-			mVcuboidManager.showAskForGps();
+			if (mAskForGps) {
+				mVcuboidManager.showAskForGps();
+				mAskForGps = false;
+			}
 			if (mIsNetworkUsed) {
 				mIsGpsUsed = false;
 			} else {
@@ -125,6 +135,7 @@ public class MyLocationProvider implements LocationListener {
 	@Override
 	public void onProviderEnabled(String provider) {
 		Log.e("Vcuboid", "onProviderEnabled : " + provider);
+		setAskForGps(true);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsUsed = true;
 			mAskForGps = false;
