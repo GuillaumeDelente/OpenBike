@@ -259,23 +259,12 @@ public class VcuboidManager {
 	
 	public void onLocationChanged(Location location) {
 		if (mCreateVisibleStationsTask == null) {
-		updateDistance(location);
-		Utils.sortStationsByDistance(mVisibleStations);
-		mActivity.onLocationChanged();
+			updateDistance(location);
+			Utils.sortStationsByDistance(mVisibleStations);
+			mActivity.onLocationChanged(location);
 		}
 	}
-	/*
-	public void applyFilter() {
-		if (mVcubFilter.isNeedDbQuery())
-			updateListFromDb();
-		else
-			Filtering.filter(mVisibleStations, mVcubFilter);
-		if (mLocationProvider != null)
-			Utils.sortStationsByDistance(mVisibleStations);
-		mActivity.onListUpdated();
-	}
-	*/
-	
+
 	public boolean useLocation() {
 		if (mLocationProvider == null)
 			mLocationProvider = new MyLocationProvider((Context) mActivity, this);

@@ -5,6 +5,7 @@ import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -138,7 +139,7 @@ public class VcuboidListActivity extends ListActivity implements
 	}
 	
 	@Override
-	public void onLocationChanged() {
+	public void onLocationChanged(Location l) {
 		onListUpdated();
 	}
 	

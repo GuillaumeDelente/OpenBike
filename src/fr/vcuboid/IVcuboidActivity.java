@@ -1,5 +1,7 @@
 package fr.vcuboid;
 
+import android.location.Location;
+
 
 public interface IVcuboidActivity {
 
@@ -9,7 +11,7 @@ public interface IVcuboidActivity {
 	public void showUpdateAllStationsOnProgress();
 	public void finishUpdateAllStationsOnProgress();
 	public void showAskForGps();
-	public void onLocationChanged();
+	public void onLocationChanged(Location location);
 	public void onListUpdated();
 	
 }

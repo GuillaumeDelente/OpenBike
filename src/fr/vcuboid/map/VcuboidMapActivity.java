@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
@@ -31,7 +33,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private MapController mMapController;
 	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
-	private boolean mIsVeryFirstFix = true;
+	private boolean mIsFirstFix = true;
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
@@ -154,10 +156,10 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void onLocationChanged() {
+	public void onLocationChanged(Location location) {
 		if (mMyLocationOverlay == null)
 			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
-		mMyLocationOverlay.setCurrentLocation(mVcuboidManager.getLocation());
+		mMyLocationOverlay.setCurrentLocation(location);
 		StationOverlay current = (StationOverlay) mMapOverlays.get(mMapOverlays
 				.size() - 2);
 		if (!current.isCurrent) {
@@ -170,6 +172,13 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Collections.reverse(mMapOverlays);
 		mMapOverlays.add(mMyLocationOverlay);
 		mMapView.invalidate();
+		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
+				false) || mIsFirstFix) {
+			mMapController.animateTo(new GeoPoint(
+					(int) (location.getLatitude() * 1E6), (int) (location
+							.getLongitude() * 1E6)));
+			mIsFirstFix = false;
+		}
 	}
 
 	@Override
@@ -183,20 +192,20 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		mMapView.invalidate();
 	}
-	
+
 	@Override
 	public void showAskForGps() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(getString(R.string.show_location_parameters))
-				.setCancelable(false).setPositiveButton(
-						getString(R.string.yes),
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								Intent gpsOptionsIntent = new Intent(
-										android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-								startActivity(gpsOptionsIntent);
-							}
-						});
+		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
+				getString(R.string.show_location_parameters)).setCancelable(
+				false).setPositiveButton(getString(R.string.yes),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						Intent gpsOptionsIntent = new Intent(
+								android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+						startActivity(gpsOptionsIntent);
+					}
+				});
 		builder.setNegativeButton(getString(R.string.no),
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {

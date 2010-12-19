@@ -1,6 +1,8 @@
 package fr.vcuboid.map;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,17 +15,23 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
+import fr.vcuboid.R;
+
 public class MyLocationOverlay extends Overlay {
-	private final MapView mapView;
-	private Runnable runOnFirstFix = null;
+	private Bitmap mMarker;
+	private float mShiftX = 0;
+	private float mShiftY = 0;
 	private GeoPoint mGeoPoint = null;
 	private float mAccuracy = 0;
 	private Paint paint = new Paint();
 
 	public MyLocationOverlay(Context context, MapView mapView) {
-		// this.context = context;
 		Log.e("Vcuboid", "MyLocationOverlay");
-		this.mapView = mapView;
+		mMarker = BitmapFactory.decodeResource(context.getResources(), 
+				R.drawable.ic_maps_indicator_current_position);
+		mShiftX = mMarker.getWidth() / 2;
+		mShiftY = mMarker.getHeight() / 2;
+		paint.setAntiAlias(true);
 	}
 
 	public void setCurrentLocation(Location location) {
@@ -44,14 +52,14 @@ public class MyLocationOverlay extends Overlay {
 			Projection p = mapView.getProjection();
 			float accuracy = p.metersToEquatorPixels(mAccuracy);
 			Point loc = p.toPixels(mGeoPoint, null);
-			paint.setAntiAlias(true);
-			paint.setColor(Color.BLUE);
 			if (accuracy > 10.0f) {
+				paint.setColor(Color.BLUE);
 				paint.setAlpha(50);
 				canvas.drawCircle(loc.x, loc.y, accuracy, paint);
 			}
+			paint.setColor(Color.TRANSPARENT);
 			paint.setAlpha(255);
-			canvas.drawCircle(loc.x, loc.y, 10, paint);
+			canvas.drawBitmap(mMarker, loc.x - mShiftX, loc.y - mShiftX, paint);
 		}
 		return false;
 	}

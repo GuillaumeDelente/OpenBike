@@ -32,7 +32,7 @@
 	<string name="use_location_title">Activer la géolocalisation</string>
 	<string name="use_location_summary">Utilise votre position</string>
 	<string name="center_on_location">center_on_location</string>
-	<string name="always_on_my_position_title">Centrer sur ma position</string>
-	<string name="always_on_my_position_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
+	<string name="center_on_location_title">Centrer sur ma position</string>
+	<string name="center_on_location_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
 </resources>
