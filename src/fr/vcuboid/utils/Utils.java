@@ -64,9 +64,9 @@ public class Utils {
 		if (filter.isShowOnlyFavorites())
 			selection.add("(" + VcuboidDBAdapter.KEY_FAVORITE + " = 1 )");
 		if (filter.isShowOnlyWithBikes())
-			selection.add("(" + VcuboidDBAdapter.KEY_BIKES + " > 1 )");
+			selection.add("(" + VcuboidDBAdapter.KEY_BIKES + " >= 1 )");
 		else if (filter.isShowOnlyWithSlots())
-			selection.add("(" + VcuboidDBAdapter.KEY_SLOTS + " > 1 )");
+			selection.add("(" + VcuboidDBAdapter.KEY_SLOTS + " >= 1 )");
 		int size = selection.size();
 		if (size == 0)
 			return null;

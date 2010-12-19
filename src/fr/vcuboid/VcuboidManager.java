@@ -21,7 +21,7 @@ import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
-public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class VcuboidManager {
 
 	public static boolean mIsUpdating = false;
 	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
@@ -33,6 +33,7 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 	private VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
+	private CreateVisibleStationsTask mCreateVisibleStationsTask= null;
 	
 	public VcubFilter getVcubFilter() {
 		return mVcubFilter;
@@ -48,10 +49,9 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 		mVcuboidDBAdapter = new VcuboidDBAdapter((Context) activity);
 		mVcuboidDBAdapter.open();
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
-		mFilterPreferences.registerOnSharedPreferenceChangeListener(this);
 		if (mFilterPreferences.getBoolean(
 				((Context) mActivity).getString(R.string.use_location), true))
-			enableLocation();
+			useLocation();
 		initializeFilter();
 	}
 	
@@ -92,6 +92,15 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 		Log.e("executeGetAllStationsTask", "Ok");
 		if (mGetAllStationsTask == null) {
 			mGetAllStationsTask = (GetAllStationsTask) new GetAllStationsTask()
+					.execute();
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean executeCreateVisibleStationsTask() {
+		if (mCreateVisibleStationsTask == null) {
+			mCreateVisibleStationsTask =  (CreateVisibleStationsTask) new CreateVisibleStationsTask()
 					.execute();
 			return true;
 		}
@@ -149,13 +158,26 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
-		if (mVisibleStations != null) {
-			Log.e("Vcuboid", "First in List : " + mVisibleStations.get(0).getStation().getName());
-			return mVisibleStations;
-		} else {
+		if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
 			mVisibleStations = new ArrayList<StationOverlay>();
-			updateListFromDb();
-			return mVisibleStations;
+			executeCreateVisibleStationsTask();
+		} 
+		return mVisibleStations;
+	}
+	
+	public void createVisibleStationList() {
+		if (mVisibleStations == null) {
+			mVisibleStations = new ArrayList<StationOverlay>();
+			executeCreateVisibleStationsTask();
+		}
+		if (mVcubFilter.isNeedDbQuery()) {
+			mVisibleStations.clear();
+			// Hack for ArrayAdapter & Background thread
+			if (mActivity instanceof VcuboidListActivity)
+				mActivity.onListUpdated();
+			executeCreateVisibleStationsTask();
+		} else {
+			Filtering.filter(mVisibleStations, mVcubFilter);
 		}
 	}
 	
@@ -164,7 +186,6 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 			executeGetAllStationsTask();
 			return;
 		}
-		mVisibleStations.clear();
 		Cursor cursor = mVcuboidDBAdapter
 				.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
 						mLocationProvider == null ? VcuboidDBAdapter.KEY_NAME : null);
@@ -237,11 +258,13 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 	}
 	
 	public void onLocationChanged(Location location) {
+		if (mCreateVisibleStationsTask == null) {
 		updateDistance(location);
 		Utils.sortStationsByDistance(mVisibleStations);
 		mActivity.onLocationChanged();
+		}
 	}
-	
+	/*
 	public void applyFilter() {
 		if (mVcubFilter.isNeedDbQuery())
 			updateListFromDb();
@@ -251,17 +274,48 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 			Utils.sortStationsByDistance(mVisibleStations);
 		mActivity.onListUpdated();
 	}
+	*/
 	
-	public void enableLocation() {
-		mLocationProvider = new MyLocationProvider((Context) mActivity);
-		mLocationProvider.enableMyLocation();
+	public boolean useLocation() {
+		if (mLocationProvider == null)
+			mLocationProvider = new MyLocationProvider((Context) mActivity, this);
+		else
+			Log.e("Vcuboid", "Location Manager !!!!!");
+		return mLocationProvider.enableMyLocation();
 	}
 	
-	public void disableLocation() {
+	public void dontUseLocation() {
 		mLocationProvider.disableMyLocation();
 		mLocationProvider = null;
 		resetDistances();
 		Utils.sortStationsByName(mVisibleStations);
+	}
+	
+	public boolean isMyLocationAvailable() {
+		if (mLocationProvider != null)
+			return mLocationProvider.isLocationAvailable();
+		return false;
+	}
+	
+	public Location getLocation() {
+		if (mLocationProvider != null)
+			return mLocationProvider.getMyLocation();
+		return null;
+	}
+	
+	public boolean askForGps() {
+		if (mLocationProvider != null)
+			return mLocationProvider.isAskForGps();
+		return false;
+	}
+	
+	public void showAskForGps() {
+		mActivity.showAskForGps();
+	}
+	
+	public void setAskForGps(boolean ask) {
+		if (mLocationProvider != null)
+			mLocationProvider.setAskForGps(ask);
 	}
 	
 	public void startLocation() {
@@ -270,17 +324,6 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 	
 	public void stopLocation() {
 		mLocationProvider.disableMyLocation();
-	}
-	
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
-		if (key.equals(((Context) mActivity).getString(R.string.use_location))) {
-			Log.e("Vcuboid", "Location Changed");
-			if (preferences.getBoolean(key, true))
-				enableLocation();
-			else
-				disableLocation();
-		}
 	}
 	
 	/************************************/
@@ -363,6 +406,29 @@ public class VcuboidManager implements SharedPreferences.OnSharedPreferenceChang
 
 		public int getProgress() {
 			return progress;
+		}
+	}
+	
+	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+		}
+
+		protected Void doInBackground(Void... unused) {
+			updateListFromDb();
+			Log.i("Vcuboid", "Async task finished");
+			return (null);
+		}
+
+		@Override
+		protected void onPostExecute(Void unused) {
+			if (mActivity == null) {
+			} else {
+				mActivity.onListUpdated();
+				mCreateVisibleStationsTask = null;
+			}
 		}
 	}
 }

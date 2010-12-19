@@ -24,11 +24,11 @@ public class Filtering {
 				it.remove();
 				continue;
 			}
-			if (mVcubFilter.isShowOnlyWithBikes() && s.getBikes() <= 1) {
+			if (mVcubFilter.isShowOnlyWithBikes() && s.getBikes() < 1) {
 				it.remove();
 				continue;
 			}
-			if (mVcubFilter.isShowOnlyWithSlots() && s.getSlots() <= 1) {
+			if (mVcubFilter.isShowOnlyWithSlots() && s.getSlots() < 1) {
 				it.remove();
 				continue;
 			}

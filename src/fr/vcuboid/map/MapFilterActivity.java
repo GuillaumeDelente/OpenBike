@@ -13,16 +13,4 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 	    addPreferencesFromResource(R.xml.location_preferences);
 	    addPreferencesFromResource(R.xml.filter_preferences);
 	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-	}
-
-	@Override
-	protected void onPause() {
-		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-		super.onPause();
-	}
 }

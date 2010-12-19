@@ -7,6 +7,12 @@
 	<string name="map">Carte</string>
 	<string name="list">Liste</string>
 	
+	<!--  Dialogs -->
+	<string name="yes">Oui</string>
+	<string name="no">Non</string>
+	<string name="gps_disabled">GPS désactivé</string>
+	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
+	
 	<!--  Preferences -->
 	<string name="menu_filters_title">Filtres</string>
 	<string name="menu_map_preferences_title">Configuration</string>

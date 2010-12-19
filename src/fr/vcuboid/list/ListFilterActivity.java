@@ -13,16 +13,4 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 	    addPreferencesFromResource(R.xml.filter_preferences);
 	    addPreferencesFromResource(R.xml.location_preferences);
 	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-	}
-	
-	@Override
-	protected void onPause() {
-		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-		super.onPause();
-	}
 }
