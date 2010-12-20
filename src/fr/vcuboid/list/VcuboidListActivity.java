@@ -1,6 +1,7 @@
 package fr.vcuboid.list;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -21,7 +22,9 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.IVcuboidActivity;
+import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
+import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.map.VcuboidMapActivity;
 
@@ -31,7 +34,6 @@ public class VcuboidListActivity extends ListActivity implements
 	private VcuboidManager mVcuboidManager = null;
 	private VcuboidArrayAdaptor mAdapter = null;
 	private ProgressDialog mPd = null;
-	private AlertDialog mAlert = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -81,7 +83,6 @@ public class VcuboidListActivity extends ListActivity implements
 		case R.id.menu_clear_db:
 			mVcuboidManager.clearDB();
 			finish();
-			// mAdapter.getCursor().requery();
 			return true;
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
@@ -136,15 +137,14 @@ public class VcuboidListActivity extends ListActivity implements
 		Animation animation = new AlphaAnimation(0.0f, 1.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		animation = new TranslateAnimation(
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, -1.0f,Animation.RELATIVE_TO_SELF, 0.0f
-		);
+		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+				-1.0f, Animation.RELATIVE_TO_SELF, 0.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		LayoutAnimationController controller =
-			new LayoutAnimationController(set, 0.5f);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		LayoutAnimationController controller = new LayoutAnimationController(
+				set, 0.5f);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
 		loading.setVisibility(View.VISIBLE);
 		loading.setLayoutAnimation(controller);
 	}
@@ -155,13 +155,12 @@ public class VcuboidListActivity extends ListActivity implements
 		Animation animation = new AlphaAnimation(1.0f, 0.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		animation = new TranslateAnimation(
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, -1.0f
-		);
+		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+				0.0f, Animation.RELATIVE_TO_SELF, -1.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
 		loading.startAnimation(set);
 		loading.setVisibility(View.INVISIBLE);
 		onListUpdated();
@@ -178,28 +177,66 @@ public class VcuboidListActivity extends ListActivity implements
 	}
 
 	@Override
-	public void showAskForGps() {
-		if (mAlert != null && mAlert.isShowing())
-			return;
+	public Dialog onCreateDialog(int id) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
-				getString(R.string.show_location_parameters)).setCancelable(
-				false).setPositiveButton(getString(R.string.yes),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						Intent gpsOptionsIntent = new Intent(
-								android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-						startActivity(gpsOptionsIntent);
-					}
-				});
-		builder.setNegativeButton(getString(R.string.no),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-					}
-				});
-		mAlert = builder.create();
-		mAlert.show();
+		AlertDialog dialog;
+		switch (id) {
+		case RestClient.NETWORK_ERROR:
+			builder.setMessage(getString(R.string.network_error_summary))
+					.setTitle(getString(R.string.network_error)).setCancelable(
+							true).setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.JSON_ERROR:
+			builder.setMessage(R.string.json_error_summary).setTitle(
+					getString(R.string.json_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.DB_ERROR:
+			builder.setMessage(R.string.db_error_summary).setTitle(
+					getString(R.string.db_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+			case MyLocationProvider.ENABLE_GPS:
+			builder.setTitle(getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.show_location_parameters)).setCancelable(
+					false).setPositiveButton(getString(R.string.yes),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Intent gpsOptionsIntent = new Intent(
+									android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+							startActivity(gpsOptionsIntent);
+						}
+					});
+			builder.setNegativeButton(getString(R.string.no),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					});
+			break;
+		default:
+			return super.onCreateDialog(id);
+		}
+		dialog = builder.create();
+		return dialog;
 	}
 }
 

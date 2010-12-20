@@ -271,6 +271,7 @@ public class VcuboidManager {
 	}
 	
 	public void dontUseLocation() {
+		mActivity.removeDialog(MyLocationProvider.ENABLE_GPS);
 		mLocationProvider.disableMyLocation();
 		mLocationProvider = null;
 		resetDistances();
@@ -278,7 +279,7 @@ public class VcuboidManager {
 	}
 
 	public void showAskForGps() {
-		mActivity.showAskForGps();
+		mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
 	}
 	
 	public void startLocation() {
@@ -342,7 +343,7 @@ public class VcuboidManager {
 		}
 	}
 
-	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
+	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Void> {
 		String json = null;
 		private int progress = 0;
 
@@ -356,19 +357,32 @@ public class VcuboidManager {
 		protected Void doInBackground(Void... unused) {
 			json = RestClient
 			.connect("http://vcuboid.appspot.com/stations");
-			RestClient.updateListFromJson(json,
-					mVisibleStations);
-			publishProgress();
-			RestClient.updateDbFromJson(json,
-					mVcuboidDBAdapter);
+			if (json == null) {
+				publishProgress(RestClient.NETWORK_ERROR);
+				return null;
+			}
+			publishProgress(50);
+			if (!RestClient.updateListFromJson(json,
+					mVisibleStations)) {
+				publishProgress(RestClient.JSON_ERROR);
+				return null;
+			}
+			if (!RestClient.updateDbFromJson(json,
+					mVcuboidDBAdapter)) {
+				publishProgress(RestClient.DB_ERROR);
+				return null;
+			}
 			Log.i("Vcuboid", "Async task finished");
 			return null;
 		}
 		
 		@Override
-		protected void onProgressUpdate(Void... unused) {
+		protected void onProgressUpdate(Integer... progress) {
 			if (mActivity != null) {
 				mActivity.finishUpdateAllStationsOnProgress();
+				if (progress[0] < 0) {
+					mActivity.showDialog(progress[0]);
+				}
 			}
 		}
 

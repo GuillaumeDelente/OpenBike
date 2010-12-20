@@ -22,6 +22,10 @@ import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
 
 public class RestClient {
+	
+	public static final int NETWORK_ERROR = -1;
+	public static final int JSON_ERROR = -2;
+	public static final int DB_ERROR = -3;
 
 	private static String convertStreamToString(InputStream is) {
 		/*
@@ -51,8 +55,7 @@ public class RestClient {
 	}
 
 	/*
-	 * This is a test function which will connects to a given rest service and
-	 * prints it's response to Android Log with labels "Praeda".
+	 * Connect to the server
 	 */
 	public static String connect(String url) {
 
@@ -83,11 +86,9 @@ public class RestClient {
 			}
 			return null;
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -135,7 +136,6 @@ public class RestClient {
 			}
 			return true;
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -144,19 +144,21 @@ public class RestClient {
 	public static boolean updateDbFromJson(String json,
 			VcuboidDBAdapter vcuboidDBAdapter) {
 		try {
+			boolean success = true;
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
 			for (int i = 0; i < jsonArray.length(); i++) {
 				jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.updateStation(jsonStation.getInt("id"),
+				if (!vcuboidDBAdapter.updateStation(jsonStation.getInt("id"),
 						jsonStation.getInt("availableBikes"), jsonStation
 								.getInt("freeSlots"), jsonStation
-								.getBoolean("open"));
+								.getBoolean("open"))) {
+					success = false;
+				}
 
 			}
-			return true;
+			return success;
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,7 +33,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
 import fr.vcuboid.IVcuboidActivity;
+import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
+import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
@@ -44,7 +47,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
-	private AlertDialog mAlert = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -227,27 +229,65 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void showAskForGps() {
-		if (mAlert != null && mAlert.isShowing())
-			return;
+	public Dialog onCreateDialog(int id) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
-				getString(R.string.show_location_parameters)).setCancelable(
-				false).setPositiveButton(getString(R.string.yes),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						Intent gpsOptionsIntent = new Intent(
-								android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-						startActivity(gpsOptionsIntent);
-					}
-				});
-		builder.setNegativeButton(getString(R.string.no),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-					}
-				});
-		mAlert = builder.create();
-		mAlert.show();
+		AlertDialog dialog;
+		switch (id) {
+		case RestClient.NETWORK_ERROR:
+			builder.setMessage(getString(R.string.network_error_summary))
+					.setTitle(getString(R.string.network_error)).setCancelable(
+							true).setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.JSON_ERROR:
+			builder.setMessage(R.string.json_error_summary).setTitle(
+					getString(R.string.json_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.DB_ERROR:
+			builder.setMessage(R.string.db_error_summary).setTitle(
+					getString(R.string.db_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+			case MyLocationProvider.ENABLE_GPS:
+			builder.setTitle(getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.show_location_parameters)).setCancelable(
+					false).setPositiveButton(getString(R.string.yes),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Intent gpsOptionsIntent = new Intent(
+									android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+							startActivity(gpsOptionsIntent);
+						}
+					});
+			builder.setNegativeButton(getString(R.string.no),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					});
+			break;
+		default:
+			return super.onCreateDialog(id);
+		}
+		dialog = builder.create();
+		return dialog;
 	}
 }
