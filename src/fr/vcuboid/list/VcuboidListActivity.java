@@ -190,6 +190,7 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void onListUpdated() {
+		Log.e("Vcuboid", "notifyDataSetChanged");
 		mAdapter.notifyDataSetChanged();
 	}
 
