@@ -11,6 +11,7 @@
 	<string name="yes">Oui</string>
 	<string name="no">Non</string>
 	<string name="gps_disabled">GPS désactivé</string>
+	<string name="updating">Rafraichissement...</string>
 	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
 	
 	<!--  Preferences -->

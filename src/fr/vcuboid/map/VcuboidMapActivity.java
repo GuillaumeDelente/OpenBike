@@ -17,6 +17,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
+import android.widget.RelativeLayout;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -86,6 +93,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case R.id.menu_map_preferences:
 			startActivity(new Intent(this, MapFilterActivity.class));
 			return true;
+		case R.id.menu_update_all:
+			mVcuboidManager.executeUpdateAllStationsTask();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -135,19 +145,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void finishUpdateAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void showGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void showUpdateAllStationsOnProgress() {
 		// TODO Auto-generated method stub
 
 	}
@@ -168,13 +166,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (!current.isCurrent) {
 			current = null;
 		}
-		mMapOverlays.clear();
-		ArrayList<StationOverlay> stations = mVcuboidManager
-				.getVisibleStations();
-		mMapOverlays.addAll(stations);
-		Collections.reverse(mMapOverlays);
-		mMapOverlays.add(mMyLocationOverlay);
-		mMapView.invalidate();
+		onListUpdated();
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false) || mIsFirstFix) {
 			mMapController.animateTo(new GeoPoint(
@@ -194,6 +186,44 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (mMyLocationOverlay != null)
 			mMapOverlays.add(mMyLocationOverlay);
 		mMapView.invalidate();
+	}
+	
+	@Override
+	public void showUpdateAllStationsOnProgress() {
+		Log.e("Vcuboid", "Update Dialog");
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, -1.0f,Animation.RELATIVE_TO_SELF, 0.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		LayoutAnimationController controller =
+			new LayoutAnimationController(set, 0.5f);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.setVisibility(View.VISIBLE);
+		loading.setLayoutAnimation(controller);
+	}
+
+	@Override
+	public void finishUpdateAllStationsOnProgress() {
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(1.0f, 0.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, -1.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.startAnimation(set);
+		loading.setVisibility(View.INVISIBLE);
+		onListUpdated();
 	}
 
 	@Override

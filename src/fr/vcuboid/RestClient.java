@@ -124,20 +124,14 @@ public class RestClient {
 			JSONObject jsonStation;
 			Station station;
 			int id = 0;
-			// FIXME Maybe JSON are in station id order
-			// and we should access them for each item in the list
-			for (int i = 0; i < jsonArray.length(); i++) {
-				jsonStation = jsonArray.getJSONObject(i);
-				for (int j = 0; j < mVisibleStations.size(); j++) {
-					id = jsonStation.getInt("id");
-					station = mVisibleStations.get(j).getStation();
-					if (id == station.getId()) {
-						station.setBikes(jsonStation.getInt("availableBikes"));
-						station.setSlots(jsonStation.getInt("freeSlots"));
-						station.setOpen(jsonStation.getBoolean("open"));
-						break;
-					}
-				}
+			for (int i = 0; i < mVisibleStations.size(); i++) {
+				station = mVisibleStations.get(i).getStation();
+				id = station.getId();
+				jsonStation = jsonArray.getJSONObject(id-1);
+				Log.e("Vcuboid", "Station : " + id + " " + jsonStation.getInt("id"));
+				station.setBikes(jsonStation.getInt("availableBikes"));
+				station.setSlots(jsonStation.getInt("freeSlots"));
+				station.setOpen(jsonStation.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {

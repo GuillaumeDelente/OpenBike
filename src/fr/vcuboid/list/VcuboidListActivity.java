@@ -12,7 +12,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
 import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.R;
@@ -126,19 +132,39 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void showUpdateAllStationsOnProgress() {
-		for (int i = 0; i < this.getListView().getChildCount(); i++) {
-			this.getListView().getChildAt(i).findViewById(R.id.refreshing)
-					.setVisibility(View.VISIBLE);
-		}
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, -1.0f,Animation.RELATIVE_TO_SELF, 0.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		LayoutAnimationController controller =
+			new LayoutAnimationController(set, 0.5f);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.setVisibility(View.VISIBLE);
+		loading.setLayoutAnimation(controller);
 	}
 
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
-		// mAdapter.getCursor().requery();
-		for (int i = 0; i < this.getListView().getChildCount(); i++) {
-			this.getListView().getChildAt(i).findViewById(R.id.refreshing)
-					.setVisibility(View.INVISIBLE);
-		}
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(1.0f, 0.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, -1.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.startAnimation(set);
+		loading.setVisibility(View.INVISIBLE);
+		onListUpdated();
 	}
 
 	@Override
