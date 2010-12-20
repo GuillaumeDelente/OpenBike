@@ -344,7 +344,6 @@ public class VcuboidManager {
 	}
 
 	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Void> {
-		String json = null;
 		private int progress = 0;
 
 		protected void onPreExecute() {
@@ -355,18 +354,18 @@ public class VcuboidManager {
 		}
 
 		protected Void doInBackground(Void... unused) {
-			json = RestClient
+			String json = RestClient
 			.connect("http://vcuboid.appspot.com/stations");
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return null;
 			}
-			publishProgress(50);
 			if (!RestClient.updateListFromJson(json,
 					mVisibleStations)) {
 				publishProgress(RestClient.JSON_ERROR);
 				return null;
 			}
+			publishProgress(50);
 			if (!RestClient.updateDbFromJson(json,
 					mVcuboidDBAdapter)) {
 				publishProgress(RestClient.DB_ERROR);
