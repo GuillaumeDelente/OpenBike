@@ -27,8 +27,8 @@ public interface IVcuboidActivity {
 	public void finishGetAllStationsOnProgress();
 	public void showUpdateAllStationsOnProgress();
 	public void finishUpdateAllStationsOnProgress();
-	public void showAskForGps();
 	public void onLocationChanged(Location location);
 	public void onListUpdated();
-	
+	public void showDialog(int id);
+	public void removeDialog(int id);
 }

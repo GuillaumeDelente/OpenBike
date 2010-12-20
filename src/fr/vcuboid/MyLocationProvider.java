@@ -28,6 +28,7 @@ import android.util.Log;
 
 public class MyLocationProvider implements LocationListener {
 
+	public static final int ENABLE_GPS = -4;
 	private boolean mIsGpsUsed = false;
 	private boolean mIsNetworkUsed = false;
 	private boolean mAskForGps = true;

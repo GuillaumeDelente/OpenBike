@@ -64,6 +64,10 @@ public class VcubFilter implements Cloneable {
 		}
 		mNeedDbQuery = false;
 	}
+	
+	public void setNeedDbQuery(boolean db) {
+		mNeedDbQuery = db;
+	}
 
 	public boolean isNeedDbQuery() {
 		return mNeedDbQuery;

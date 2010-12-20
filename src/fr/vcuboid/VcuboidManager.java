@@ -50,7 +50,7 @@ public class VcuboidManager {
 	private VcubFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
-	private CreateVisibleStationsTask mCreateVisibleStationsTask= null;
+	private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	
 	public VcubFilter getVcubFilter() {
 		return mVcubFilter;
@@ -288,6 +288,7 @@ public class VcuboidManager {
 	}
 	
 	public void dontUseLocation() {
+		mActivity.removeDialog(MyLocationProvider.ENABLE_GPS);
 		mLocationProvider.disableMyLocation();
 		mLocationProvider = null;
 		resetDistances();
@@ -295,7 +296,7 @@ public class VcuboidManager {
 	}
 
 	public void showAskForGps() {
-		mActivity.showAskForGps();
+		mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
 	}
 	
 	public void startLocation() {
@@ -320,12 +321,14 @@ public class VcuboidManager {
 
 		private int progress = 0;
 
+		@Override
 		protected void onPreExecute() {
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
 			}
 		}
 
+		@Override
 		protected Void doInBackground(Void... unused) {
 			String json = RestClient
 					.connect("http://vcuboid.appspot.com/stations");
@@ -336,9 +339,10 @@ public class VcuboidManager {
 			return (null);
 		}
 
+		@Override
 		protected void onProgressUpdate(Void... unused) {
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(progress += 50);
+				mActivity.updateGetAllStationsOnProgress(progress += 50);
 			}
 		}
 
@@ -356,23 +360,47 @@ public class VcuboidManager {
 		}
 	}
 
-	private class UpdateAllStationsTask extends AsyncTask<Void, Void, Void> {
-
+	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Void> {
+		String json = null;
 		private int progress = 0;
 
 		protected void onPreExecute() {
 			mIsUpdating = true;
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).showUpdateAllStationsOnProgress();
+				mActivity.showUpdateAllStationsOnProgress();
 			}
 		}
 
 		protected Void doInBackground(Void... unused) {
-			RestClient.jsonBikesToDb(RestClient
-					.connect("http://vcuboid.appspot.com/stations"),
-					mVcuboidDBAdapter);
+			json = RestClient
+			.connect("http://vcuboid.appspot.com/stations");
+			if (json == null) {
+				publishProgress(RestClient.NETWORK_ERROR);
+				return null;
+			}
+			publishProgress(50);
+			if (!RestClient.updateListFromJson(json,
+					mVisibleStations)) {
+				publishProgress(RestClient.JSON_ERROR);
+				return null;
+			}
+			if (!RestClient.updateDbFromJson(json,
+					mVcuboidDBAdapter)) {
+				publishProgress(RestClient.DB_ERROR);
+				return null;
+			}
 			Log.i("Vcuboid", "Async task finished");
-			return (null);
+			return null;
+		}
+		
+		@Override
+		protected void onProgressUpdate(Integer... progress) {
+			if (mActivity != null) {
+				mActivity.finishUpdateAllStationsOnProgress();
+				if (progress[0] < 0) {
+					mActivity.showDialog(progress[0]);
+				}
+			}
 		}
 
 		@Override
@@ -381,7 +409,6 @@ public class VcuboidManager {
 				progress = 100;
 			} else {
 				mIsUpdating = false;
-				((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 				mUpdateAllStationsTask = null;
 			}
 		}

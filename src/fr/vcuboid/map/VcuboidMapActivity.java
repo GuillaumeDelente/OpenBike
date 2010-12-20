@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -34,6 +35,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
+import android.widget.RelativeLayout;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -42,7 +50,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
 import fr.vcuboid.IVcuboidActivity;
+import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
+import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
@@ -54,7 +64,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
-	private AlertDialog mAlert = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -102,6 +111,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		switch (item.getItemId()) {
 		case R.id.menu_map_preferences:
 			startActivity(new Intent(this, MapFilterActivity.class));
+			return true;
+		case R.id.menu_update_all:
+			mVcuboidManager.executeUpdateAllStationsTask();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -152,19 +164,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void finishUpdateAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void showGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void showUpdateAllStationsOnProgress() {
 		// TODO Auto-generated method stub
 
 	}
@@ -185,13 +185,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (!current.isCurrent) {
 			current = null;
 		}
-		mMapOverlays.clear();
-		ArrayList<StationOverlay> stations = mVcuboidManager
-				.getVisibleStations();
-		mMapOverlays.addAll(stations);
-		Collections.reverse(mMapOverlays);
-		mMapOverlays.add(mMyLocationOverlay);
-		mMapView.invalidate();
+		onListUpdated();
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false) || mIsFirstFix) {
 			mMapController.animateTo(new GeoPoint(
@@ -212,29 +206,105 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		mMapView.invalidate();
 	}
+	
+	@Override
+	public void showUpdateAllStationsOnProgress() {
+		Log.e("Vcuboid", "Update Dialog");
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, -1.0f,Animation.RELATIVE_TO_SELF, 0.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		LayoutAnimationController controller =
+			new LayoutAnimationController(set, 0.5f);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.setVisibility(View.VISIBLE);
+		loading.setLayoutAnimation(controller);
+	}
 
 	@Override
-	public void showAskForGps() {
-		if (mAlert != null && mAlert.isShowing())
-			return;
+	public void finishUpdateAllStationsOnProgress() {
+		AnimationSet set = new AnimationSet(true);
+		Animation animation = new AlphaAnimation(1.0f, 0.0f);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, -1.0f
+		);
+		animation.setDuration(500);
+		set.addAnimation(animation);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		loading.startAnimation(set);
+		loading.setVisibility(View.INVISIBLE);
+		onListUpdated();
+	}
+
+	@Override
+	public Dialog onCreateDialog(int id) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(getString(R.string.gps_disabled)).setMessage(
-				getString(R.string.show_location_parameters)).setCancelable(
-				false).setPositiveButton(getString(R.string.yes),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						Intent gpsOptionsIntent = new Intent(
-								android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-						startActivity(gpsOptionsIntent);
-					}
-				});
-		builder.setNegativeButton(getString(R.string.no),
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-					}
-				});
-		mAlert = builder.create();
-		mAlert.show();
+		AlertDialog dialog;
+		switch (id) {
+		case RestClient.NETWORK_ERROR:
+			builder.setMessage(getString(R.string.network_error_summary))
+					.setTitle(getString(R.string.network_error)).setCancelable(
+							true).setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.JSON_ERROR:
+			builder.setMessage(R.string.json_error_summary).setTitle(
+					getString(R.string.json_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+		case RestClient.DB_ERROR:
+			builder.setMessage(R.string.db_error_summary).setTitle(
+					getString(R.string.db_error)).setCancelable(true)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
+			break;
+			case MyLocationProvider.ENABLE_GPS:
+			builder.setTitle(getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.show_location_parameters)).setCancelable(
+					false).setPositiveButton(getString(R.string.yes),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							Intent gpsOptionsIntent = new Intent(
+									android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+							startActivity(gpsOptionsIntent);
+						}
+					});
+			builder.setNegativeButton(getString(R.string.no),
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					});
+			break;
+		default:
+			return super.onCreateDialog(id);
+		}
+		dialog = builder.create();
+		return dialog;
 	}
 }

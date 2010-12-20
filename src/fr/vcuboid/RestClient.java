@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -34,8 +35,14 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import fr.vcuboid.database.VcuboidDBAdapter;
+import fr.vcuboid.map.StationOverlay;
+import fr.vcuboid.object.Station;
 
 public class RestClient {
+	
+	public static final int NETWORK_ERROR = -1;
+	public static final int JSON_ERROR = -2;
+	public static final int DB_ERROR = -3;
 
 	private static String convertStreamToString(InputStream is) {
 		/*
@@ -65,8 +72,7 @@ public class RestClient {
 	}
 
 	/*
-	 * This is a test function which will connects to a given rest service and
-	 * prints it's response to Android Log with labels "Praeda".
+	 * Connect to the server
 	 */
 	public static String connect(String url) {
 
@@ -97,11 +103,9 @@ public class RestClient {
 			}
 			return null;
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -113,16 +117,15 @@ public class RestClient {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.insertStation(
-						jsonStation.getInt("id"), 
-						jsonStation.getString("name"),
-						jsonStation.getString("address"),
-						jsonStation.getString("network"),
-						jsonStation.getDouble("latitude"),
-						jsonStation.getDouble("longitude"), 
-						jsonStation.getInt("availableBikes"), 
-						jsonStation.getInt("freeSlots"),
-						jsonStation.getBoolean("open"));
+				vcuboidDBAdapter.insertStation(jsonStation.getInt("id"),
+						jsonStation.getString("name"), jsonStation
+								.getString("address"), jsonStation
+								.getString("network"), jsonStation
+								.getDouble("latitude"), jsonStation
+								.getDouble("longitude"), jsonStation
+								.getInt("availableBikes"), jsonStation
+								.getInt("freeSlots"), jsonStation
+								.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {
@@ -131,21 +134,48 @@ public class RestClient {
 			return false;
 		}
 	}
-	
-	public static boolean jsonBikesToDb(String json,
-			VcuboidDBAdapter vcuboidDBAdapter) {
+
+	public static boolean updateListFromJson(String json,
+			ArrayList<StationOverlay> mVisibleStations) {
 		try {
 			JSONArray jsonArray = new JSONArray(json);
-			for (int i = 0; i < jsonArray.length(); i++) {
-				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.updateStation(jsonStation
-						.getInt("id"), jsonStation
-						.getInt("availableBikes"), jsonStation.getInt("freeSlots"), 
-						jsonStation.getBoolean("open"));
+			JSONObject jsonStation;
+			Station station;
+			int id = 0;
+			for (int i = 0; i < mVisibleStations.size(); i++) {
+				station = mVisibleStations.get(i).getStation();
+				id = station.getId();
+				jsonStation = jsonArray.getJSONObject(id-1);
+				Log.e("Vcuboid", "Station : " + id + " " + jsonStation.getInt("id"));
+				station.setBikes(jsonStation.getInt("availableBikes"));
+				station.setSlots(jsonStation.getInt("freeSlots"));
+				station.setOpen(jsonStation.getBoolean("open"));
 			}
 			return true;
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public static boolean updateDbFromJson(String json,
+			VcuboidDBAdapter vcuboidDBAdapter) {
+		try {
+			boolean success = true;
+			JSONArray jsonArray = new JSONArray(json);
+			JSONObject jsonStation;
+			for (int i = 0; i < jsonArray.length(); i++) {
+				jsonStation = jsonArray.getJSONObject(i);
+				if (!vcuboidDBAdapter.updateStation(jsonStation.getInt("id"),
+						jsonStation.getInt("availableBikes"), jsonStation
+								.getInt("freeSlots"), jsonStation
+								.getBoolean("open"))) {
+					success = false;
+				}
+
+			}
+			return success;
+		} catch (JSONException e) {
 			e.printStackTrace();
 			return false;
 		}
