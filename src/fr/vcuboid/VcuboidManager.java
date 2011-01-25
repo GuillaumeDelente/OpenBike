@@ -41,6 +41,8 @@ import fr.vcuboid.utils.Utils;
 public class VcuboidManager {
 
 	public static boolean mIsUpdating = false;
+	public static final int RETRIEVE_ALL_STATIONS = 0;
+	public static final int REMOVE_FROM_FAVORITE = 1;
 	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
 	protected static IVcuboidActivity mActivity = null;
 	protected static MyLocationProvider mLocationProvider = null;
@@ -106,7 +108,7 @@ public class VcuboidManager {
 	}
 
 	public boolean executeGetAllStationsTask() {
-		Log.e("executeGetAllStationsTask", "Ok");
+		Log.e("Vcuboid", "executeGetAllStationsTask");
 		if (mGetAllStationsTask == null) {
 			mGetAllStationsTask = (GetAllStationsTask) new GetAllStationsTask()
 					.execute();
@@ -163,15 +165,26 @@ public class VcuboidManager {
 		mVcuboidDBAdapter.close();
 		mVcuboidDBAdapter.open();
 	}
-
-	public void setFavorite(int position, boolean isChecked) {
-		Station s = mVisibleStations.get(position).getStation();
-		s.setFavorite(isChecked);
-		mVcuboidDBAdapter.updateFavorite(s.getId(), isChecked);
-		if (mVcubFilter.isShowOnlyFavorites()) {
-			mVisibleStations.remove(position);
-			mActivity.onListUpdated();
+	
+	public void setFavorite(int id, boolean isChecked) {
+		mVcuboidDBAdapter.updateFavorite(id, isChecked);
+		StationOverlay overlay;
+		Station station;
+		Iterator<StationOverlay> it = mVisibleStations.iterator();
+		while(it.hasNext()) {
+			overlay = it.next();
+			station = overlay.getStation();
+			if (station.getId() == id) {
+				station.setFavorite(isChecked);
+				Log.d("Vcuboid", "Favorite in DB id " + station.getId());
+				if (mVcubFilter.isShowOnlyFavorites() && !isChecked) {
+					Log.d("Vcuboid", "Removing station");
+					it.remove();
+				}
+				return;
+			}
 		}
+		Log.d("Vcuboid", "List size " + mVisibleStations.size());
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
@@ -198,10 +211,9 @@ public class VcuboidManager {
 		}
 	}
 	
-	private void updateListFromDb() {
+	private boolean updateListFromDb() {
 		if (mVcuboidDBAdapter.getStationCount() == 0) {
-			executeGetAllStationsTask();
-			return;
+			return false;
 		}
 		Cursor cursor = mVcuboidDBAdapter
 				.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
@@ -241,6 +253,7 @@ public class VcuboidManager {
 		cursor.close();
 		if (mLocationProvider != null)
 			Utils.sortStationsByDistance(mVisibleStations);
+		return true;
 	}
 	
 	private void updateDistance(Location location) {
@@ -295,6 +308,14 @@ public class VcuboidManager {
 		Utils.sortStationsByName(mVisibleStations);
 	}
 
+	public Location getCurrentLocation() {
+		if (mLocationProvider != null && mLocationProvider.isLocationAvailable()) {
+			return mLocationProvider.getMyLocation();
+		} else {
+			return null;
+		}
+	}
+	
 	public void showAskForGps() {
 		mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
 	}
@@ -323,6 +344,7 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPreExecute() {
+			Log.i("Vcuboid", "onPreExecute");
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
 			}
@@ -330,6 +352,7 @@ public class VcuboidManager {
 
 		@Override
 		protected Void doInBackground(Void... unused) {
+			Log.i("Vcuboid", "doInBackground");
 			String json = RestClient
 					.connect("http://vcuboid.appspot.com/stations");
 			publishProgress();
@@ -417,24 +440,25 @@ public class VcuboidManager {
 		}
 	}
 	
-	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Void> {
+	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
 
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
 		}
 
-		protected Void doInBackground(Void... unused) {
-			updateListFromDb();
-			Log.i("Vcuboid", "Async task finished");
-			return (null);
+		protected Boolean doInBackground(Void... unused) {
+			return updateListFromDb();
 		}
 
 		@Override
-		protected void onPostExecute(Void unused) {
+		protected void onPostExecute(Boolean isListCreated) {
 			if (mActivity == null) {
 			} else {
-				mActivity.onListUpdated();
+				if (!isListCreated)
+					executeGetAllStationsTask();
+				else 
+					mActivity.onListUpdated();
 				mCreateVisibleStationsTask = null;
 			}
 		}

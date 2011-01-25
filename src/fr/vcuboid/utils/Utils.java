@@ -65,6 +65,8 @@ public class Utils {
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
+				if (o1 instanceof StationOverlay
+						&& o2 instanceof StationOverlay) {
 				if (((StationOverlay) o1).isCurrent)
 					return -1;
 				if (((StationOverlay) o2).isCurrent)
@@ -72,6 +74,12 @@ public class Utils {
 				Station s1 = ((StationOverlay) o1).getStation();
 				Station s2 = ((StationOverlay) o2).getStation();
 				return s1.getName().compareToIgnoreCase(s2.getName());
+				} else if (o1 instanceof MyLocationOverlay) {
+					return -1;
+				} else if (o2 instanceof MyLocationOverlay) {
+					return 1;
+				}
+				return 0;
 			}
 		});
 	}
@@ -92,5 +100,11 @@ public class Utils {
 			where += " AND " + selection.elementAt(i);
 		}
 		return where;
+	}
+	
+	static public String formatDistance(int distance) {
+		int km = distance / 1000;
+		String mStr = distance % 1000 + "m";
+		return km == 0 ? mStr : km + "km " + mStr;
 	}
 }

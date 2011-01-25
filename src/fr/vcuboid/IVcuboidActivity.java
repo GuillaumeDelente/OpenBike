@@ -19,7 +19,6 @@ package fr.vcuboid;
 
 import android.location.Location;
 
-
 public interface IVcuboidActivity {
 
 	public void showGetAllStationsOnProgress();

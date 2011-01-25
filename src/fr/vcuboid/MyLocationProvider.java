@@ -30,7 +30,6 @@ public class MyLocationProvider implements LocationListener {
 
 	public static final int ENABLE_GPS = -4;
 	private boolean mIsGpsUsed = false;
-	private boolean mIsNetworkUsed = false;
 	private boolean mAskForGps = true;
 	private boolean mIsInPause = true;
 	private VcuboidManager mVcuboidManager = null;
@@ -60,10 +59,6 @@ public class MyLocationProvider implements LocationListener {
 	public boolean isLocationAvailable() {
 		return mLastFix != null;
 	}
-	
-	public boolean areProvidersAvailable() {
-		return mIsGpsUsed || mIsNetworkUsed;
-	}
 
 	public synchronized void enableMyLocation() {
 		if (!mIsInPause)
@@ -74,12 +69,12 @@ public class MyLocationProvider implements LocationListener {
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			Log.e("Vcuboid", "Updates for Network provider");
 				mLocationManager.requestLocationUpdates(
-						LocationManager.NETWORK_PROVIDER, 5000, 20, this);
+						LocationManager.NETWORK_PROVIDER, 5000, 0, this);
 		}
 		if (providers.contains(LocationManager.GPS_PROVIDER)) {
 			Log.e("Vcuboid", "Updater for GPS provider");
 			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER, 30000, 20, this);
+					LocationManager.GPS_PROVIDER, 5000, 0, this);
 		}
 	}
 
@@ -88,7 +83,7 @@ public class MyLocationProvider implements LocationListener {
 			return;
 		mIsInPause = true;
 		mLocationManager.removeUpdates(this);
-		mIsGpsUsed = mIsNetworkUsed = false;
+		mIsGpsUsed = false;
 		Log.e("Vcuboid", "Location provider On Pause");
 	}
 
@@ -104,18 +99,14 @@ public class MyLocationProvider implements LocationListener {
 		}
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			Log.e("Vcuboid", "GPS Fix");
-			if (mLastFix == null || !mIsNetworkUsed ||
-					(location.getAccuracy() < mLastFix.getAccuracy())) {
-				Log.e("Vcuboid", "is first or the most accurate");
-				mLastFix = location;
-				mVcuboidManager.onLocationChanged(
+			mLastFix = location;
+			mVcuboidManager.onLocationChanged(
 						location);
-			}
+			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(LocationManager.NETWORK_PROVIDER)) {
 			Log.e("Vcuboid", "Network Fix");
-			if (mLastFix == null || !mIsGpsUsed ||
-					(location.getAccuracy() < mLastFix.getAccuracy())) {
-				Log.e("Vcuboid", "is first or the most accurate, accuracy : " + location.getAccuracy());
+			if (mLastFix == null || !mIsGpsUsed) {
+				Log.e("Vcuboid", "is first or the only one");
 				mLastFix = location;
 				mVcuboidManager.onLocationChanged(
 						location);
@@ -127,27 +118,12 @@ public class MyLocationProvider implements LocationListener {
 	public void onProviderDisabled(String provider) {
 		Log.e("Vcuboid", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
+			mIsGpsUsed = false;
 			if (mAskForGps) {
 				mVcuboidManager.showAskForGps();
 				mAskForGps = false;
 			}
-			if (mIsNetworkUsed) {
-				mIsGpsUsed = false;
-			} else {
-				setNoProvidersAvailable();
-			}
-		} else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
-			if (mIsGpsUsed) {
-				mIsNetworkUsed = false;
-			} else {
-				setNoProvidersAvailable();
-			}
 		}
-	}
-	
-	private void setNoProvidersAvailable() {
-		mIsNetworkUsed = mIsGpsUsed = false;
-		mLastFix = null;
 	}
 
 	@Override
@@ -155,10 +131,7 @@ public class MyLocationProvider implements LocationListener {
 		Log.e("Vcuboid", "onProviderEnabled : " + provider);
 		setAskForGps(true);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
-			mIsGpsUsed = true;
 			mAskForGps = false;
-		} else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
-			mIsNetworkUsed = true;
 		}
 	}
 	

@@ -35,9 +35,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
-import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
@@ -50,7 +48,8 @@ public class VcuboidListActivity extends ListActivity implements
 
 	private VcuboidManager mVcuboidManager = null;
 	private VcuboidArrayAdaptor mAdapter = null;
-	private ProgressDialog mPd = null;
+	private ProgressDialog mPdialog = null;
+	private int mSelected = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -117,8 +116,6 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public Object onRetainNonConfigurationInstance() {
-		if (mPd != null)
-			mPd.dismiss();
 		mVcuboidManager.detach();
 		return (mVcuboidManager);
 	}
@@ -130,22 +127,20 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void showGetAllStationsOnProgress() {
-		String title = "Récuperation de la liste des stations";
-		String message = "Contact du serveur en cours...";
-		mPd = ProgressDialog.show(this, title, message, true);
+		Log.i("Vcuboid", "showGetAllStationsOnProgress");
+		showDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
-		// String title = "Récuperation de la liste des stations";
-		mPd
-				.setMessage("Données recues, sauvegarde dans la base de donnée en cours...");
+		Log.i("Vcuboid", "updateGetAllStationsOnProgress");
+		mPdialog.setMessage(getString(R.string.saving_db_summary));
 	}
 
 	@Override
 	public void finishGetAllStationsOnProgress() {
 		onListUpdated();
-		mPd.dismiss();
+		dismissDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	@Override
@@ -195,75 +190,97 @@ public class VcuboidListActivity extends ListActivity implements
 	}
 
 	@Override
-	public Dialog onCreateDialog(int id) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		AlertDialog dialog;
+	protected Dialog onCreateDialog(int id) {
+		Log.i("Vcuboid", "onCreateDialog");
 		switch (id) {
 		case RestClient.NETWORK_ERROR:
-			builder.setMessage(getString(R.string.network_error_summary))
-					.setTitle(getString(R.string.network_error)).setCancelable(
-							true).setPositiveButton("Ok",
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.network_error)).setMessage(
+					(getString(R.string.network_error_summary)))
+					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
 									dialog.cancel();
 								}
-							});
-			break;
+							}).create();
 		case RestClient.JSON_ERROR:
-			builder.setMessage(R.string.json_error_summary).setTitle(
-					getString(R.string.json_error)).setCancelable(true)
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.json_error)).setMessage(
+					(getString(R.string.json_error_summary)))
 					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
 									dialog.cancel();
 								}
-							});
-			break;
+							}).create();
 		case RestClient.DB_ERROR:
-			builder.setMessage(R.string.db_error_summary).setTitle(
-					getString(R.string.db_error)).setCancelable(true)
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							});
-			break;
-			case MyLocationProvider.ENABLE_GPS:
-			builder.setTitle(getString(R.string.gps_disabled)).setMessage(
-					getString(R.string.show_location_parameters)).setCancelable(
-					false).setPositiveButton(getString(R.string.yes),
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							Intent gpsOptionsIntent = new Intent(
-									android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-							startActivity(gpsOptionsIntent);
-						}
-					});
-			builder.setNegativeButton(getString(R.string.no),
-					new DialogInterface.OnClickListener() {
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.db_error)).setMessage(
+					(getString(R.string.db_error_summary))).setPositiveButton(
+					"Ok", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							dialog.cancel();
 						}
-					});
-			break;
-		default:
-			return super.onCreateDialog(id);
+					}).create();
+		case MyLocationProvider.ENABLE_GPS:
+			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.gps_disabled)).setMessage(
+					(getString(R.string.show_location_parameters)))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case VcuboidManager.RETRIEVE_ALL_STATIONS:
+			mPdialog = new ProgressDialog(VcuboidListActivity.this);
+			mPdialog.setCancelable(false);
+			mPdialog.setTitle(getString(R.string.retrieve_all));
+			mPdialog.setMessage((getString(R.string.querying_server_summary)));
+			return mPdialog;
+		case VcuboidManager.REMOVE_FROM_FAVORITE:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.remove_favorite)).setMessage(
+					(getString(R.string.remove_favorite_sure)))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									mVcuboidManager.setFavorite(mSelected,
+											false);
+									onListUpdated();
+									dialog.cancel();
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									onListUpdated();
+									dialog.cancel();
+								}
+							}).create();
 		}
-		dialog = builder.create();
-		return dialog;
+		return super.onCreateDialog(id);
 	}
-}
 
-class FavoriteListener implements OnCheckedChangeListener {
-
-	@Override
-	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		buttonView.getTag();
-		VcuboidManager.getVcuboidManagerInstance().setFavorite(
-				(Integer) buttonView.getTag(), isChecked);
+	public void setFavorite(int id, boolean isChecked) {
+		mSelected = id;
+		if (isChecked) {
+			mVcuboidManager.setFavorite(id, true);
+			onListUpdated();
+		} else
+			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
 	}
 }

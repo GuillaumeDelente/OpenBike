@@ -50,13 +50,13 @@ public class StationOverlay extends Overlay {
 	static public BalloonOverlayView balloonView;
 	static MapController mMc;
 	private Station mStation;
-	
+
 	public Station getStation() {
 		return mStation;
 	}
 
 	public boolean isCurrent = false;
-	
+
 	public StationOverlay(Station station) {
 		mStation = station;
 	}
@@ -72,12 +72,14 @@ public class StationOverlay extends Overlay {
 			int latMax = latCenter + (latSpan / 2);
 			int longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			int longMin = projection.fromPixels(-mMarkerWidth, 0).getLongitudeE6();
-			int latMin = projection.fromPixels(0, mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
+			int longMin = projection.fromPixels(-mMarkerWidth, 0)
+					.getLongitudeE6();
+			int latMin = projection.fromPixels(0,
+					mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
 			int stationLon = mStation.getGeoPoint().getLongitudeE6();
 			int stationLat = mStation.getGeoPoint().getLatitudeE6();
 			if (stationLat < latMin || stationLat > latMax
-			|| stationLon < longMin || stationLon > longMax) { 
+					|| stationLon < longMin || stationLon > longMax) {
 				return;
 			}
 			Point out = new Point();
@@ -90,8 +92,10 @@ public class StationOverlay extends Overlay {
 			p1.setTypeface(Typeface.DEFAULT_BOLD);
 			out.y -= mMarkerHeight;
 			canvas.drawBitmap(mMarker, out.x, out.y, null);
-			canvas.drawText(String.valueOf(mStation.getBikes()), out.x + 20, out.y + 20, p1);
-			canvas.drawText(String.valueOf(mStation.getSlots()), out.x + 20, out.y + 35, p1);
+			canvas.drawText(String.valueOf(mStation.getBikes()), out.x + 20,
+					out.y + 20, p1);
+			canvas.drawText(String.valueOf(mStation.getSlots()), out.x + 20,
+					out.y + 35, p1);
 			p1.setTextAlign(Align.LEFT);
 			p1.setTextSize(12);
 			canvas.drawText("Vélos", out.x + 25, out.y + 20, p1);
@@ -113,24 +117,24 @@ public class StationOverlay extends Overlay {
 			boolean isRecycled;
 			if (balloonView == null) {
 				balloonView = new BalloonOverlayView(mapView.getContext(),
-						mMarkerWidth, mMarkerHeight);
+						mMarkerHeight, mMarkerWidth);
 				isRecycled = false;
 			} else {
 				isRecycled = true;
 			}
 			hideOtherBalloons(mMapOverlays);
 			isCurrent = true;
-			if (mStation.getDistance() !=-1)
+			if (mStation.getDistance() != -1)
 				Utils.sortStationsByDistance(mMapOverlays);
 			else
 				Utils.sortStationsByName(mMapOverlays);
 			Collections.reverse(mMapOverlays);
-			balloonView.setData(null, mStation.getDistance());
+			balloonView.setData(mStation);
 			MapView.LayoutParams params = new MapView.LayoutParams(
 					LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
 					mStation.getGeoPoint(), MapView.LayoutParams.BOTTOM_CENTER);
 			params.mode = MapView.LayoutParams.MODE_MAP;
-			//setBalloonTouchListener(mId);
+			// setBalloonTouchListener(mId);
 			balloonView.setVisibility(View.VISIBLE);
 			if (isRecycled) {
 				balloonView.setLayoutParams(params);
@@ -155,67 +159,65 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
-		isCurrent = false;
-		if (balloonView != null) {
-			balloonView.setVisibility(View.GONE);
+		if (isCurrent) {
+			isCurrent = false;
+			if (balloonView != null) {
+				balloonView.setVisibility(View.GONE);
+				balloonView.disableListeners();
+			}
+		}
+	}
+
+	public void refreshBalloon() {
+		if (isCurrent) {
+			if (balloonView != null) {
+				balloonView.refreshData(mStation);
+				balloonView.invalidate();
+			}
 		}
 	}
 
 	private void hideOtherBalloons(List<Overlay> overlays) {
-		int baloonPosition = overlays.size() - (mStation.getDistance() !=-1 ? 2 : 1);
+		int size = overlays.size();
+		int baloonPosition = size
+				- (overlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
 		Overlay overlay = overlays.get(baloonPosition);
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			Log.e("Balloon", "hideOtherBalloons, before last not a StationOverlay");
+			Log.e("Balloon",
+					"hideOtherBalloons, before last not a StationOverlay");
 		}
 	}
-/*
-	private void setBalloonTouchListener(final int thisIndex) {
 
-		try {
-			@SuppressWarnings("unused")
-			Method m = this.getClass().getDeclaredMethod("onBalloonTap",
-					int.class);
-
-			mClickRegion.setOnTouchListener(new OnTouchListener() {
-				public boolean onTouch(View v, MotionEvent event) {
-
-					View l = ((View) v.getParent())
-							.findViewById(R.id.balloon_main_layout);
-					Drawable d = l.getBackground();
-
-					if (event.getAction() == MotionEvent.ACTION_DOWN) {
-						int[] states = { android.R.attr.state_pressed };
-						if (d.setState(states)) {
-							d.invalidateSelf();
-						}
-						return true;
-					} else if (event.getAction() == MotionEvent.ACTION_UP) {
-						int newStates[] = {};
-						if (d.setState(newStates)) {
-							d.invalidateSelf();
-						}
-						// call overridden method
-						onBalloonTap(thisIndex);
-						return true;
-					} else {
-						return false;
-					}
-
-				}
-			});
-
-		} catch (SecurityException e) {
-			Log.e("BalloonItemizedOverlay",
-					"setBalloonTouchListener reflection SecurityException");
-			return;
-		} catch (NoSuchMethodException e) {
-			// method not overridden - do nothing
-			return;
-		}
-	}
-*/
+	/*
+	 * private void setBalloonTouchListener(final int thisIndex) {
+	 * 
+	 * try {
+	 * 
+	 * @SuppressWarnings("unused") Method m =
+	 * this.getClass().getDeclaredMethod("onBalloonTap", int.class);
+	 * 
+	 * mClickRegion.setOnTouchListener(new OnTouchListener() { public boolean
+	 * onTouch(View v, MotionEvent event) {
+	 * 
+	 * View l = ((View) v.getParent()) .findViewById(R.id.balloon_main_layout);
+	 * Drawable d = l.getBackground();
+	 * 
+	 * if (event.getAction() == MotionEvent.ACTION_DOWN) { int[] states = {
+	 * android.R.attr.state_pressed }; if (d.setState(states)) {
+	 * d.invalidateSelf(); } return true; } else if (event.getAction() ==
+	 * MotionEvent.ACTION_UP) { int newStates[] = {}; if (d.setState(newStates))
+	 * { d.invalidateSelf(); } // call overridden method
+	 * onBalloonTap(thisIndex); return true; } else { return false; }
+	 * 
+	 * } });
+	 * 
+	 * } catch (SecurityException e) { Log.e("BalloonItemizedOverlay",
+	 * "setBalloonTouchListener reflection SecurityException"); return; } catch
+	 * (NoSuchMethodException e) { // method not overridden - do nothing return;
+	 * } }
+	 */
 	public static void setMarker(Bitmap marker) {
 		mMarker = marker;
 		mMarkerHeight = marker.getHeight();

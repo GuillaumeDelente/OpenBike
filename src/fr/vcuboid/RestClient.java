@@ -75,7 +75,7 @@ public class RestClient {
 	 * Connect to the server
 	 */
 	public static String connect(String url) {
-
+		Log.i("Vcuboid", "connect");
 		HttpClient httpclient = new DefaultHttpClient();
 
 		// Prepare a request object
@@ -113,6 +113,7 @@ public class RestClient {
 
 	public static boolean jsonStationsToDb(String json,
 			VcuboidDBAdapter vcuboidDBAdapter) {
+		Log.i("Vcuboid", "jsonStationsToDb");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -137,6 +138,7 @@ public class RestClient {
 
 	public static boolean updateListFromJson(String json,
 			ArrayList<StationOverlay> mVisibleStations) {
+		Log.i("Vcuboid", "updateListFromJson");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
@@ -160,6 +162,7 @@ public class RestClient {
 
 	public static boolean updateDbFromJson(String json,
 			VcuboidDBAdapter vcuboidDBAdapter) {
+		Log.i("Vcuboid", "updateDbFromJson");
 		try {
 			boolean success = true;
 			JSONArray jsonArray = new JSONArray(json);

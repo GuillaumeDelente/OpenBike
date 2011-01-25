@@ -26,8 +26,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
 import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
@@ -35,11 +37,13 @@ import fr.vcuboid.object.Station;
 public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	
 	private LayoutInflater mInflater;
+	private Context mContext;
 
 	public VcuboidArrayAdaptor(Context context, int layout,
 			ArrayList<StationOverlay> list) {
 		super(context, layout, list);
 		mInflater = LayoutInflater.from(context);
+		mContext = context;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -95,7 +99,15 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		//bindRefreshing(viewHolder.refreshing);
 		viewHolder.favorite.setChecked(station.isFavorite());
 		viewHolder.favorite.setOnCheckedChangeListener(new FavoriteListener());
-		viewHolder.favorite.setTag(position);
+		viewHolder.favorite.setTag(station.getId());
 		return convertView;
 	}
+	
+	class FavoriteListener implements OnCheckedChangeListener {
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			((VcuboidListActivity) mContext).setFavorite((Integer) buttonView.getTag(), isChecked);
+		}
+	}
 }
+

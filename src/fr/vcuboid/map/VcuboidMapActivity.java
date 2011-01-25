@@ -64,6 +64,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
+	private int mSelected = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -88,13 +89,16 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	public void hideOverlayBalloon() {
-		Overlay overlay = mMapOverlays.get(mMapOverlays.size()
-				- (mMyLocationOverlay == null ? 1 : 2));
-		if (overlay instanceof StationOverlay) {
-			((StationOverlay) overlay).hideBalloon();
-		} else {
-			Log.e("Balloon",
-					"hideOtherBalloons, before last not a StationOverlay");
+		int position = mMapOverlays.size()
+				- (mMyLocationOverlay == null ? 1 : 2);
+		if (position >= 0) {
+			Overlay overlay = mMapOverlays.get(position);
+			if (overlay instanceof StationOverlay) {
+				((StationOverlay) overlay).hideBalloon();
+			} else {
+				Log.e("Balloon",
+						"hideOtherBalloons, before last not a StationOverlay");
+			}
 		}
 	}
 
@@ -132,6 +136,11 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 			}
 			mMapOverlays.add(mMyLocationOverlay);
+			if (!mMyLocationOverlay.isMyLocationDrawn()) {
+				mMyLocationOverlay.setCurrentLocation(mVcuboidManager
+						.getCurrentLocation());
+				mMapView.invalidate();
+			}
 		} else {
 			mMyLocationOverlay = null;
 		}
@@ -175,10 +184,18 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	}
 
+	public void setFavorite(int id, boolean isChecked) {
+		mSelected = id;
+		if (isChecked) {
+			mVcuboidManager.setFavorite(id, true);
+			onListUpdated();
+		} else {
+			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
+		}
+	}
+
 	@Override
 	public void onLocationChanged(Location location) {
-		if (mMyLocationOverlay == null)
-			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 		mMyLocationOverlay.setCurrentLocation(location);
 		StationOverlay current = (StationOverlay) mMapOverlays.get(mMapOverlays
 				.size() - 2);
@@ -187,7 +204,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		}
 		onListUpdated();
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
-				false) || mIsFirstFix) {
+				false)
+				|| mIsFirstFix) {
 			mMapController.animateTo(new GeoPoint(
 					(int) (location.getLatitude() * 1E6), (int) (location
 							.getLongitude() * 1E6)));
@@ -206,7 +224,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		mMapView.invalidate();
 	}
-	
+
 	@Override
 	public void showUpdateAllStationsOnProgress() {
 		Log.e("Vcuboid", "Update Dialog");
@@ -214,15 +232,14 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Animation animation = new AlphaAnimation(0.0f, 1.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		animation = new TranslateAnimation(
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, -1.0f,Animation.RELATIVE_TO_SELF, 0.0f
-		);
+		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+				-1.0f, Animation.RELATIVE_TO_SELF, 0.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		LayoutAnimationController controller =
-			new LayoutAnimationController(set, 0.5f);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		LayoutAnimationController controller = new LayoutAnimationController(
+				set, 0.5f);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
 		loading.setVisibility(View.VISIBLE);
 		loading.setLayoutAnimation(controller);
 	}
@@ -233,13 +250,12 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Animation animation = new AlphaAnimation(1.0f, 0.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		animation = new TranslateAnimation(
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, 0.0f,Animation.RELATIVE_TO_SELF, -1.0f
-		);
+		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+				0.0f, Animation.RELATIVE_TO_SELF, -1.0f);
 		animation.setDuration(500);
 		set.addAnimation(animation);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);       
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
 		loading.startAnimation(set);
 		loading.setVisibility(View.INVISIBLE);
 		onListUpdated();
@@ -247,64 +263,99 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public Dialog onCreateDialog(int id) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		AlertDialog dialog;
 		switch (id) {
 		case RestClient.NETWORK_ERROR:
-			builder.setMessage(getString(R.string.network_error_summary))
-					.setTitle(getString(R.string.network_error)).setCancelable(
-							true).setPositiveButton("Ok",
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.network_error)).setMessage(
+					(getString(R.string.network_error_summary)))
+					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
 									dialog.cancel();
 								}
-							});
-			break;
+							}).create();
 		case RestClient.JSON_ERROR:
-			builder.setMessage(R.string.json_error_summary).setTitle(
-					getString(R.string.json_error)).setCancelable(true)
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.json_error)).setMessage(
+					(getString(R.string.json_error_summary)))
 					.setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
 									dialog.cancel();
 								}
-							});
-			break;
+							}).create();
 		case RestClient.DB_ERROR:
-			builder.setMessage(R.string.db_error_summary).setTitle(
-					getString(R.string.db_error)).setCancelable(true)
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							});
-			break;
-			case MyLocationProvider.ENABLE_GPS:
-			builder.setTitle(getString(R.string.gps_disabled)).setMessage(
-					getString(R.string.show_location_parameters)).setCancelable(
-					false).setPositiveButton(getString(R.string.yes),
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							Intent gpsOptionsIntent = new Intent(
-									android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-							startActivity(gpsOptionsIntent);
-						}
-					});
-			builder.setNegativeButton(getString(R.string.no),
-					new DialogInterface.OnClickListener() {
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.db_error)).setMessage(
+					(getString(R.string.db_error_summary))).setPositiveButton(
+					"Ok", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							dialog.cancel();
 						}
-					});
-			break;
-		default:
-			return super.onCreateDialog(id);
+					}).create();
+		case MyLocationProvider.ENABLE_GPS:
+			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.gps_disabled)).setMessage(
+					(getString(R.string.show_location_parameters)))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case VcuboidManager.REMOVE_FROM_FAVORITE:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.remove_favorite)).setMessage(
+					(getString(R.string.remove_favorite_sure)))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									mVcuboidManager.setFavorite(mSelected,
+											false);
+									if (mMapPreferences.getBoolean(getString(R.string.favorite_filter),
+											false)) {
+									((StationOverlay) mMapOverlays
+											.get(mMapOverlays.size()
+													- (mMyLocationOverlay == null ? 1
+															: 2)))
+											.hideBalloon();
+									mMapOverlays.remove(mMapOverlays.size()
+											- (mMyLocationOverlay == null ? 1
+													: 2));
+									mMapView.invalidate();
+									} else {
+										((StationOverlay) mMapOverlays.get(mMapOverlays.size()
+												- (mMyLocationOverlay == null ? 1 : 2))).getStation()
+												.setFavorite(true);
+									}
+									dialog.cancel();
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									((StationOverlay) mMapOverlays
+											.get(mMapOverlays.size()
+													- (mMyLocationOverlay == null ? 1
+															: 2)))
+											.refreshBalloon();
+									dialog.cancel();
+								}
+							}).create();
 		}
-		dialog = builder.create();
-		return dialog;
+		return super.onCreateDialog(id);
 	}
 }

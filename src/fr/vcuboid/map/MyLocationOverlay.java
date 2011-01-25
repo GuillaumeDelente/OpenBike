@@ -51,6 +51,10 @@ public class MyLocationOverlay extends Overlay {
 		paint.setAntiAlias(true);
 	}
 
+	public boolean isMyLocationDrawn() {
+		return mGeoPoint == null;
+	}
+	
 	public void setCurrentLocation(Location location) {
 		if (location == null) {
 			mGeoPoint = null;
