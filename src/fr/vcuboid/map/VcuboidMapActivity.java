@@ -188,7 +188,17 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mSelected = id;
 		if (isChecked) {
 			mVcuboidManager.setFavorite(id, true);
-			onListUpdated();
+			int size = mMapOverlays.size();
+			int baloonPosition = size
+					- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2
+							: 1);
+			Overlay overlay = mMapOverlays.get(baloonPosition);
+			if (overlay instanceof StationOverlay) {
+				((StationOverlay) overlay).getStation().setFavorite(true);
+			} else {
+				Log.d("Vcuboid", "before last not a StationOverlay");
+			}
+			// onListUpdated();
 		} else {
 			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
 		}
@@ -197,11 +207,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	@Override
 	public void onLocationChanged(Location location) {
 		mMyLocationOverlay.setCurrentLocation(location);
-		StationOverlay current = (StationOverlay) mMapOverlays.get(mMapOverlays
-				.size() - 2);
-		if (!current.isCurrent) {
-			current = null;
-		}
 		onListUpdated();
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false)
@@ -325,33 +330,48 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 										int id) {
 									mVcuboidManager.setFavorite(mSelected,
 											false);
-									if (mMapPreferences.getBoolean(getString(R.string.favorite_filter),
-											false)) {
-									((StationOverlay) mMapOverlays
-											.get(mMapOverlays.size()
-													- (mMyLocationOverlay == null ? 1
-															: 2)))
-											.hideBalloon();
-									mMapOverlays.remove(mMapOverlays.size()
-											- (mMyLocationOverlay == null ? 1
-													: 2));
-									mMapView.invalidate();
+									if (mMapPreferences
+											.getBoolean(
+													getString(R.string.favorite_filter),
+													false)) {
+										((StationOverlay) mMapOverlays
+												.get(mMapOverlays.size()
+														- (mMyLocationOverlay == null ? 1
+																: 2)))
+												.hideBalloon();
+										mMapOverlays
+												.remove(mMapOverlays.size()
+														- (mMyLocationOverlay == null ? 1
+																: 2));
+										mMapView.invalidate();
 									} else {
-										((StationOverlay) mMapOverlays.get(mMapOverlays.size()
-												- (mMyLocationOverlay == null ? 1 : 2))).getStation()
-												.setFavorite(true);
+										((StationOverlay) mMapOverlays
+												.get(mMapOverlays.size()
+														- (mMyLocationOverlay == null ? 1
+																: 2)))
+												.getStation()
+												.setFavorite(false);
 									}
 									dialog.cancel();
 								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
+							}).setOnCancelListener(
+							new DialogInterface.OnCancelListener() {
+
+								@Override
+								public void onCancel(DialogInterface arg0) {
 									((StationOverlay) mMapOverlays
 											.get(mMapOverlays.size()
 													- (mMyLocationOverlay == null ? 1
 															: 2)))
 											.refreshBalloon();
+
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int id) {
 									dialog.cancel();
 								}
 							}).create();

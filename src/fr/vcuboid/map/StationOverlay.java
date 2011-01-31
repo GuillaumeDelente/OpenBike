@@ -106,6 +106,7 @@ public class StationOverlay extends Overlay {
 
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
+		//Log.d("Vcuboid", "OnTap : ");
 		Point touched = new Point();
 		Point marker = new Point();
 		Projection projection = mapView.getProjection();
@@ -114,6 +115,7 @@ public class StationOverlay extends Overlay {
 		if (touched.x >= marker.x && touched.x <= marker.x + mMarkerWidth
 				&& touched.y <= marker.y
 				&& touched.y >= marker.y - mMarkerHeight) {
+			Log.d("Vcuboid", "station");
 			boolean isRecycled;
 			if (balloonView == null) {
 				balloonView = new BalloonOverlayView(mapView.getContext(),
@@ -122,7 +124,7 @@ public class StationOverlay extends Overlay {
 			} else {
 				isRecycled = true;
 			}
-			hideOtherBalloons(mMapOverlays);
+			hideOtherBalloons();
 			isCurrent = true;
 			if (mStation.getDistance() != -1)
 				Utils.sortStationsByDistance(mMapOverlays);
@@ -144,8 +146,9 @@ public class StationOverlay extends Overlay {
 			mMc.animateTo(mStation.getGeoPoint());
 			return true;
 		} else {
+			//Log.d("Vcuboid", "not a station");
 			if (this == mMapOverlays.get(0))
-				hideOtherBalloons(mMapOverlays);
+				hideOtherBalloons();
 			return false;
 		}
 	}
@@ -159,34 +162,39 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
+		Log.d("Vcuboid", "hideBalloon " + mStation.getId());
 		if (isCurrent) {
 			isCurrent = false;
-			if (balloonView != null) {
-				balloonView.setVisibility(View.GONE);
+			if (balloonView != null) {				
 				balloonView.disableListeners();
+				balloonView.setVisibility(View.GONE);
 			}
+		} else {
+			Log.d("Vcuboid", "isNotCurrent");
 		}
 	}
 
 	public void refreshBalloon() {
+		Log.e("Vcuboid", "hideBalloon");
 		if (isCurrent) {
 			if (balloonView != null) {
+				balloonView.disableListeners();
 				balloonView.refreshData(mStation);
 				balloonView.invalidate();
 			}
 		}
 	}
 
-	private void hideOtherBalloons(List<Overlay> overlays) {
-		int size = overlays.size();
+	private void hideOtherBalloons() {
+		Log.d("Vcuboid", "hideOtherBalloons");
+		int size = mMapOverlays.size();
 		int baloonPosition = size
-				- (overlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
-		Overlay overlay = overlays.get(baloonPosition);
+				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
+		Overlay overlay = mMapOverlays.get(baloonPosition);
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			Log.e("Balloon",
-					"hideOtherBalloons, before last not a StationOverlay");
+			Log.d("Vcuboid", "before last not a StationOverlay");
 		}
 	}
 

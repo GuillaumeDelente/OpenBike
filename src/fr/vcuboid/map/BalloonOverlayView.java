@@ -16,6 +16,7 @@
 package fr.vcuboid.map;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -130,6 +131,7 @@ public class BalloonOverlayView extends FrameLayout {
 	class FavoriteListener implements OnCheckedChangeListener {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			Log.d("Vcuboid", "Checked : " + buttonView.getTag());
 			((VcuboidMapActivity) mContext).setFavorite((Integer) buttonView.getTag(), isChecked);
 		}
 	}
