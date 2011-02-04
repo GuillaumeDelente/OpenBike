@@ -231,24 +231,26 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void showUpdateAllStationsOnProgress() {
-		Log.e("Vcuboid", "Update Dialog");
-		AnimationSet set = new AnimationSet(true);
-		Animation animation = new AlphaAnimation(0.0f, 1.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
-				-1.0f, Animation.RELATIVE_TO_SELF, 0.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		LayoutAnimationController controller = new LayoutAnimationController(
-				set, 0.5f);
+	public void showUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
 		loading.setVisibility(View.VISIBLE);
-		loading.setLayoutAnimation(controller);
+		if (animate) {
+			AnimationSet set = new AnimationSet(true);
+			Animation animation = new AlphaAnimation(0.0f, 1.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, -1.0f,
+					Animation.RELATIVE_TO_SELF, 0.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			LayoutAnimationController controller = new LayoutAnimationController(
+					set, 0.5f);
+			loading.setLayoutAnimation(controller);
+		}		
 	}
-
+	
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
 		AnimationSet set = new AnimationSet(true);
@@ -352,7 +354,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 												.getStation()
 												.setFavorite(false);
 									}
-									dialog.cancel();
+									dialog.dismiss();
 								}
 							}).setOnCancelListener(
 							new DialogInterface.OnCancelListener() {

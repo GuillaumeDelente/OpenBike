@@ -42,6 +42,10 @@
 	<string name="slots_filter">slots_filter</string>
 	<string name="slots_filter_title">Emplacements seulement</string>
 	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un emplacement.</string>
+	<string name="enable_distance_filter_title">Filtrer par distance</string>
+	<string name="enable_distance_filter_summary">N\'afficher que les stations les plus proches.</string>
+	<string name="distance_filter_title">Distance</string>
+	<string name="distance_filter_summary">Dans un rayon de</string>
 	<string name="location">Paramètres de localisation</string>
 	<string name="use_location">use_location</string>
 	<string name="use_location_title">Activer la géolocalisation</string>

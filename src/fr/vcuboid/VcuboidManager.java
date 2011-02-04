@@ -91,6 +91,8 @@ public class VcuboidManager {
 
 	public void setCurrentActivity(IVcuboidActivity activity) {
 		mActivity = activity;
+		if (mUpdateAllStationsTask != null)
+			activity.showUpdateAllStationsOnProgress(false);
 	}
 
 	public void attach(VcuboidListActivity activity) {
@@ -389,7 +391,7 @@ public class VcuboidManager {
 		protected void onPreExecute() {
 			mIsUpdating = true;
 			if (mActivity != null) {
-				mActivity.showUpdateAllStationsOnProgress();
+				mActivity.showUpdateAllStationsOnProgress(true);
 			}
 		}
 

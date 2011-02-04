@@ -19,5 +19,17 @@
 				android:title="@string/slots_filter_title"
 				android:summary="@string/slots_filter_summary" 
 				/>
+		<CheckBoxPreference 
+            android:key="enable_filter_by_distance"
+			android:title="@string/enable_distance_filter_title" 
+            android:summary="@string/enable_distance_filter_summary"
+            android:defaultValue="true"
+        />
+		<fr.vcuboid.filter.SeekBarPreference
+                android:key="customPref"
+                android:defaultValue="32"
+                android:title="@string/distance_filter_title" 
+                android:summary="@string/distance_filter_summary"
+                android:dependency="enable_filter_by_distance" />
     </PreferenceCategory>
 </PreferenceScreen>
