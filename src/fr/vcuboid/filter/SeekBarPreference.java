@@ -1,5 +1,6 @@
 package fr.vcuboid.filter;
 
+import fr.vcuboid.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -12,10 +13,10 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 public class SeekBarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener {
-    private SeekBar bar;
+	private SeekBar mBar;
     private Context mContext;
     private static SharedPreferences sp;
-    private static final String OPT_SEEKBAR_KEY = "seekbar";
+    private static String OPT_SEEKBAR_KEY;
     private static final int OPT_SEEKBAR_DEF = 30;
     private static final int LAYOUT_PADDING = 10;
 
@@ -23,6 +24,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         super(context, attrs);
         mContext = context;
         sp = PreferenceManager.getDefaultSharedPreferences(context);
+        OPT_SEEKBAR_KEY = context.getString(R.string.distance_filter);
     }
 
     public void onProgressChanged(SeekBar seekBar, int progress,
@@ -42,10 +44,11 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     protected View onCreateDialogView() {
         LinearLayout layout = new LinearLayout(mContext);
         layout.setPadding(LAYOUT_PADDING, LAYOUT_PADDING, LAYOUT_PADDING, LAYOUT_PADDING);
-        bar = new SeekBar(mContext);
-        bar.setOnSeekBarChangeListener(this);
-        bar.setProgress(getValue());
-        layout.addView(bar, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+        mBar = new SeekBar(mContext);
+        mBar.setMax(2000);
+        mBar.setOnSeekBarChangeListener(this);
+        mBar.setProgress(getValue());
+        layout.addView(mBar, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
         return layout;
     }
 
@@ -57,7 +60,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     @Override
     protected void onDialogClosed(boolean positiveResult) {
         if (positiveResult) {
-            setValue(bar.getProgress());
+            setValue(mBar.getProgress());
         }
     }
 

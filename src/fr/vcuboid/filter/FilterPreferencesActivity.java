@@ -17,11 +17,9 @@
  */
 package fr.vcuboid.filter;
 
-import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 import fr.vcuboid.R;
@@ -32,11 +30,6 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 
 	protected VcubFilter mActualFilter;
 	protected VcubFilter mModifiedFilter;
-	protected CheckBoxPreference mCheckBoxFavorite;
-	protected CheckBoxPreference mCheckBoxBikes;
-	protected CheckBoxPreference mCheckBoxSlots;
-	protected CheckBoxPreference mCheckBoxLocation;
-	protected ProgressDialog mPd = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,17 +39,10 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mCheckBoxFavorite = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.favorite_filter));
-		mCheckBoxBikes = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.bikes_filter));
-		mCheckBoxSlots = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.slots_filter));
-		mCheckBoxLocation = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.use_location));
 		mActualFilter = VcuboidManager.getVcuboidManagerInstance()
 				.getVcubFilter();
-		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+		getPreferenceScreen().getSharedPreferences()
+				.registerOnSharedPreferenceChangeListener(this);
 		try {
 			mModifiedFilter = mActualFilter.clone();
 		} catch (CloneNotSupportedException e) {
@@ -66,7 +52,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 
 	@Override
 	public void onPause() {
-		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		getPreferenceScreen().getSharedPreferences()
+				.unregisterOnSharedPreferenceChangeListener(this);
 		if (mModifiedFilter.equals(mActualFilter)) {
 			setResult(RESULT_CANCELED);
 			Log.e("Vcuboid", "Exiting Preferences : Filter not changed");
@@ -76,7 +63,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			mModifiedFilter.setNeedDbQuery(mActualFilter);
 			VcuboidManager.getVcuboidManagerInstance().setVcubFilter(
 					mModifiedFilter);
-			VcuboidManager.getVcuboidManagerInstance().createVisibleStationList();
+			VcuboidManager.getVcuboidManagerInstance()
+					.createVisibleStationList();
 			Log.e("Vcuboid", "Only Favorites ? "
 					+ mModifiedFilter.isShowOnlyFavorites());
 		}
@@ -87,22 +75,38 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
 		if (key.equals(getString(R.string.favorite_filter))) {
-			Log.e("Vcuboid", "Favorites changed");
-			mModifiedFilter.setShowOnlyFavorites(mCheckBoxFavorite.isChecked());
+			Log.i("Vcuboid", "Favorites changed");
+			mModifiedFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(
+					getString(R.string.favorite_filter), false));
 		} else if (key.equals(getString(R.string.bikes_filter))) {
-			Log.e("Vcuboid", "Bikes changed");
-			mModifiedFilter.setShowOnlyWithBikes(mCheckBoxBikes.isChecked());
+			Log.i("Vcuboid", "Bikes changed");
+			mModifiedFilter.setShowOnlyWithBikes(sharedPreferences.getBoolean(
+					getString(R.string.bikes_filter), false));
 		} else if (key.equals(getString(R.string.slots_filter))) {
-			Log.e("Vcuboid", "Slots changed");
-			mModifiedFilter.setShowOnlyWithSlots(mCheckBoxSlots.isChecked());
+			Log.i("Vcuboid", "Slots changed");
+			mModifiedFilter.setShowOnlyWithSlots(sharedPreferences.getBoolean(
+					getString(R.string.slots_filter), false));
+		} else if (key.equals(getString(R.string.enable_distance_filter))) {
+			Log.i("Vcuboid", "Enable / disable filter changed");
+			mModifiedFilter.setDistanceFilter(sharedPreferences.getBoolean(
+					getString(R.string.enable_distance_filter), true) ? 
+							sharedPreferences.getInt(
+									getString(R.string.distance_filter), 1000)
+									: 0);
+		} else if (key.equals(getString(R.string.distance_filter))) {
+			Log.i("Vcuboid", "Distance filter changed");
+			mModifiedFilter.setDistanceFilter(sharedPreferences.getInt(
+					getString(R.string.distance_filter), 1000));
 		} else if (key.equals(getString(R.string.use_location))) {
-			Log.e("Vcuboid", "Location changed");
-			VcuboidManager vcubManager = VcuboidManager.getVcuboidManagerInstance();
-			if (mCheckBoxLocation.isChecked()) {
-				Log.e("Vcuboid", "useLocation");
+			Log.i("Vcuboid", "Location changed");
+			VcuboidManager vcubManager = VcuboidManager
+					.getVcuboidManagerInstance();
+			if (sharedPreferences.getBoolean(getString(R.string.use_location),
+					true)) {
+				Log.i("Vcuboid", "useLocation");
 				vcubManager.useLocation();
 			} else {
-				Log.e("Vcuboid", "dontUseLocation");
+				Log.i("Vcuboid", "dontUseLocation");
 				vcubManager.dontUseLocation();
 			}
 		}
