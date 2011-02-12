@@ -214,54 +214,7 @@ public class VcuboidManager {
 		}
 	}
 	
-	private boolean updateListFromDb() {
-		if (mVcuboidDBAdapter.getStationCount() == 0) {
-			return false;
-		}
-		Cursor cursor = mVcuboidDBAdapter
-				.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
-						mLocationProvider == null ? VcuboidDBAdapter.KEY_NAME : null);
-		StationOverlay stationOverlay;
-		Location stationLocation = null;
-		Location location = null;
-		int distanceToStation = 0;
-		if (mLocationProvider != null) {
-			location = mLocationProvider.getMyLocation();
-			if (location != null)
-				stationLocation = new Location(location);
-		}
-		while(cursor.moveToNext()) {
-			if (stationLocation != null) {
-				stationLocation.setLatitude((double) cursor
-						.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
-				stationLocation.setLongitude((double) cursor
-						.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
-				distanceToStation = (int) stationLocation.distanceTo(location);
-				if (mVcubFilter.isFilteringByDistance() && 
-						mVcubFilter.getDistanceFilter() < distanceToStation)
-					continue;
-			}
-			stationOverlay = new StationOverlay(
-					new Station(cursor.getInt(VcuboidDBAdapter.ID_COLUMN), 
-							cursor.getString(VcuboidDBAdapter.NETWORK_COLUMN), 
-							cursor.getString(VcuboidDBAdapter.NAME_COLUMN), 
-							cursor.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
-							cursor.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
-							cursor.getInt(VcuboidDBAdapter.LATITUDE_COLUMN),
-							cursor.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
-							cursor.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
-							cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ?
-									false : true,
-							cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ?
-									false : true,
-									stationLocation != null ? distanceToStation : -1));
-			mVisibleStations.add(stationOverlay);
-		}
-		cursor.close();
-		if (mLocationProvider != null)
-			Utils.sortStationsByDistance(mVisibleStations);
-		return true;
-	}
+	
 	
 	private void updateDistance(Location location) {
 		if (mVisibleStations == null)
@@ -297,8 +250,8 @@ public class VcuboidManager {
 	public void onLocationChanged(Location location) {
 		if (mCreateVisibleStationsTask == null) {
 			if (mVcubFilter.isFilteringByDistance()) {
-				//???
-				executeCreateVisibleStationsTask();
+				createVisibleStationList();
+				//executeCreateVisibleStationsTask();
 			} else {
 				updateDistance(location);
 				Utils.sortStationsByDistance(mVisibleStations);
@@ -383,10 +336,11 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPostExecute(Void unused) {
-			updateListFromDb();
+			executeCreateVisibleStationsTask();
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
+				Log.d("Vcuboid", "Async task get finished");
 			}
 		}
 
@@ -423,7 +377,6 @@ public class VcuboidManager {
 				publishProgress(RestClient.DB_ERROR);
 				return null;
 			}
-			Log.i("Vcuboid", "Async task finished");
 			return null;
 		}
 		
@@ -444,6 +397,7 @@ public class VcuboidManager {
 			} else {
 				mIsUpdating = false;
 				mUpdateAllStationsTask = null;
+				Log.d("Vcuboid", "Async task update finished");
 			}
 		}
 
@@ -453,6 +407,58 @@ public class VcuboidManager {
 	}
 	
 	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
+		
+		private boolean updateListFromDb() {
+			if (mVcuboidDBAdapter.getStationCount() == 0) {
+				return false;
+			}
+			Cursor cursor = mVcuboidDBAdapter
+					.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
+							mLocationProvider == null 
+								|| mLocationProvider.getMyLocation() == null ?
+										VcuboidDBAdapter.KEY_NAME 
+										: null);
+			StationOverlay stationOverlay;
+			Location stationLocation = null;
+			Location location = null;
+			int distanceToStation = 0;
+			if (mLocationProvider != null) {
+				location = mLocationProvider.getMyLocation();
+				if (location != null)
+					stationLocation = new Location(location);
+			}
+			while(cursor.moveToNext()) {
+				if (stationLocation != null) {
+					stationLocation.setLatitude((double) cursor
+							.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
+					stationLocation.setLongitude((double) cursor
+							.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
+					distanceToStation = (int) stationLocation.distanceTo(location);
+					if (mVcubFilter.isFilteringByDistance() && 
+							mVcubFilter.getDistanceFilter() < distanceToStation)
+						continue;
+				}
+				stationOverlay = new StationOverlay(
+						new Station(cursor.getInt(VcuboidDBAdapter.ID_COLUMN), 
+								cursor.getString(VcuboidDBAdapter.NETWORK_COLUMN), 
+								cursor.getString(VcuboidDBAdapter.NAME_COLUMN), 
+								cursor.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
+								cursor.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
+								cursor.getInt(VcuboidDBAdapter.LATITUDE_COLUMN),
+								cursor.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
+								cursor.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
+								cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ?
+										false : true,
+								cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ?
+										false : true,
+										stationLocation != null ? distanceToStation : -1));
+				mVisibleStations.add(stationOverlay);
+			}
+			cursor.close();
+			if (mLocationProvider != null)
+				Utils.sortStationsByDistance(mVisibleStations);
+			return true;
+		}
 
 		@Override
 		protected void onPreExecute() {
@@ -472,6 +478,7 @@ public class VcuboidManager {
 				else 
 					mActivity.onListUpdated();
 				mCreateVisibleStationsTask = null;
+				Log.d("Vcuboid", "Async task create finished");
 			}
 		}
 	}

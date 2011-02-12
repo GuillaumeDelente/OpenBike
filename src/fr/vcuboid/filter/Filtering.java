@@ -49,6 +49,11 @@ public class Filtering {
 				it.remove();
 				continue;
 			}
+			if (mVcubFilter.isFilteringByDistance() && 
+					s.getDistance() > mVcubFilter.getDistanceFilter()) {
+				it.remove();
+				continue;
+			}
 			;
 		}
 	}

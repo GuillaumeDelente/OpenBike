@@ -3,7 +3,6 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
    <PreferenceCategory
             android:title="@string/location">
-            
         <CheckBoxPreference
                 android:key = "@string/use_location"
                 android:title = "@string/use_location_title"

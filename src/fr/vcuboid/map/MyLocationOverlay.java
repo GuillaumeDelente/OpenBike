@@ -52,7 +52,7 @@ public class MyLocationOverlay extends Overlay {
 	}
 
 	public boolean isMyLocationDrawn() {
-		return mGeoPoint == null;
+		return mGeoPoint != null;
 	}
 	
 	public void setCurrentLocation(Location location) {
