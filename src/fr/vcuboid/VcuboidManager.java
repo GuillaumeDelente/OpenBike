@@ -252,8 +252,9 @@ public class VcuboidManager {
 	public void onLocationChanged(Location location) {
 		if (mCreateVisibleStationsTask == null) {
 			if (location == null) {
-				createVisibleStationList();
+				mVcubFilter.setNeedDbQuery();
 				Log.d("Vcuboid", "Location unavailable, need db = " + mVcubFilter.isNeedDbQuery());
+				createVisibleStationList();
 				//resetDistances();
 				//Utils.sortStationsByName(mVisibleStations);
 			} else if (mVcubFilter.isFilteringByDistance()) {
