@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<RelativeLayout  
+			  android:layout_width="wrap_content" 
+              android:layout_height="wrap_content"
+              android:layout_weight="1.0"
+              android:padding="10px"
+              >
+              
+        <TextView 
+		android:id = "@+id/distance_preference_radius" 
+		android:layout_width = "wrap_content"
+		android:layout_height = "wrap_content"
+		android:text = "@string/distance_filter_summary"
+		android:textSize = "16dip"
+		android:textColor="#FFFFFFFF"/>
+		
+		<TextView 
+		android:id = "@+id/distance_preference_meters" 
+		android:layout_width = "wrap_content"
+		android:layout_height = "wrap_content"
+		android:layout_toRightOf = "@id/distance_preference_radius"
+		android:textSize = "16dip"
+		android:textColor="#FFFFFFFF"/>
+		
+		<SeekBar
+			android:id="@+id/distance_seekBar" 
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content" 
+			android:layout_below = "@id/distance_preference_radius"
+			android:paddingLeft = "10px"
+			android:paddingRight = "10px"
+			/>
+
+</RelativeLayout>
+</LinearLayout>
