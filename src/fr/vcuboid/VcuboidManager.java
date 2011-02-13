@@ -209,6 +209,7 @@ public class VcuboidManager {
 			if (mActivity instanceof VcuboidListActivity)
 				mActivity.onListUpdated();
 			executeCreateVisibleStationsTask();
+			mVcubFilter.setNeedDbQuery();
 		} else {
 			Filtering.filter(mVisibleStations, mVcubFilter);
 		}
@@ -251,7 +252,6 @@ public class VcuboidManager {
 		if (mCreateVisibleStationsTask == null) {
 			if (mVcubFilter.isFilteringByDistance()) {
 				createVisibleStationList();
-				//executeCreateVisibleStationsTask();
 			} else {
 				updateDistance(location);
 				Utils.sortStationsByDistance(mVisibleStations);

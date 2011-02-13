@@ -42,12 +42,14 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	protected void onResume() {
 		super.onResume();
 		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
-										.findPreference(getString(R.string.enable_distance_filter));
-		getPreferenceScreen()
-			.findPreference(getString(R.string.distance_filter))
-				.setSummary(getString(R.string.distance_filter_summary) + " " +
-						getPreferenceScreen().getSharedPreferences().getInt(
-								getString(R.string.distance_filter), 1000) + "m");
+				.findPreference(getString(R.string.enable_distance_filter));
+		getPreferenceScreen().findPreference(
+				getString(R.string.distance_filter)).setSummary(
+				getString(R.string.distance_filter_summary)
+						+ " "
+						+ getPreferenceScreen().getSharedPreferences().getInt(
+								getString(R.string.distance_filter), 1000)
+						+ "m");
 		mActualFilter = VcuboidManager.getVcuboidManagerInstance()
 				.getVcubFilter();
 		getPreferenceScreen().getSharedPreferences()
@@ -97,20 +99,22 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 					getString(R.string.slots_filter), false));
 		} else if (key.equals(getString(R.string.enable_distance_filter))) {
 			Log.i("Vcuboid", "Enable / disable filter changed");
-			mModifiedFilter.setDistanceFilter(sharedPreferences.getBoolean(
-					getString(R.string.enable_distance_filter), true) ? 
-							sharedPreferences.getInt(
-									getString(R.string.distance_filter), 1000)
-									: 0);
+			mModifiedFilter
+					.setDistanceFilter(sharedPreferences.getBoolean(
+							getString(R.string.enable_distance_filter), true) ? sharedPreferences
+							.getInt(getString(R.string.distance_filter), 1000)
+							: 0);
 		} else if (key.equals(getString(R.string.distance_filter))) {
 			Log.i("Vcuboid", "Distance filter changed");
 			mModifiedFilter.setDistanceFilter(sharedPreferences.getInt(
 					getString(R.string.distance_filter), 1000));
-			getPreferenceScreen()
-			.findPreference(getString(R.string.distance_filter))
-				.setSummary(getString(R.string.distance_filter_summary) + " " +
-						sharedPreferences.getInt(
-								getString(R.string.distance_filter), 1000) + "m");
+			getPreferenceScreen().findPreference(
+					getString(R.string.distance_filter)).setSummary(
+					getString(R.string.distance_filter_summary)
+							+ " "
+							+ sharedPreferences.getInt(
+									getString(R.string.distance_filter), 1000)
+							+ "m");
 		} else if (key.equals(getString(R.string.use_location))) {
 			Log.i("Vcuboid", "Location changed");
 			VcuboidManager vcubManager = VcuboidManager

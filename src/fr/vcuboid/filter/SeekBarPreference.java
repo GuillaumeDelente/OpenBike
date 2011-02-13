@@ -11,25 +11,27 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 public class SeekBarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener {
 	private SeekBar mBar;
+	private TextView mDistanceTextView;
     private Context mContext;
-    private static SharedPreferences sp;
-    private static String OPT_SEEKBAR_KEY;
-    private static final int OPT_SEEKBAR_DEF = 30;
+    private static SharedPreferences mSharedPreferences;
+    private static String DISTANCE_FILTER;
+    private static final int DEFAULT_DISTANCE = 1000;
     private static final int LAYOUT_PADDING = 10;
 
     public SeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        sp = PreferenceManager.getDefaultSharedPreferences(context);
-        OPT_SEEKBAR_KEY = context.getString(R.string.distance_filter);
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        DISTANCE_FILTER = context.getString(R.string.distance_filter);
     }
 
     public void onProgressChanged(SeekBar seekBar, int progress,
             boolean fromUser) {
-        // TODO Auto-generated method stub
+        mDistanceTextView.setText(" " + progress + "m.");
     }
 
     public void onStartTrackingTouch(SeekBar seekBar) {
@@ -43,12 +45,23 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     @Override
     protected View onCreateDialogView() {
         LinearLayout layout = new LinearLayout(mContext);
+        layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(LAYOUT_PADDING, LAYOUT_PADDING, LAYOUT_PADDING, LAYOUT_PADDING);
+        TextView radiusTextView = new TextView(mContext);
+        radiusTextView.setText(R.string.distance_filter_summary);
+        mDistanceTextView = new TextView(mContext);
+        int distance = getValue();
+        mDistanceTextView.setText(" " + distance + "m.");
         mBar = new SeekBar(mContext);
         mBar.setMax(2000);
         mBar.setOnSeekBarChangeListener(this);
-        mBar.setProgress(getValue());
-        layout.addView(mBar, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+        mBar.setProgress(distance);
+        layout.addView(radiusTextView, 
+        		new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        layout.addView(mDistanceTextView, 
+        		new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        layout.addView(mBar, 
+        		new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
         return layout;
     }
 
@@ -65,12 +78,12 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
     }
 
     private void setValue(int value) {
-        Editor ed = sp.edit();
-        ed.putInt(OPT_SEEKBAR_KEY, value);
+        Editor ed = mSharedPreferences.edit();
+        ed.putInt(DISTANCE_FILTER, value);
         ed.commit();
     }
 
     private int getValue() {
-        return sp.getInt(OPT_SEEKBAR_KEY, OPT_SEEKBAR_DEF);
+        return mSharedPreferences.getInt(DISTANCE_FILTER, DEFAULT_DISTANCE);
     }
 }

@@ -44,6 +44,7 @@ public class VcubFilter implements Cloneable {
 						preferences.getInt(
 								context.getString(R.string.distance_filter), 1000)
 				: 0;
+		setNeedDbQuery();
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
@@ -93,7 +94,7 @@ public class VcubFilter implements Cloneable {
 			return;
 		}
 
-		if (mDistanceFilter == 0 && actualFilter.getDistanceFilter() != 0 // Filter desabled
+		if (mDistanceFilter == 0 && actualFilter.getDistanceFilter() != 0 // Filter disabled
 				|| (actualFilter.getDistanceFilter() != 0 &&				// Distance increased
 						actualFilter.getDistanceFilter() < mDistanceFilter)) {
 			mNeedDbQuery = true;
@@ -102,8 +103,11 @@ public class VcubFilter implements Cloneable {
 		mNeedDbQuery = false;
 	}
 
-	public void setNeedDbQuery(boolean db) {
-		mNeedDbQuery = db;
+	public void setNeedDbQuery() {
+		if (isFilteringByDistance())
+			mNeedDbQuery = true;
+		else
+			mNeedDbQuery = true;
 	}
 
 	public boolean isNeedDbQuery() {
