@@ -21,13 +21,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -164,7 +161,7 @@ public class VcuboidListActivity extends ListActivity implements
 			LayoutAnimationController controller = new LayoutAnimationController(
 					set, 0.5f);
 			loading.setLayoutAnimation(controller);
-		}		
+		}
 	}
 
 	@Override
@@ -233,8 +230,31 @@ public class VcuboidListActivity extends ListActivity implements
 		case MyLocationProvider.ENABLE_GPS:
 			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled)).setMessage(
-					(getString(R.string.show_location_parameters)))
+					getString(R.string.gps_disabled))					
+					.setMessage(
+							getString(R.string.should_enable_gps) + "\n" +
+							getString(R.string.show_location_parameters))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case MyLocationProvider.NO_LOCATION_PROVIDER:
+			Log.i("Vcuboid", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.location_disabled)).setMessage(
+					getString(R.string.should_enable_location) + "\n"
+							+ getString(R.string.show_location_parameters))
 					.setPositiveButton(getString(R.string.yes),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,

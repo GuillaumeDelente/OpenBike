@@ -67,6 +67,9 @@ public class VcuboidManager {
 		mActivity = activity;
 		mVcuboidDBAdapter = new VcuboidDBAdapter((Context) activity);
 		mVcuboidDBAdapter.open();
+		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.location_preferences, false);
+		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.filter_preferences, false);
+		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.map_preferences, false);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		if (mFilterPreferences.getBoolean(
 				((Context) mActivity).getString(R.string.use_location), true))
@@ -215,8 +218,6 @@ public class VcuboidManager {
 		}
 	}
 	
-	
-	
 	private void updateDistance(Location location) {
 		if (mVisibleStations == null)
 			getVisibleStations();
@@ -250,7 +251,12 @@ public class VcuboidManager {
 	
 	public void onLocationChanged(Location location) {
 		if (mCreateVisibleStationsTask == null) {
-			if (mVcubFilter.isFilteringByDistance()) {
+			if (location == null) {
+				createVisibleStationList();
+				Log.d("Vcuboid", "Location unavailable, need db = " + mVcubFilter.isNeedDbQuery());
+				//resetDistances();
+				//Utils.sortStationsByName(mVisibleStations);
+			} else if (mVcubFilter.isFilteringByDistance()) {
 				createVisibleStationList();
 			} else {
 				updateDistance(location);
@@ -283,6 +289,10 @@ public class VcuboidManager {
 	
 	public void showAskForGps() {
 		mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
+	}
+	
+	public void showNoLocationProvider() {
+		mActivity.showDialog(MyLocationProvider.NO_LOCATION_PROVIDER);
 	}
 	
 	public void startLocation() {

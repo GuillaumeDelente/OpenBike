@@ -29,12 +29,15 @@ import android.util.Log;
 public class MyLocationProvider implements LocationListener {
 
 	public static final int ENABLE_GPS = -4;
+	public static final int NO_LOCATION_PROVIDER = -5;
 	private boolean mIsGpsUsed = false;
+	private boolean mIsNetworkAvailable = true;
+	private boolean mIsGpsAvailable = true;
 	private boolean mAskForGps = true;
+	private boolean mAskForLocation = true;
 	private boolean mIsInPause = true;
 	private VcuboidManager mVcuboidManager = null;
 	private LocationManager mLocationManager = null;
-	private Runnable mRunOnFirstFix = null;
 	private Location mLastFix = null;
 
 	public MyLocationProvider(Context context, VcuboidManager vcuboidManager) {
@@ -46,16 +49,6 @@ public class MyLocationProvider implements LocationListener {
 		enableMyLocation();
 	}
 
-	public boolean isAskForGps() {
-		Log.e("Vcuboid", "MyLocationProvider ask For GPS : " + mAskForGps);
-		return mAskForGps;
-	}
-	
-	public void setAskForGps(boolean ask) {
-		Log.e("Vcuboid", "Set ask For GPS : " + ask);
-		mAskForGps = ask;
-	}
-	
 	public boolean isLocationAvailable() {
 		return mLastFix != null;
 	}
@@ -63,18 +56,18 @@ public class MyLocationProvider implements LocationListener {
 	public synchronized void enableMyLocation() {
 		if (!mIsInPause)
 			return;
-		Log.e("Vcuboid", "MyLocationProvider : enable location");
+		Log.i("Vcuboid", "MyLocationProvider : enable location");
 		mIsInPause = false;
 		List<String> providers = mLocationManager.getProviders(false);
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-			Log.e("Vcuboid", "Updates for Network provider");
-				mLocationManager.requestLocationUpdates(
-						LocationManager.NETWORK_PROVIDER, 5000, 0, this);
+			Log.i("Vcuboid", "Updates for Network provider");
+			mLocationManager.requestLocationUpdates(
+					LocationManager.NETWORK_PROVIDER, 5000, 20, this);
 		}
 		if (providers.contains(LocationManager.GPS_PROVIDER)) {
-			Log.e("Vcuboid", "Updater for GPS provider");
+			Log.i("Vcuboid", "Updater for GPS provider");
 			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER, 5000, 0, this);
+					LocationManager.GPS_PROVIDER, 5000, 20, this);
 		}
 	}
 
@@ -84,68 +77,71 @@ public class MyLocationProvider implements LocationListener {
 		mIsInPause = true;
 		mLocationManager.removeUpdates(this);
 		mIsGpsUsed = false;
+		mIsNetworkAvailable = true;
+		mIsGpsAvailable = true;
 		Log.e("Vcuboid", "Location provider On Pause");
 	}
 
 	public Location getMyLocation() {
 		return mLastFix;
 	}
-	
+
 	@Override
 	public synchronized void onLocationChanged(Location location) {
-		if (mRunOnFirstFix != null) {
-			mRunOnFirstFix.run();
-			mRunOnFirstFix = null;
-		}
+		// Because we stop updates as often as possible, when
+		// we switch from map to list, a new location is triggered
+		// so check if it's not the same
+		if (mLastFix != null && mLastFix.distanceTo(location) < 20)
+			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-			Log.e("Vcuboid", "GPS Fix");
+			Log.i("Vcuboid", "GPS Fix");
 			mLastFix = location;
-			mVcuboidManager.onLocationChanged(
-						location);
+			mVcuboidManager.onLocationChanged(location);
 			mIsGpsUsed = true;
-		} else if (location.getProvider().equals(LocationManager.NETWORK_PROVIDER)) {
+		} else if (location.getProvider().equals(
+				LocationManager.NETWORK_PROVIDER)) {
 			Log.e("Vcuboid", "Network Fix");
 			if (mLastFix == null || !mIsGpsUsed) {
-				Log.e("Vcuboid", "is first or the only one");
+				Log.i("Vcuboid", "is first or the only one");
 				mLastFix = location;
-				mVcuboidManager.onLocationChanged(
-						location);
-			}
-		}
-	}
-	
-	@Override
-	public void onProviderDisabled(String provider) {
-		Log.e("Vcuboid", "onProviderDisabled " + provider);
-		if (provider.equals(LocationManager.GPS_PROVIDER)) {
-			mIsGpsUsed = false;
-			if (mAskForGps) {
-				mVcuboidManager.showAskForGps();
-				mAskForGps = false;
+				mVcuboidManager.onLocationChanged(location);
 			}
 		}
 	}
 
 	@Override
-	public void onProviderEnabled(String provider) {
-		Log.e("Vcuboid", "onProviderEnabled : " + provider);
-		setAskForGps(true);
+	public void onProviderDisabled(String provider) {
+		Log.i("Vcuboid", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
+			mIsGpsAvailable = false;
+		} else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
+			mIsNetworkAvailable = false;
+		}
+		if (!mIsNetworkAvailable && !mIsGpsAvailable && (mLastFix != null || mAskForLocation)) {
+			mLastFix = null;
+			mVcuboidManager.onLocationChanged(null);
+			if (mAskForLocation) {
+				mVcuboidManager.showNoLocationProvider();
+				mAskForLocation = false;
+			}
+		} else if (mAskForGps && !mIsGpsAvailable && mIsNetworkAvailable) {
+			mVcuboidManager.showAskForGps();
 			mAskForGps = false;
 		}
 	}
-	
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		Log.i("Vcuboid", "onProviderEnabled : " + provider);
+		if (provider.equals(LocationManager.GPS_PROVIDER)) {
+			mIsGpsAvailable = true;
+		}
+		if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
+			mIsNetworkAvailable = true;
+		}
+	}
+
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-	}
-	
-	public synchronized boolean runOnFirstFix(Runnable runnable) {
-		if (mLastFix == null) {
-			mRunOnFirstFix = runnable;
-			return false;
-		} else {
-			runnable.run();
-			return true;
-		}
 	}
 }

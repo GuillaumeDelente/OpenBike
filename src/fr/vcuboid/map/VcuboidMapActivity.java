@@ -69,7 +69,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.e("Vcuboid", "Map on create");
+		Log.i("Vcuboid", "Map on create");
 		setContentView(R.layout.map_layout);
 		mMapView = (MapView) findViewById(R.id.map_view);
 		mMapController = mMapView.getController();
@@ -81,6 +81,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mMapView.displayZoomControls(true);
 		mMapView.invalidate();
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!mMapPreferences.getBoolean(getString(R.string.use_location), true))
+			zoomAndCenter(null);
 		mMapOverlays = mMapView.getOverlays();
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
 				R.drawable.v3);
@@ -132,7 +134,6 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Collections.reverse(mMapOverlays);
 		if (mMapPreferences.getBoolean(getString(R.string.use_location), true)) {
 			if (mMyLocationOverlay == null) {
-				// FIXME centered map on location
 				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 			}
 			mMapOverlays.add(mMyLocationOverlay);
@@ -141,6 +142,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 						.getCurrentLocation());
 				mMapView.invalidate();
 			}
+			zoomAndCenter(mVcuboidManager.getCurrentLocation());
 		} else {
 			mMyLocationOverlay = null;
 		}
@@ -206,11 +208,26 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void onLocationChanged(Location location) {
+		if (mMyLocationOverlay == null) {
+			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
+			mMapOverlays.add(mMyLocationOverlay);
+		}
 		mMyLocationOverlay.setCurrentLocation(location);
 		onListUpdated();
+		if (location != null)
+			zoomAndCenter(location);
+	}
+	
+	private void zoomAndCenter(Location location) {
+		if (location == null) {
+			mMapController.setZoom(14);
+			mMapController.animateTo(new GeoPoint(44840290, -572662));
+			return;
+		}
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false)
 				|| mIsFirstFix) {
+			mMapController.setZoom(16);
 			mMapController.animateTo(new GeoPoint(
 					(int) (location.getLatitude() * 1E6), (int) (location
 							.getLongitude() * 1E6)));
@@ -305,8 +322,32 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case MyLocationProvider.ENABLE_GPS:
 			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled)).setMessage(
-					(getString(R.string.show_location_parameters)))
+					getString(R.string.gps_disabled))
+					.setMessage(
+							getString(R.string.should_enable_gps) + "\n" +
+							getString(R.string.show_location_parameters))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case MyLocationProvider.NO_LOCATION_PROVIDER:
+			Log.i("Vcuboid", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.location_disabled))
+						.setMessage(
+								getString(R.string.should_enable_location) + "\n" +
+								getString(R.string.show_location_parameters))
 					.setPositiveButton(getString(R.string.yes),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,

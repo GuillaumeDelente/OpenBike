@@ -11,7 +11,11 @@
 	<string name="yes">Oui</string>
 	<string name="no">Non</string>
 	<string name="gps_disabled">GPS désactivé</string>
+	<string name="location_disabled">Localisation désactivée</string>
 	<string name="updating">Rafraichissement...</string>
+	<string name="should_enable_location">La géolocalisation de votre appareil est désactivée. Vous 
+	n\'aurez accès à votre position que si vous modifiez ce réglage.</string>
+	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.</string>
 	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
 	<string name="network_error">Erreur de connexion</string>
 	<string name="network_error_summary">Le serveur n\'a pu être contacté. 

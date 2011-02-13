@@ -7,16 +7,19 @@
                 android:key="@string/favorite_filter"
                 android:title="@string/favorite_filter_title"
                 android:summary="@string/favorite_filter_summary" 
+                android:defaultValue="false"
                 />
         <CheckBoxPreference
 				android:key="@string/bikes_filter"
 				android:title="@string/bikes_filter_title"
-				android:summary="@string/bikes_filter_summary" 
+				android:summary="@string/bikes_filter_summary"
+				android:defaultValue="false"
 				/>
         <CheckBoxPreference
 				android:key="@string/slots_filter"
 				android:title="@string/slots_filter_title"
-				android:summary="@string/slots_filter_summary" 
+				android:summary="@string/slots_filter_summary"
+				android:defaultValue="false"
 				/>
 		<CheckBoxPreference
 			android:dependency="@string/use_location"
@@ -28,7 +31,7 @@
 		<fr.vcuboid.filter.SeekBarPreference
                 android:dependency="@string/enable_distance_filter"
                 android:key="@string/distance_filter"
-                android:defaultValue="0"
+                android:defaultValue="1000"
                 android:title="@string/distance_filter_title" 
                 />
     </PreferenceCategory>
