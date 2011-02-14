@@ -99,7 +99,7 @@ public class MyLocationProvider implements LocationListener {
 			mVcuboidManager.onLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
-				LocationManager.NETWORK_PROVIDER)) {
+				LocationManager.NETWORK_PROVIDER) && !mIsGpsUsed) {
 			Log.e("Vcuboid", "Network Fix");
 			if (mLastFix == null || !mIsGpsUsed) {
 				Log.i("Vcuboid", "is first or the only one");
@@ -108,12 +108,13 @@ public class MyLocationProvider implements LocationListener {
 			}
 		}
 	}
-
+	
 	@Override
 	public void onProviderDisabled(String provider) {
 		Log.i("Vcuboid", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = false;
+			mIsGpsUsed = false;
 		} else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
 			mIsNetworkAvailable = false;
 		}

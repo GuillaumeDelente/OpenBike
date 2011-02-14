@@ -47,20 +47,28 @@ public class StationOverlay extends Overlay {
 	static private int mMarkerWidth = 0;
 	static private MapView mMapView;
 	static private List<Overlay> mMapOverlays;
-	static public BalloonOverlayView balloonView;
+	static private BalloonOverlayView mBalloonView;
 	static MapController mMc;
 	private Station mStation;
+	private boolean mIsCurrent = false;
 
 	public Station getStation() {
 		return mStation;
 	}
 
-	public boolean isCurrent = false;
-
 	public StationOverlay(Station station) {
 		mStation = station;
 	}
+	
+	public StationOverlay(Station station, boolean isCurrent) {
+		mStation = station;
+		mIsCurrent = isCurrent;
+	}
 
+	public boolean isCurrent() {
+		return mIsCurrent;
+	}
+	
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		if (!shadow) {
@@ -117,31 +125,31 @@ public class StationOverlay extends Overlay {
 				&& touched.y >= marker.y - mMarkerHeight) {
 			Log.d("Vcuboid", "station");
 			boolean isRecycled;
-			if (balloonView == null) {
-				balloonView = new BalloonOverlayView(mapView.getContext(),
+			if (mBalloonView == null) {
+				mBalloonView = new BalloonOverlayView(mapView.getContext(),
 						mMarkerHeight, mMarkerWidth);
 				isRecycled = false;
 			} else {
 				isRecycled = true;
 			}
 			hideOtherBalloons();
-			isCurrent = true;
+			mIsCurrent = true;
 			if (mStation.getDistance() != -1)
 				Utils.sortStationsByDistance(mMapOverlays);
 			else
 				Utils.sortStationsByName(mMapOverlays);
 			Collections.reverse(mMapOverlays);
-			balloonView.setData(mStation);
+			mBalloonView.setData(mStation);
 			MapView.LayoutParams params = new MapView.LayoutParams(
 					LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
 					mStation.getGeoPoint(), MapView.LayoutParams.BOTTOM_CENTER);
 			params.mode = MapView.LayoutParams.MODE_MAP;
 			// setBalloonTouchListener(mId);
-			balloonView.setVisibility(View.VISIBLE);
+			mBalloonView.setVisibility(View.VISIBLE);
 			if (isRecycled) {
-				balloonView.setLayoutParams(params);
+				mBalloonView.setLayoutParams(params);
 			} else {
-				mapView.addView(balloonView, params);
+				mapView.addView(mBalloonView, params);
 			}
 			mMc.animateTo(mStation.getGeoPoint());
 			return true;
@@ -163,11 +171,11 @@ public class StationOverlay extends Overlay {
 
 	public void hideBalloon() {
 		Log.d("Vcuboid", "hideBalloon " + mStation.getId());
-		if (isCurrent) {
-			isCurrent = false;
-			if (balloonView != null) {				
-				balloonView.disableListeners();
-				balloonView.setVisibility(View.GONE);
+		if (mIsCurrent) {
+			mIsCurrent = false;
+			if (mBalloonView != null) {				
+				mBalloonView.disableListeners();
+				mBalloonView.setVisibility(View.GONE);
 			}
 		} else {
 			Log.d("Vcuboid", "isNotCurrent");
@@ -176,11 +184,11 @@ public class StationOverlay extends Overlay {
 
 	public void refreshBalloon() {
 		Log.e("Vcuboid", "hideBalloon");
-		if (isCurrent) {
-			if (balloonView != null) {
-				balloonView.disableListeners();
-				balloonView.refreshData(mStation);
-				balloonView.invalidate();
+		if (mIsCurrent) {
+			if (mBalloonView != null) {
+				mBalloonView.disableListeners();
+				mBalloonView.refreshData(mStation);
+				mBalloonView.invalidate();
 			}
 		}
 	}
@@ -196,6 +204,18 @@ public class StationOverlay extends Overlay {
 		} else {
 			Log.d("Vcuboid", "before last not a StationOverlay");
 		}
+	}
+	
+	public BalloonOverlayView getBallonView() {
+		return mBalloonView;
+	}
+	
+	static public void setBalloonView(BalloonOverlayView balloon) {
+		mBalloonView = balloon;
+	}
+	
+	public void setCurrent() {
+		mIsCurrent = true;
 	}
 
 	/*

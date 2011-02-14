@@ -22,6 +22,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
+import android.util.Log;
+
 import com.google.android.maps.Overlay;
 
 import fr.vcuboid.database.VcuboidDBAdapter;
@@ -33,14 +35,15 @@ import fr.vcuboid.object.Station;
 public class Utils {
 
 	static public void sortStationsByDistance(List<? extends Overlay> list) {
+		Log.d("Vcuboid", "Sorting stations by distance");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
 				if (o1 instanceof StationOverlay
 						&& o2 instanceof StationOverlay) {
-					if (((StationOverlay) o1).isCurrent)
+					if (((StationOverlay) o1).isCurrent())
 						return -1;
-					if (((StationOverlay) o2).isCurrent)
+					if (((StationOverlay) o2).isCurrent())
 						return 1;
 					Station s1 = ((StationOverlay) o1).getStation();
 					Station s2 = ((StationOverlay) o2).getStation();
@@ -62,14 +65,15 @@ public class Utils {
 	}
 
 	static public void sortStationsByName(List<? extends Overlay> list) {
+		Log.d("Vcuboid", "Sorting stations by name");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
 				if (o1 instanceof StationOverlay
 						&& o2 instanceof StationOverlay) {
-				if (((StationOverlay) o1).isCurrent)
+				if (((StationOverlay) o1).isCurrent())
 					return -1;
-				if (((StationOverlay) o2).isCurrent)
+				if (((StationOverlay) o2).isCurrent())
 					return 1;
 				Station s1 = ((StationOverlay) o1).getStation();
 				Station s2 = ((StationOverlay) o2).getStation();

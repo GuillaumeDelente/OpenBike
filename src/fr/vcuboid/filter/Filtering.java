@@ -20,6 +20,7 @@ package fr.vcuboid.filter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.util.Log;
 import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
 
@@ -34,6 +35,7 @@ public class Filtering {
 
 	public static void filter(ArrayList<StationOverlay> mVisibleStations,
 			VcubFilter mVcubFilter) {
+		Log.d("Vcuboid", "Filtering stations");
 		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
 				.hasNext();) {
 			Station s = ((StationOverlay) it.next()).getStation();

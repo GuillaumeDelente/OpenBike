@@ -207,6 +207,10 @@ public class VcuboidManager {
 		}
 		if (mVcubFilter.isNeedDbQuery()) {
 			Log.d("Vcuboid", "Create Visible station list");
+			int size = mVisibleStations.size() - (mLocationProvider == null ? 1 : 2);
+			StationOverlay station = null;
+			if (size >= 0)
+				station = mVisibleStations.get(size);
 			mVisibleStations.clear();
 			// Hack for ArrayAdapter & Background thread
 			if (mActivity instanceof VcuboidListActivity)
@@ -215,6 +219,7 @@ public class VcuboidManager {
 			mVcubFilter.setNeedDbQuery();
 		} else {
 			Filtering.filter(mVisibleStations, mVcubFilter);
+			mVcubFilter.setNeedDbQuery();
 		}
 	}
 	
@@ -258,6 +263,8 @@ public class VcuboidManager {
 				//resetDistances();
 				//Utils.sortStationsByName(mVisibleStations);
 			} else if (mVcubFilter.isFilteringByDistance()) {
+				if (!mVcubFilter.isNeedDbQuery())
+					updateDistance(location);
 				createVisibleStationList();
 			} else {
 				updateDistance(location);
@@ -476,6 +483,7 @@ public class VcuboidManager {
 			super.onPreExecute();
 		}
 
+		@Override
 		protected Boolean doInBackground(Void... unused) {
 			return updateListFromDb();
 		}

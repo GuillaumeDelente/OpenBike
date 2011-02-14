@@ -19,6 +19,7 @@ package fr.vcuboid.map;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -54,6 +55,7 @@ import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
 import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
+import fr.vcuboid.object.Station;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
 
@@ -153,7 +155,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	protected void onPause() {
 		mVcuboidManager.stopLocation();
 		hideOverlayBalloon();
-		StationOverlay.balloonView = null;
+		StationOverlay.setBalloonView(null);
 		super.onPause();
 	}
 
@@ -213,11 +215,11 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
-		onListUpdated();
+		//onListUpdated();
 		if (location != null)
 			zoomAndCenter(location);
 	}
-	
+
 	private void zoomAndCenter(Location location) {
 		if (location == null) {
 			mMapController.setZoom(14);
@@ -237,13 +239,46 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void onListUpdated() {
+		int currentId = -1;
+		StationOverlay stationOverlay = null;
+		boolean hasCurrent = false;
+		boolean useLocation = mMyLocationOverlay != null;
+		int size = mMapOverlays.size();
+		BalloonOverlayView balloon = null;
+		if (size >=2 || (size >= 1 && !useLocation)) {
+			StationOverlay station = ((StationOverlay) mMapOverlays
+					.get(size - (useLocation ? 2 : 1)));
+			if (station.isCurrent()) {
+				currentId = station.getStation().getId();
+				balloon = station.getBallonView();
+			}
+		}
 		mMapOverlays.clear();
 		ArrayList<StationOverlay> stations = mVcuboidManager
 				.getVisibleStations();
 		mMapOverlays.addAll(stations);
 		Collections.reverse(mMapOverlays);
-		if (mMyLocationOverlay != null)
+		if (currentId != -1) {
+			for (Iterator<Overlay> it = mMapOverlays.iterator(); it.hasNext();) {
+				stationOverlay = (StationOverlay) it.next();
+				if (stationOverlay.getStation().getId() == currentId) {
+					it.remove();
+					hasCurrent = true;
+					break;
+				}
+			}
+			if (hasCurrent) {
+				stationOverlay.setCurrent();
+				mMapOverlays.add(stationOverlay);
+				StationOverlay.setBalloonView(balloon);
+				stationOverlay.refreshBalloon();
+			} else {
+				StationOverlay.setBalloonView(null);
+			}
+		}
+		if (mMyLocationOverlay != null) {
 			mMapOverlays.add(mMyLocationOverlay);
+		}
 		mMapView.invalidate();
 	}
 
@@ -265,9 +300,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			LayoutAnimationController controller = new LayoutAnimationController(
 					set, 0.5f);
 			loading.setLayoutAnimation(controller);
-		}		
+		}
 	}
-	
+
 	@Override
 	public void finishUpdateAllStationsOnProgress() {
 		AnimationSet set = new AnimationSet(true);
@@ -322,10 +357,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case MyLocationProvider.ENABLE_GPS:
 			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled))
-					.setMessage(
-							getString(R.string.should_enable_gps) + "\n" +
-							getString(R.string.show_location_parameters))
+					getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.should_enable_gps) + "\n"
+							+ getString(R.string.show_location_parameters))
 					.setPositiveButton(getString(R.string.yes),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
@@ -344,10 +378,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
 			Log.i("Vcuboid", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.location_disabled))
-						.setMessage(
-								getString(R.string.should_enable_location) + "\n" +
-								getString(R.string.show_location_parameters))
+					getString(R.string.location_disabled)).setMessage(
+					getString(R.string.should_enable_location) + "\n"
+							+ getString(R.string.show_location_parameters))
 					.setPositiveButton(getString(R.string.yes),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
