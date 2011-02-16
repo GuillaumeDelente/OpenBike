@@ -229,7 +229,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false)
 				|| mIsFirstFix) {
-			mMapController.setZoom(16);
+			//mMapController.setZoom(16);
 			mMapController.animateTo(new GeoPoint(
 					(int) (location.getLatitude() * 1E6), (int) (location
 							.getLongitude() * 1E6)));
@@ -272,6 +272,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 				mMapOverlays.add(stationOverlay);
 				StationOverlay.setBalloonView(balloon);
 				stationOverlay.refreshBalloon();
+			} else if (currentId != -1) {
+				StationOverlay.hideBalloonWithNoStation();
 			} else {
 				StationOverlay.setBalloonView(null);
 			}

@@ -181,6 +181,14 @@ public class StationOverlay extends Overlay {
 			Log.d("Vcuboid", "isNotCurrent");
 		}
 	}
+	
+	public static void hideBalloonWithNoStation() {
+		Log.d("Vcuboid", "Hide balloon without Station");
+		if (mBalloonView != null) {				
+			mBalloonView.disableListeners();
+			mBalloonView.setVisibility(View.GONE);
+		}
+	}
 
 	public void refreshBalloon() {
 		Log.e("Vcuboid", "hideBalloon");
