@@ -170,7 +170,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
-		Log.d("Vcuboid", "hideBalloon " + mStation.getId());
+		Log.i("Vcuboid", "hideBalloon " + mStation.getId());
 		if (mIsCurrent) {
 			mIsCurrent = false;
 			if (mBalloonView != null) {				
@@ -183,7 +183,7 @@ public class StationOverlay extends Overlay {
 	}
 	
 	public static void hideBalloonWithNoStation() {
-		Log.d("Vcuboid", "Hide balloon without Station");
+		Log.i("Vcuboid", "Hide balloon without Station");
 		if (mBalloonView != null) {				
 			mBalloonView.disableListeners();
 			mBalloonView.setVisibility(View.GONE);
@@ -191,7 +191,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void refreshBalloon() {
-		Log.e("Vcuboid", "hideBalloon");
+		Log.i("Vcuboid", "Refreshing Balloon");
 		if (mIsCurrent) {
 			if (mBalloonView != null) {
 				mBalloonView.disableListeners();

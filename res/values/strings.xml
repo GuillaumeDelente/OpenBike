@@ -31,6 +31,7 @@
 	<string name="saving_db_summary">Données reçues, sauvegarde dans la base de donnée en cours.</string>
 	<string name="remove_favorite">Supprimer le favoris</string>
 	<string name="remove_favorite_sure">Êtes-vous certain de vouloir enlever cette station des favoris ?</string>
+	<string name="position_updated">Votre position à été mise à jour</string>
 	
 	<!--  Preferences -->
 	<string name="menu_filters_title">Filtres</string>

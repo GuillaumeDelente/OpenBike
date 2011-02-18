@@ -36,6 +36,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
@@ -54,14 +55,14 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.e("Vcuboid", "OnCreate");
+		Log.i("Vcuboid", "OnCreate");
 		setContentView(R.layout.station_list);
 		mVcuboidManager = (VcuboidManager) getLastNonConfigurationInstance();
 		if (mVcuboidManager == null) { // No AsyncTask running
-			Log.e("Vcuboid", "No AsyncTask running");
+			Log.d("Vcuboid", "Bundle empty");
 			mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
 		} else {
-			Log.e("Vcuboid", "AsyncTask running, attaching it to the activity");
+			Log.d("Vcuboid", "Recovering from bundle");
 			mVcuboidManager.attach(this);
 		}
 		mAdapter = new VcuboidArrayAdaptor(this, R.layout.station_list_entry,
@@ -75,14 +76,14 @@ public class VcuboidListActivity extends ListActivity implements
 		mVcuboidManager.setCurrentActivity(this);
 		mVcuboidManager.startLocation();
 		onListUpdated();
-		Log.e("Vcuboid", "onResume " + this);
+		Log.i("Vcuboid", "onResume " + this);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		mVcuboidManager.stopLocation();
-		Log.e("Vcuboid", "onPause");
+		Log.i("Vcuboid", "onPause");
 	}
 
 	@Override
@@ -139,7 +140,7 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void finishGetAllStationsOnProgress() {
-		onListUpdated();
+		//onListUpdated();
 		dismissDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
 	}
 
@@ -184,17 +185,17 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	public void onLocationChanged(Location l) {
 		onListUpdated();
+		Toast.makeText(this, getString(R.string.position_updated), Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
 	public void onListUpdated() {
-		Log.e("Vcuboid", "notifyDataSetChanged");
+		Log.i("Vcuboid", "notifyDataSetChanged");
 		mAdapter.notifyDataSetChanged();
 	}
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
-		Log.i("Vcuboid", "onCreateDialog");
 		switch (id) {
 		case RestClient.NETWORK_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(

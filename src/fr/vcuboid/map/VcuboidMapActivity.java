@@ -216,8 +216,11 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
 		//onListUpdated();
-		if (location != null)
+		if (location != null || !mMyLocationOverlay.isMyLocationDrawn()) {
+			StationOverlay station = getLastStationOverlay();
+			station.refreshBalloon();
 			zoomAndCenter(location);
+		}
 	}
 
 	private void zoomAndCenter(Location location) {
@@ -229,12 +232,17 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
 				false)
 				|| mIsFirstFix) {
-			//mMapController.setZoom(16);
+			mMapController.setZoom(16);
 			mMapController.animateTo(new GeoPoint(
 					(int) (location.getLatitude() * 1E6), (int) (location
 							.getLongitude() * 1E6)));
 			mIsFirstFix = false;
 		}
+	}
+	
+	private StationOverlay getLastStationOverlay() {
+		return ((StationOverlay) mMapOverlays
+				.get(mMapOverlays.size() - (mMyLocationOverlay == null ? 1 : 2)));
 	}
 
 	@Override
@@ -246,8 +254,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		int size = mMapOverlays.size();
 		BalloonOverlayView balloon = null;
 		if (size >=2 || (size >= 1 && !useLocation)) {
-			StationOverlay station = ((StationOverlay) mMapOverlays
-					.get(size - (useLocation ? 2 : 1)));
+			StationOverlay station = getLastStationOverlay();
 			if (station.isCurrent()) {
 				currentId = station.getStation().getId();
 				balloon = station.getBallonView();

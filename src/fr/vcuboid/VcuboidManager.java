@@ -94,7 +94,7 @@ public class VcuboidManager {
 
 	public void setCurrentActivity(IVcuboidActivity activity) {
 		mActivity = activity;
-		if (mUpdateAllStationsTask != null)
+		if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50)
 			activity.showUpdateAllStationsOnProgress(false);
 	}
 
@@ -104,7 +104,8 @@ public class VcuboidManager {
 		if (mGetAllStationsTask != null) {
 			mThis.retrieveGetAllStationTask();
 		} else if (mUpdateAllStationsTask != null) {
-			mThis.retrieveUpdateAllStationTask();
+			if (mUpdateAllStationsTask.getProgress() < 50)
+				mThis.retrieveUpdateAllStationTask();
 		}
 	}
 
@@ -143,9 +144,11 @@ public class VcuboidManager {
 	private void retrieveGetAllStationTask() {
 		int progress = mGetAllStationsTask.getProgress();
 		if (progress < 100) {
+			/*
 			((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
 			((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(mGetAllStationsTask
 					.getProgress());
+					*/
 		} else {
 			((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 			mGetAllStationsTask = null;
@@ -154,7 +157,7 @@ public class VcuboidManager {
 
 	private void retrieveUpdateAllStationTask() {
 		int progress = mUpdateAllStationsTask.getProgress();
-		if (progress >= 100) {
+		if (progress >= 50) {
 			((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 			mIsUpdating = false;
 			mUpdateAllStationsTask = null;
@@ -327,7 +330,7 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPreExecute() {
-			Log.i("Vcuboid", "onPreExecute");
+			Log.d("Vcuboid", "onPreExecute GetAllStations");
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
 			}
@@ -335,13 +338,11 @@ public class VcuboidManager {
 
 		@Override
 		protected Void doInBackground(Void... unused) {
-			Log.i("Vcuboid", "doInBackground");
 			String json = RestClient
 					.connect("http://vcuboid.appspot.com/stations");
 			publishProgress();
 			RestClient.jsonStationsToDb(json, mVcuboidDBAdapter);
 			publishProgress();
-			Log.i("Vcuboid", "Async task finished");
 			return (null);
 		}
 
@@ -358,7 +359,7 @@ public class VcuboidManager {
 			if (mActivity != null) {
 				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
-				Log.d("Vcuboid", "Async task get finished");
+				Log.d("Vcuboid", "Async task get all stations finished");
 			}
 		}
 
@@ -368,7 +369,7 @@ public class VcuboidManager {
 	}
 
 	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Void> {
-		private int progress = 0;
+		private int mProgress = 0;
 
 		protected void onPreExecute() {
 			mIsUpdating = true;
@@ -400,6 +401,7 @@ public class VcuboidManager {
 		
 		@Override
 		protected void onProgressUpdate(Integer... progress) {
+			mProgress = progress[0];
 			if (mActivity != null) {
 				mActivity.finishUpdateAllStationsOnProgress();
 				if (progress[0] < 0) {
@@ -411,7 +413,7 @@ public class VcuboidManager {
 		@Override
 		protected void onPostExecute(Void unused) {
 			if (mActivity == null) {
-				progress = 100;
+				mProgress = 100;
 			} else {
 				mIsUpdating = false;
 				mUpdateAllStationsTask = null;
@@ -420,7 +422,7 @@ public class VcuboidManager {
 		}
 
 		public int getProgress() {
-			return progress;
+			return mProgress;
 		}
 	}
 	
@@ -497,7 +499,7 @@ public class VcuboidManager {
 				else 
 					mActivity.onListUpdated();
 				mCreateVisibleStationsTask = null;
-				Log.d("Vcuboid", "Async task create finished");
+				Log.d("Vcuboid", "Async task create station list finished");
 			}
 		}
 	}
