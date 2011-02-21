@@ -27,7 +27,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
@@ -100,8 +99,13 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 			viewHolder.slots.setText(String.valueOf(station.getSlots()) + " " 
 					+ mContext.getString(station.getSlots() == 1 ? 
 							R.string.slot : R.string.slots));
+		}
+		if (station.getDistance() != -1) {
+			viewHolder.distance.setVisibility(View.VISIBLE);
 			viewHolder.distance.setText(
-					String.valueOf(Utils.formatDistance(station.getDistance())));
+				String.valueOf(Utils.formatDistance(station.getDistance())));
+		} else {
+			viewHolder.distance.setVisibility(View.GONE);
 		}
 		viewHolder.favorite.setChecked(station.isFavorite());
 		viewHolder.favorite.setOnCheckedChangeListener(new FavoriteListener());
