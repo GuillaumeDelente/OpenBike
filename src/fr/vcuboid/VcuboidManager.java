@@ -210,10 +210,6 @@ public class VcuboidManager {
 		}
 		if (mVcubFilter.isNeedDbQuery()) {
 			Log.d("Vcuboid", "Create Visible station list");
-			int size = mVisibleStations.size() - (mLocationProvider == null ? 1 : 2);
-			StationOverlay station = null;
-			if (size >= 0)
-				station = mVisibleStations.get(size);
 			mVisibleStations.clear();
 			// Hack for ArrayAdapter & Background thread
 			if (mActivity instanceof VcuboidListActivity)
@@ -314,6 +310,10 @@ public class VcuboidManager {
 	public void stopLocation() {
 		if (mLocationProvider != null)
 			mLocationProvider.disableMyLocation();
+	}
+	
+	public Station getStation(int id) {
+		return mVcuboidDBAdapter.getStation(id);
 	}
 	
 	/************************************/
@@ -471,6 +471,8 @@ public class VcuboidManager {
 										false : true,
 								cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ?
 										false : true,
+								cursor.getInt(VcuboidDBAdapter.PAYMENT_COLUMN) == 0 ?
+												false : true,
 										stationLocation != null ? distanceToStation : -1));
 				mVisibleStations.add(stationOverlay);
 			}

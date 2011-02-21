@@ -7,11 +7,14 @@
 			  android:id="@+id/mainRL" 
 			  android:layout_width="wrap_content" 
               android:layout_height="wrap_content"
-              android:layout_weight="1.0">     
+              android:layout_weight="1.0"
+              		>     
 	<ListView
 		android:id="@android:id/android:list"
+		android:choiceMode="singleChoice"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content" />
+		android:layout_height="wrap_content" 
+		android:clickable="true"/>
 		<RelativeLayout 
 			  android:layout_above="@id/mainRL"
 			  android:id="@+id/loading"

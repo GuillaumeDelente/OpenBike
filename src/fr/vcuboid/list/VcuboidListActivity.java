@@ -35,13 +35,18 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
 import fr.vcuboid.RestClient;
+import fr.vcuboid.StationDetails;
 import fr.vcuboid.VcuboidManager;
+import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.map.VcuboidMapActivity;
 
 public class VcuboidListActivity extends ListActivity implements
@@ -68,6 +73,20 @@ public class VcuboidListActivity extends ListActivity implements
 		mAdapter = new VcuboidArrayAdaptor(this, R.layout.station_list_entry,
 				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
+		final Intent intent = new Intent(this, StationDetails.class);
+		final ListView listView = getListView();
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			    public void onItemClick(AdapterView<?> parent, View view,
+			        int position, long id) {
+			    	Log.i("Vcuboid", "Item clicked");
+			    	intent.putExtra("id", (Integer) 
+			    			((VcuboidArrayAdaptor.ViewHolder) view.getTag()).favorite.getTag())
+			    			.putExtra("distance", 
+			    					((StationOverlay) listView.getItemAtPosition(position))
+			    					.getStation().getDistance());
+			    	startActivity(intent);
+			    }
+			  });
 	}
 
 	@Override

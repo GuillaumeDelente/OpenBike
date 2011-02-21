@@ -108,7 +108,7 @@ public class Utils {
 	
 	static public String formatDistance(int distance) {
 		int km = distance / 1000;
-		String mStr = distance % 1000 + "m";
-		return km == 0 ? mStr : km + "km " + mStr;
+		int m = distance % 1000;
+		return km == 0 ? m + "m" : km + "," + m + "km ";
 	}
 }

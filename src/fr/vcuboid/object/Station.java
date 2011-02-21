@@ -37,26 +37,27 @@ public class Station {
 	private int mDistance;
 	private boolean mIsOpen;
 	private boolean mIsFavorite;
+	private boolean mHasPayment;
 
 	public Station(int id, String network, String name, String address,
 			double longitude, double latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite) {
+			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment) {
 		this(id, network, name, address, (int) (longitude * 1E6),
 				(int) (latitude * 1E6), availablesBikes, freeLocations,
-				isOpen, isFavorite);
+				isOpen, isFavorite, hasPayment);
 	}
 	
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite) {
+			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment) {
 		this(id, network, name, address, longitude,
 				latitude, availablesBikes, freeLocations,
-				isOpen, isFavorite, -1);
+				isOpen, isFavorite, hasPayment, -1);
 	}
 
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite, int distance) {
+			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment, int distance) {
 		mId = id;
 		mNetwork = network;
 		mAddress = address;
@@ -67,6 +68,7 @@ public class Station {
 		mIsOpen = isOpen;
 		mIsFavorite = isFavorite;
 		mDistance = distance;
+		mHasPayment = hasPayment;
 	}
 
 	public Station() {
@@ -154,5 +156,13 @@ public class Station {
 
 	public int getDistance() {
 		return mDistance;
+	}
+	
+	public boolean hasPayment() {
+		return mHasPayment;
+	}
+	
+	public void setPayment(boolean hasPayment) {
+		mHasPayment = hasPayment;
 	}
 }

@@ -126,7 +126,8 @@ public class RestClient {
 								.getDouble("longitude"), jsonStation
 								.getInt("availableBikes"), jsonStation
 								.getInt("freeSlots"), jsonStation
-								.getBoolean("open"));
+								.getBoolean("open"), jsonStation
+								.getBoolean("payment"));
 			}
 			return true;
 		} catch (JSONException e) {

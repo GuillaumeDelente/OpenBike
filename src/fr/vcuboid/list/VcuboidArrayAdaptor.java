@@ -33,6 +33,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
 import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.object.Station;
+import fr.vcuboid.utils.Utils;
 
 public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	
@@ -44,16 +45,15 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		super(context, layout, list);
 		mInflater = LayoutInflater.from(context);
 		mContext = context;
-		// TODO Auto-generated constructor stub
 	}
 
-	static class ViewHolder {
+	public static class ViewHolder {
 		TextView name;
 		TextView bikes;
 		TextView slots;
+		TextView distance;
 		TextView maintenance;
 		CheckBox favorite;
-		ProgressBar refreshing;
 	}
 
 	@Override
@@ -68,10 +68,10 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 					.findViewById(R.id.bikes_entry);
 			viewHolder.slots = (TextView) convertView
 					.findViewById(R.id.slots_entry);
+			viewHolder.distance = (TextView) convertView
+				.findViewById(R.id.distance);
 			viewHolder.maintenance = (TextView) convertView
 					.findViewById(R.id.station_maintenance);
-			viewHolder.refreshing = (ProgressBar) convertView
-					.findViewById(R.id.refreshing);
 			viewHolder.favorite = (CheckBox) convertView
 					.findViewById(R.id.favorite);
 			convertView.setTag(viewHolder);
@@ -87,16 +87,22 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
 			viewHolder.maintenance.setVisibility(View.VISIBLE);
-			viewHolder.bikes.setVisibility(View.INVISIBLE);
-			viewHolder.slots.setVisibility(View.INVISIBLE);
+			viewHolder.bikes.setVisibility(View.GONE);
+			viewHolder.slots.setVisibility(View.GONE);
+			viewHolder.distance.setVisibility(View.GONE);
 		} else {
-			viewHolder.maintenance.setVisibility(View.INVISIBLE);
+			viewHolder.maintenance.setVisibility(View.GONE);
 			viewHolder.bikes.setVisibility(View.VISIBLE);
 			viewHolder.slots.setVisibility(View.VISIBLE);
-			viewHolder.bikes.setText(String.valueOf(station.getBikes()));
-			viewHolder.slots.setText(String.valueOf(station.getSlots()));
+			viewHolder.bikes.setText(String.valueOf(station.getBikes()) + " " 
+					+ mContext.getString(station.getBikes() == 1 ? 
+							R.string.bike : R.string.bikes));
+			viewHolder.slots.setText(String.valueOf(station.getSlots()) + " " 
+					+ mContext.getString(station.getSlots() == 1 ? 
+							R.string.slot : R.string.slots));
+			viewHolder.distance.setText(
+					String.valueOf(Utils.formatDistance(station.getDistance())));
 		}
-		//bindRefreshing(viewHolder.refreshing);
 		viewHolder.favorite.setChecked(station.isFavorite());
 		viewHolder.favorite.setOnCheckedChangeListener(new FavoriteListener());
 		viewHolder.favorite.setTag(station.getId());

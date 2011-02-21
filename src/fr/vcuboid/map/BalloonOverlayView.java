@@ -16,6 +16,7 @@
 package fr.vcuboid.map;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -27,6 +28,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
+import fr.vcuboid.StationDetails;
+import fr.vcuboid.list.VcuboidArrayAdaptor;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -55,7 +58,8 @@ public class BalloonOverlayView extends FrameLayout {
 	private TextView mOpened;
 	private TextView mBikes;
 	private TextView mSlots;
-	private TextView mDistance;
+	private TextView mDistanceTextView;
+	private int mDistance = -1;
 
 	/**
 	 * Create a new BalloonOverlayView.
@@ -73,12 +77,22 @@ public class BalloonOverlayView extends FrameLayout {
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = inflater.inflate(R.layout.balloon_overlay, mLayout);
+		final Intent intent = new Intent(mContext, StationDetails.class);
+		v.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+		    	Log.i("Vcuboid", "Item clicked");
+		    	intent.putExtra("id", (Integer) mFavorite.getTag())
+		    			.putExtra("distance", mDistance);
+		    	mContext.startActivity(intent);
+			}
+		});
 		mFavorite = (CheckBox) v.findViewById(R.id.favorite);
 		mName = (TextView) v.findViewById(R.id.balloon_item_name);
 		mBikes = (TextView) v.findViewById(R.id.balloon_item_bikes);
 		mSlots = (TextView) v.findViewById(R.id.balloon_item_slots);
 		mOpened = (TextView) v.findViewById(R.id.balloon_item_opened);
-		mDistance = (TextView) v.findViewById(R.id.balloon_item_distance);
+		mDistanceTextView = (TextView) v.findViewById(R.id.balloon_item_distance);
 		
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -112,15 +126,18 @@ public class BalloonOverlayView extends FrameLayout {
 			mSlots.setText(station.getSlots() + " places");
 		}
 		if (station.getDistance() != -1) {
-			mDistance.setText("Distance : " + Utils.formatDistance(station.getDistance()));
-			mDistance.setVisibility(VISIBLE);
+			mDistance = station.getDistance();
+			mDistanceTextView.setText("Distance : " + Utils.formatDistance(station.getDistance()));
+			mDistanceTextView.setVisibility(VISIBLE);
 		} else {
-			mDistance.setVisibility(GONE);
+			mDistance = -1;
+			mDistanceTextView.setVisibility(GONE);
 		}
 	}
 	
 	public void disableListeners() {
 		mFavorite.setOnCheckedChangeListener(null);
+		
 	}
 	
 	public void refreshData(Station station) {

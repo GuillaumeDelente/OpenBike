@@ -42,6 +42,8 @@ public class VcuboidDBAdapter {
 	public static final int NAME_COLUMN = 7;
 	public static final int NETWORK_COLUMN = 8;
 	public static final int FAVORITE_COLUMN = 9;
+	public static final int PAYMENT_COLUMN = 10;
+	
 	private SQLiteDatabase mDb;
 	private VcuboidDBOpenHelper mDbHelper;
 	//private Context mContext;
@@ -55,6 +57,7 @@ public class VcuboidDBAdapter {
 	public static final String KEY_NAME = "name";
 	public static final String KEY_NETWORK = "network";
 	public static final String KEY_FAVORITE = "isFavorite";
+	public static final String KEY_PAYMENT = "hasPayment";
 	
 	//TODO: remove this, only for debugging
 	private static final String DATABASE_CREATE = "create table "
@@ -68,7 +71,8 @@ public class VcuboidDBAdapter {
 		+ KEY_LATITUDE + " integer not null, "
 		+ KEY_LONGITUDE + " integer not null, "
 		+ KEY_NETWORK + " text not null, " 
-		+ KEY_FAVORITE + " integer not null );";
+		+ KEY_FAVORITE + " integer not null, "
+		+ KEY_PAYMENT + " integer not null );";
 
 	public VcuboidDBAdapter(Context context) {
 		//mContext = context;
@@ -99,7 +103,7 @@ public class VcuboidDBAdapter {
 	// Insert a new task
 	public long insertStation(int id, String name, String address,
 			String network, double latitude, double longitude, int bikes, int slots,
-			 boolean open) {
+			 boolean open, boolean payment) {
 		// Create a new row of values to insert.
 		ContentValues newVcubValues = new ContentValues();
 		// Assign values for each row.
@@ -113,6 +117,7 @@ public class VcuboidDBAdapter {
 		newVcubValues.put(KEY_NAME, name);
 		newVcubValues.put(KEY_NETWORK, network);
 		newVcubValues.put(KEY_FAVORITE, false);
+		newVcubValues.put(KEY_PAYMENT, payment);
 		// Insert the row.
 		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
 	}
@@ -146,20 +151,20 @@ public class VcuboidDBAdapter {
 	public Cursor getAllStationsCursor() {
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, null, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, null, null, null, null, null);
 	}
 	
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
 		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, where, null, null, null, orderBy);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, where, null, null, null, orderBy);
 	}
 
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
 				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE }, KEY_ID + "=" + id,
+				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, KEY_ID + "=" + id,
 				null, null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
@@ -173,7 +178,8 @@ public class VcuboidDBAdapter {
 				cursor.getInt(BIKES_COLUMN), 
 				cursor.getInt(SLOTS_COLUMN),
 				cursor.getInt(OPEN_COLUMN) != 0,
-				cursor.getInt(FAVORITE_COLUMN) != 0);
+				cursor.getInt(FAVORITE_COLUMN) != 0,
+				cursor.getInt(PAYMENT_COLUMN) != 0);
 		return result;
 	}
 	

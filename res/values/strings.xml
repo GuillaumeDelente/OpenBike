@@ -61,4 +61,13 @@
 	<string name="center_on_location_title">Centrer sur ma position</string>
 	<string name="center_on_location_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
+	
+	<!--  Autre -->	
+	<string name="bikes">vélos</string>
+	<string name="bike">vélo</string>
+	<string name="slots">places</string>
+	<string name="slot">place</string>
+	<string name="address">Adresse</string>
+	<string name="cc">Carte bancaire</string>
+	<string name="At">À</string>
 </resources>
