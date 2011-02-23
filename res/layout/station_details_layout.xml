@@ -3,14 +3,16 @@
     android:id="@+id/card_root_view"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"> 
+    android:layout_height="fill_parent"
+  	android:background = "#333333"
+    > 
     
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/banner"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@drawable/title_bar_medium"
+    android:background="@drawable/row_bg"
     android:paddingRight="5dip">
    <LinearLayout
         android:layout_width="0dip"
@@ -64,9 +66,11 @@
 		android:textSize = "16dip"
 		android:padding = "5dp" 
 		android:layout_gravity="right"
-		android:visibility="gone"/>
+		android:visibility="gone"
+		android:textColor = "#cccccc" />
 		
 		<LinearLayout
+			android:id = "@+id/open_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -81,6 +85,7 @@
            		android:layout_weight="1">
             
 	<ImageView 
+		android:id = "@+id/bike_sign"
 		android:src = "@drawable/bike_sign"
    		android:layout_width="wrap_content"
    		android:layout_height="wrap_content"
@@ -106,6 +111,7 @@
            		android:layout_weight="1">
             
 				<ImageView 
+					android:id = "@+id/parking_sign"
 					android:src = "@drawable/parking_sign"
 			   		android:layout_width="wrap_content"
 			   		android:layout_height="wrap_content"
@@ -123,8 +129,38 @@
 					android:padding = "5dp" 
 					/>
 			</LinearLayout>
-		
 		</LinearLayout>
+		
+					 <LinearLayout
+			 	android:id = "@+id/closed_layout"
+            	android:layout_width="fill_parent"
+            	android:layout_height="wrap_content"
+            	android:orientation="vertical"
+            	android:gravity="center"
+            	android:padding = "10dip"
+           		android:visibility = "gone"
+           		>
+            
+				<ImageView 
+					android:id = "@+id/closed_sign"
+					android:src = "@drawable/closed_sign"
+			   		android:layout_width="wrap_content"
+			   		android:layout_height="wrap_content"
+			   		/>
+			   
+			    <TextView 
+					android:background = "@drawable/empty_sign_yellow"
+					android:layout_width = "wrap_content"
+					android:layout_height = "wrap_content"
+					android:text = "@string/closed"
+					android:gravity="center"
+					android:textSize = "16dip"
+					android:textStyle="bold"
+					android:textColor="#000000"
+					android:padding = "5dp" 
+					/>
+			</LinearLayout>
+			
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -151,6 +187,7 @@
 		android:layout_height = "wrap_content" 
 		android:textSize = "20dip"
 		android:padding = "5dp" 
+		android:textColor = "#cccccc" 
 	/>
 	
 	 <TextView 
@@ -159,6 +196,7 @@
 		android:layout_height = "wrap_content" 
 		android:textSize = "20dip"
 		android:padding = "5dp" 
+		android:textColor = "#cccccc" 
 	/>
 	</LinearLayout>
 	</ScrollView>

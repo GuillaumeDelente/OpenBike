@@ -55,7 +55,6 @@ import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
 import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
-import fr.vcuboid.object.Station;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
 
@@ -81,7 +80,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
 		mVcuboidManager.setCurrentActivity(this);
 		mMapView.displayZoomControls(true);
-		mMapView.invalidate();
+		//mMapView.invalidate();
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		if (!mMapPreferences.getBoolean(getString(R.string.use_location), true))
 			zoomAndCenter(null);
@@ -142,7 +141,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
 				mMyLocationOverlay.setCurrentLocation(mVcuboidManager
 						.getCurrentLocation());
-				mMapView.invalidate();
+				//mMapView.invalidate();
 			}
 			zoomAndCenter(mVcuboidManager.getCurrentLocation());
 		} else {
@@ -153,6 +152,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onPause() {
+		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);
@@ -288,12 +288,12 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (mMyLocationOverlay != null) {
 			mMapOverlays.add(mMyLocationOverlay);
 		}
-		mMapView.invalidate();
+		//mMapView.invalidate();
 	}
 
 	@Override
 	public void showUpdateAllStationsOnProgress(boolean animate) {
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
 		loading.setVisibility(View.VISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -313,20 +313,24 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
-	public void finishUpdateAllStationsOnProgress() {
-		AnimationSet set = new AnimationSet(true);
-		Animation animation = new AlphaAnimation(1.0f, 0.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
-				0.0f, Animation.RELATIVE_TO_SELF, -1.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
-		loading.startAnimation(set);
+	public void finishUpdateAllStationsOnProgress(boolean animate) {
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
 		loading.setVisibility(View.INVISIBLE);
-		onListUpdated();
+		if (animate) {
+			AnimationSet set = new AnimationSet(true);
+			Animation animation = new AlphaAnimation(1.0f, 0.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, -1.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			loading.startAnimation(set);
+			loading.setVisibility(View.INVISIBLE);
+		}
+		// onListUpdated();
 	}
 
 	@Override
@@ -428,7 +432,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 												.remove(mMapOverlays.size()
 														- (mMyLocationOverlay == null ? 1
 																: 2));
-										mMapView.invalidate();
+										//mMapView.invalidate();
 									} else {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()

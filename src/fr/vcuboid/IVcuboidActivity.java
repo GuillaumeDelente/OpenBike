@@ -25,7 +25,7 @@ public interface IVcuboidActivity {
 	public void updateGetAllStationsOnProgress(int progress);
 	public void finishGetAllStationsOnProgress();
 	public void showUpdateAllStationsOnProgress(boolean animate);
-	public void finishUpdateAllStationsOnProgress();
+	public void finishUpdateAllStationsOnProgress(boolean animate);
 	public void onLocationChanged(Location location);
 	public void onListUpdated();
 	public void showDialog(int id);

@@ -13,7 +13,7 @@
 		android:clickable="true" android:apiKey="0h_KAeN3vGJwkzzFZKZhQxbNW3TF2eB-0hkokNQ" />
 		<RelativeLayout 
 			  android:layout_above="@id/mainRL"
-			  android:id="@+id/loading"
+			  android:id="@+id/updating"
 			  android:layout_width="fill_parent"
               android:layout_height="wrap_content"
               android:visibility="invisible">  

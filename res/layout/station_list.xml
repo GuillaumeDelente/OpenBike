@@ -14,10 +14,31 @@
 		android:choiceMode="singleChoice"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content" 
-		android:clickable="true"/>
+		android:clickable="true"
+		android:cacheColorHint="#898989"
+		/>
+		
+		            <!---->
+		
+		<TextView android:id="@+id/empty"
+               android:layout_width="fill_parent"
+               android:layout_height="fill_parent"
+               android:gravity="center"
+               android:visibility = "gone"
+               android:textSize = "16dip"
+               android:text="@string/no_stations"/>
+               
+        <TextView android:id="@+id/loading"
+               android:layout_width="fill_parent"
+               android:layout_height="fill_parent"
+               android:gravity="center"
+               android:visibility = "gone"
+               android:textSize = "16dip"
+               android:text="@string/loading_list"/>
+               
 		<RelativeLayout 
 			  android:layout_above="@id/mainRL"
-			  android:id="@+id/loading"
+			  android:id="@+id/updating"
 			  android:layout_width="fill_parent"
               android:layout_height="wrap_content"
               android:visibility="invisible">  

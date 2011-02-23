@@ -60,7 +60,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Cannot happend
 		}
 	}
-
+	
 	@Override
 	public void onPause() {
 		getPreferenceScreen().getSharedPreferences()
@@ -75,7 +75,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			VcuboidManager.getVcuboidManagerInstance().setVcubFilter(
 					mModifiedFilter);
 			VcuboidManager.getVcuboidManagerInstance()
-					.createVisibleStationList();
+					.executeCreateVisibleStationsTask();
 			Log.e("Vcuboid", "Only Favorites ? "
 					+ mModifiedFilter.isShowOnlyFavorites());
 		}

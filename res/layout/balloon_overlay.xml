@@ -64,6 +64,7 @@
 				android:textColor="#FFFFFFFF"
 			/>
 		</LinearLayout>
+		
 			<TextView 
 		android:id = "@+id/balloon_item_distance" 
 		android:layout_width = "wrap_content"
@@ -71,7 +72,9 @@
 		android:layout_below = "@id/bikes_linear_layout"
 		android:textSize = "12dip" 
 		android:textColor="#FFFFFFFF"
-		android:layout_centerHorizontal="true"/>
+		android:layout_centerHorizontal="true"
+		android:padding = "5dip"
+		/>
 </RelativeLayout>
 <!--
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"

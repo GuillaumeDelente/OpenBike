@@ -38,6 +38,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import fr.vcuboid.IVcuboidActivity;
@@ -76,17 +77,19 @@ public class VcuboidListActivity extends ListActivity implements
 		final Intent intent = new Intent(this, StationDetails.class);
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
-			    public void onItemClick(AdapterView<?> parent, View view,
-			        int position, long id) {
-			    	Log.i("Vcuboid", "Item clicked");
-			    	intent.putExtra("id", (Integer) 
-			    			((VcuboidArrayAdaptor.ViewHolder) view.getTag()).favorite.getTag())
-			    			.putExtra("distance", 
-			    					((StationOverlay) listView.getItemAtPosition(position))
-			    					.getStation().getDistance());
-			    	startActivity(intent);
-			    }
-			  });
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Log.i("Vcuboid", "Item clicked");
+				intent.putExtra(
+						"id",
+						(Integer) ((VcuboidArrayAdaptor.ViewHolder) view
+								.getTag()).favorite.getTag()).putExtra(
+						"distance",
+						((StationOverlay) listView.getItemAtPosition(position))
+								.getStation().getDistance());
+				startActivity(intent);
+			}
+		});
 	}
 
 	@Override
@@ -94,6 +97,8 @@ public class VcuboidListActivity extends ListActivity implements
 		super.onResume();
 		mVcuboidManager.setCurrentActivity(this);
 		mVcuboidManager.startLocation();
+		// Cannot remove update even 
+		// if it's sometime useless
 		onListUpdated();
 		Log.i("Vcuboid", "onResume " + this);
 	}
@@ -101,6 +106,7 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
+		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
 		Log.i("Vcuboid", "onPause");
 	}
@@ -159,13 +165,23 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void finishGetAllStationsOnProgress() {
-		//onListUpdated();
+		// onListUpdated();
 		dismissDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
+	}
+
+	public void setEmptyList() {
+		findViewById(R.id.loading).setVisibility(View.GONE);
+		getListView().setEmptyView(findViewById(R.id.empty));
+	}
+
+	public void setLoadingList() {
+		findViewById(R.id.empty).setVisibility(View.GONE);
+		getListView().setEmptyView(findViewById(R.id.loading));
 	}
 
 	@Override
 	public void showUpdateAllStationsOnProgress(boolean animate) {
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
 		loading.setVisibility(View.VISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -185,26 +201,31 @@ public class VcuboidListActivity extends ListActivity implements
 	}
 
 	@Override
-	public void finishUpdateAllStationsOnProgress() {
-		AnimationSet set = new AnimationSet(true);
-		Animation animation = new AlphaAnimation(1.0f, 0.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
-				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
-				0.0f, Animation.RELATIVE_TO_SELF, -1.0f);
-		animation.setDuration(500);
-		set.addAnimation(animation);
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.loading);
-		loading.startAnimation(set);
+	public void finishUpdateAllStationsOnProgress(boolean animate) {
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
 		loading.setVisibility(View.INVISIBLE);
-		onListUpdated();
+		if (animate) {
+			AnimationSet set = new AnimationSet(true);
+			Animation animation = new AlphaAnimation(1.0f, 0.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, -1.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			loading.startAnimation(set);
+			loading.setVisibility(View.INVISIBLE);
+		}
+		// onListUpdated();
 	}
 
 	@Override
 	public void onLocationChanged(Location l) {
 		onListUpdated();
-		Toast.makeText(this, getString(R.string.position_updated), Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, getString(R.string.position_updated),
+				Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -250,10 +271,9 @@ public class VcuboidListActivity extends ListActivity implements
 		case MyLocationProvider.ENABLE_GPS:
 			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled))					
-					.setMessage(
-							getString(R.string.should_enable_gps) + "\n" +
-							getString(R.string.show_location_parameters))
+					getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.should_enable_gps) + "\n"
+							+ getString(R.string.show_location_parameters))
 					.setPositiveButton(getString(R.string.yes),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,

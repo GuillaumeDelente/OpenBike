@@ -39,7 +39,7 @@ import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
 public class VcuboidManager {
-
+	
 	public static boolean mIsUpdating = false;
 	public static final int RETRIEVE_ALL_STATIONS = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
@@ -125,9 +125,16 @@ public class VcuboidManager {
 	
 	public boolean executeCreateVisibleStationsTask() {
 		if (mCreateVisibleStationsTask == null) {
+			if (mVcubFilter.isNeedDbQuery()) {
 			mCreateVisibleStationsTask =  (CreateVisibleStationsTask) new CreateVisibleStationsTask()
 					.execute();
+			} else {
+				Filtering.filter(mVisibleStations, mVcubFilter);
+				mActivity.onListUpdated();
+			}
 			return true;
+		} else {
+			new Exception("CreateVisibleStation already launched");
 		}
 		return false;
 	}
@@ -158,9 +165,10 @@ public class VcuboidManager {
 	private void retrieveUpdateAllStationTask() {
 		int progress = mUpdateAllStationsTask.getProgress();
 		if (progress >= 50) {
-			((IVcuboidActivity) mActivity).finishUpdateAllStationsOnProgress();
 			mIsUpdating = false;
 			mUpdateAllStationsTask = null;
+		} else {
+			((IVcuboidActivity) mActivity).showUpdateAllStationsOnProgress(false);
 		}
 	}
 	
@@ -199,27 +207,8 @@ public class VcuboidManager {
 		if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
 			mVisibleStations = new ArrayList<StationOverlay>();
 			executeCreateVisibleStationsTask();
-		} 
+		}
 		return mVisibleStations;
-	}
-	
-	public void createVisibleStationList() {
-		if (mVisibleStations == null) {
-			mVisibleStations = new ArrayList<StationOverlay>();
-			executeCreateVisibleStationsTask();
-		}
-		if (mVcubFilter.isNeedDbQuery()) {
-			Log.d("Vcuboid", "Create Visible station list");
-			mVisibleStations.clear();
-			// Hack for ArrayAdapter & Background thread
-			if (mActivity instanceof VcuboidListActivity)
-				mActivity.onListUpdated();
-			executeCreateVisibleStationsTask();
-			mVcubFilter.setNeedDbQuery();
-		} else {
-			Filtering.filter(mVisibleStations, mVcubFilter);
-			mVcubFilter.setNeedDbQuery();
-		}
 	}
 	
 	private void updateDistance(Location location) {
@@ -258,13 +247,13 @@ public class VcuboidManager {
 			if (location == null) {
 				mVcubFilter.setNeedDbQuery();
 				Log.d("Vcuboid", "Location unavailable, need db = " + mVcubFilter.isNeedDbQuery());
-				createVisibleStationList();
+				executeCreateVisibleStationsTask();
 				//resetDistances();
 				//Utils.sortStationsByName(mVisibleStations);
 			} else if (mVcubFilter.isFilteringByDistance()) {
 				if (!mVcubFilter.isNeedDbQuery())
-					updateDistance(location);
-				createVisibleStationList();
+					updateDistance(location); 
+				executeCreateVisibleStationsTask();
 			} else {
 				updateDistance(location);
 				Utils.sortStationsByDistance(mVisibleStations);
@@ -403,7 +392,8 @@ public class VcuboidManager {
 		protected void onProgressUpdate(Integer... progress) {
 			mProgress = progress[0];
 			if (mActivity != null) {
-				mActivity.finishUpdateAllStationsOnProgress();
+				mActivity.onListUpdated();
+				mActivity.finishUpdateAllStationsOnProgress(true);
 				if (progress[0] < 0) {
 					mActivity.showDialog(progress[0]);
 				}
@@ -416,6 +406,7 @@ public class VcuboidManager {
 				mProgress = 100;
 			} else {
 				mIsUpdating = false;
+				executeCreateVisibleStationsTask();
 				mUpdateAllStationsTask = null;
 				Log.d("Vcuboid", "Async task update finished");
 			}
@@ -428,7 +419,11 @@ public class VcuboidManager {
 	
 	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
 		
-		private boolean updateListFromDb() {
+		private boolean updateListFromDb(boolean useList) {
+			Log.d("Vcuboid", "UpdatingListFromDb");
+			ArrayList<StationOverlay> stationsList = null;
+			if (!useList)
+				stationsList = new ArrayList<StationOverlay>(mVisibleStations.size());
 			if (mVcuboidDBAdapter.getStationCount() == 0) {
 				return false;
 			}
@@ -474,22 +469,48 @@ public class VcuboidManager {
 								cursor.getInt(VcuboidDBAdapter.PAYMENT_COLUMN) == 0 ?
 												false : true,
 										stationLocation != null ? distanceToStation : -1));
-				mVisibleStations.add(stationOverlay);
+				if (useList)
+					mVisibleStations.add(stationOverlay);
+				else
+					stationsList.add(stationOverlay);
 			}
 			cursor.close();
-			if (mLocationProvider != null)
-				Utils.sortStationsByDistance(mVisibleStations);
+			if (mLocationProvider != null) {
+				Utils.sortStationsByDistance(useList ? mVisibleStations : stationsList);
+			}
+			if (!useList) {
+				Log.d("Vcuboid", "Create List without mVisibleStation");
+				mVisibleStations.clear();
+				mVisibleStations.addAll(stationsList);
+				stationsList = null;
+			}
+			mVcubFilter.setNeedDbQuery();
 			return true;
 		}
 
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
+			if (mActivity instanceof VcuboidListActivity) {
+				((VcuboidListActivity) mActivity).setLoadingList();
+			}
 		}
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
-			return updateListFromDb();
+			if (mVisibleStations == null) {
+				Log.e("Vcuboid", "mVisibleStations is null in createVisibleStationList");
+				//mVisibleStations = new ArrayList<StationOverlay>();
+				//return false;
+			}
+			Log.d("Vcuboid", "Create Visible station list");
+			// Hack for ArrayAdapter & Background thread
+			if (mActivity instanceof VcuboidListActivity) {
+				return updateListFromDb(false);
+			} else {
+				mVisibleStations.clear();
+				return updateListFromDb(true);
+			}
 		}
 
 		@Override
@@ -500,6 +521,9 @@ public class VcuboidManager {
 					executeGetAllStationsTask();
 				else 
 					mActivity.onListUpdated();
+				if (mActivity instanceof VcuboidListActivity) {
+					((VcuboidListActivity) mActivity).setEmptyList();
+				}
 				mCreateVisibleStationsTask = null;
 				Log.d("Vcuboid", "Async task create station list finished");
 			}

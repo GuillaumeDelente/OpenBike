@@ -20,6 +20,7 @@ package fr.vcuboid.list;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
@@ -38,20 +41,25 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	
 	private LayoutInflater mInflater;
 	private Context mContext;
+	private Drawable mRedBike;
+	private Drawable mGreenBike;
 
 	public VcuboidArrayAdaptor(Context context, int layout,
 			ArrayList<StationOverlay> list) {
 		super(context, layout, list);
 		mInflater = LayoutInflater.from(context);
 		mContext = context;
+		mRedBike = context.getResources().getDrawable(R.drawable.red_list);
+		mGreenBike = context.getResources().getDrawable(R.drawable.green_list);
 	}
 
 	public static class ViewHolder {
 		TextView name;
+		RelativeLayout openLayout;
 		TextView bikes;
 		TextView slots;
 		TextView distance;
-		TextView maintenance;
+		LinearLayout closed;
 		CheckBox favorite;
 	}
 
@@ -67,10 +75,12 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 					.findViewById(R.id.bikes_entry);
 			viewHolder.slots = (TextView) convertView
 					.findViewById(R.id.slots_entry);
+			viewHolder.openLayout = (RelativeLayout) convertView
+				.findViewById(R.id.open_layout);
 			viewHolder.distance = (TextView) convertView
 				.findViewById(R.id.distance);
-			viewHolder.maintenance = (TextView) convertView
-					.findViewById(R.id.station_maintenance);
+			viewHolder.closed = (LinearLayout) convertView
+					.findViewById(R.id.closed_layout);
 			viewHolder.favorite = (CheckBox) convertView
 					.findViewById(R.id.favorite);
 			convertView.setTag(viewHolder);
@@ -85,20 +95,27 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		Station station = overlay.getStation();
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
-			viewHolder.maintenance.setVisibility(View.VISIBLE);
-			viewHolder.bikes.setVisibility(View.GONE);
-			viewHolder.slots.setVisibility(View.GONE);
+			viewHolder.closed.setVisibility(View.VISIBLE);
+			viewHolder.openLayout.setVisibility(View.GONE);
 			viewHolder.distance.setVisibility(View.GONE);
 		} else {
-			viewHolder.maintenance.setVisibility(View.GONE);
-			viewHolder.bikes.setVisibility(View.VISIBLE);
-			viewHolder.slots.setVisibility(View.VISIBLE);
+			viewHolder.closed.setVisibility(View.GONE);
+			viewHolder.openLayout.setVisibility(View.VISIBLE);
+			viewHolder.distance.setVisibility(View.VISIBLE);
+			viewHolder.bikes.setText(String.valueOf(station.getBikes()));
+			viewHolder.bikes.setBackgroundDrawable(station.getBikes() == 0 ?
+					mRedBike : mGreenBike);
+			viewHolder.slots.setBackgroundDrawable(station.getSlots() == 0 ?
+					mRedBike : mGreenBike);
+			viewHolder.slots.setText(String.valueOf(station.getSlots()));
+			/*
 			viewHolder.bikes.setText(String.valueOf(station.getBikes()) + " " 
 					+ mContext.getString(station.getBikes() == 1 ? 
 							R.string.bike : R.string.bikes));
 			viewHolder.slots.setText(String.valueOf(station.getSlots()) + " " 
 					+ mContext.getString(station.getSlots() == 1 ? 
 							R.string.slot : R.string.slots));
+							*/
 		}
 		if (station.getDistance() != -1) {
 			viewHolder.distance.setVisibility(View.VISIBLE);
