@@ -59,6 +59,7 @@ import fr.vcuboid.list.VcuboidListActivity;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
 
+	private boolean mIsShowStationMode = false;
 	private MapController mMapController;
 	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
@@ -78,13 +79,19 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		mMapView.setSatellite(false);
 		mMapView.setStreetView(false);
 		mMapView.setBuiltInZoomControls(true);
+		Bundle bundle = getIntent().getExtras();
+		if (bundle != null && bundle.containsKey("id"))
+			mIsShowStationMode = true;
 		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
-		mVcuboidManager.setCurrentActivity(this);
+		if (mIsShowStationMode) {
+			mVcuboidManager.setShowStationMode(bundle.getInt("id"));
+		}
 		mMapView.displayZoomControls(true);
-		//mMapView.invalidate();
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		if (!mMapPreferences.getBoolean(getString(R.string.use_location), true))
-			zoomAndCenter(null);
+		if (!mIsShowStationMode
+				&& !mMapPreferences.getBoolean(
+						getString(R.string.use_location), true))
+			zoomAndCenter((GeoPoint) null);
 		mMapOverlays = mMapView.getOverlays();
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
 				R.drawable.v3);
@@ -133,10 +140,13 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onResume() {
+		mVcuboidManager.setCurrentActivity(this, true);
 		mVcuboidManager.startLocation();
 		mMapOverlays.clear();
 		mMapOverlays.addAll(mVcuboidManager.getVisibleStations());
-		Collections.reverse(mMapOverlays);
+		if (!mIsShowStationMode) {
+			Collections.reverse(mMapOverlays);
+		}
 		if (mMapPreferences.getBoolean(getString(R.string.use_location), true)) {
 			if (mMyLocationOverlay == null) {
 				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
@@ -145,9 +155,14 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
 				mMyLocationOverlay.setCurrentLocation(mVcuboidManager
 						.getCurrentLocation());
-				//mMapView.invalidate();
+				// mMapView.invalidate();
 			}
-			zoomAndCenter(mVcuboidManager.getCurrentLocation());
+			if (mIsShowStationMode) {
+				zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
+						.getStation().getGeoPoint());
+			} else {
+				zoomAndCenter(mVcuboidManager.getCurrentLocation());
+			}
 		} else {
 			mMyLocationOverlay = null;
 		}
@@ -162,7 +177,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		StationOverlay.setBalloonView(null);
 		super.onPause();
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		Log.i("Vcuboid", "Map : onDestroy");
@@ -225,8 +240,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
-		//onListUpdated();
-		if (location != null || !mMyLocationOverlay.isMyLocationDrawn()) {
+		if (!mIsShowStationMode && location != null 
+				|| !mMyLocationOverlay.isMyLocationDrawn()) {
 			StationOverlay station = getLastStationOverlay();
 			station.refreshBalloon();
 			zoomAndCenter(location);
@@ -234,25 +249,32 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	private void zoomAndCenter(Location location) {
-		if (location == null) {
+		zoomAndCenter(new GeoPoint((int) (location.getLatitude() * 1E6),
+				(int) (location.getLongitude() * 1E6)));
+	}
+
+	private void zoomAndCenter(GeoPoint geoPoint) {
+		if (geoPoint == null) {
 			mMapController.setZoom(14);
 			mMapController.animateTo(new GeoPoint(44840290, -572662));
 			return;
 		}
-		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
-				false)
+		if (mIsShowStationMode) {
+			mMapController.setZoom(16);
+			mMapController.animateTo(geoPoint);
+		}
+		if (mMapPreferences.getBoolean(
+						getString(R.string.center_on_location), false)
 				|| mIsFirstFix) {
 			mMapController.setZoom(16);
-			mMapController.animateTo(new GeoPoint(
-					(int) (location.getLatitude() * 1E6), (int) (location
-							.getLongitude() * 1E6)));
+			mMapController.animateTo(geoPoint);
 			mIsFirstFix = false;
 		}
 	}
-	
+
 	private StationOverlay getLastStationOverlay() {
-		return ((StationOverlay) mMapOverlays
-				.get(mMapOverlays.size() - (mMyLocationOverlay == null ? 1 : 2)));
+		return ((StationOverlay) mMapOverlays.get(mMapOverlays.size()
+				- (mMyLocationOverlay == null ? 1 : 2)));
 	}
 
 	@Override
@@ -263,7 +285,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		boolean useLocation = mMyLocationOverlay != null;
 		int size = mMapOverlays.size();
 		BalloonOverlayView balloon = null;
-		if (size >=2 || (size >= 1 && !useLocation)) {
+		if (size >= 2 || (size >= 1 && !useLocation)) {
 			StationOverlay station = getLastStationOverlay();
 			if (station.isCurrent()) {
 				currentId = station.getStation().getId();
@@ -298,7 +320,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (mMyLocationOverlay != null) {
 			mMapOverlays.add(mMyLocationOverlay);
 		}
-		//mMapView.invalidate();
+		// mMapView.invalidate();
 	}
 
 	@Override
@@ -442,7 +464,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 												.remove(mMapOverlays.size()
 														- (mMyLocationOverlay == null ? 1
 																: 2));
-										//mMapView.invalidate();
+										// mMapView.invalidate();
 									} else {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()

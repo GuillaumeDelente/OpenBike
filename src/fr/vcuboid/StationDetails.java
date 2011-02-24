@@ -29,6 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import fr.vcuboid.list.VcuboidArrayAdaptor;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -50,7 +51,8 @@ public class StationDetails extends Activity {
 	private TextView mCreditCard = null;
 	private CheckBox mFavorite = null;
 	private ImageButton mNavigate = null;
-	private ImageButton mMap = null;
+	private ImageButton mGoogleMaps = null;
+	private ImageButton mShowMap = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +67,8 @@ public class StationDetails extends Activity {
 		mCreditCard = (TextView) findViewById(R.id.cc);
 		mAddress = (TextView) findViewById(R.id.address);
 		mNavigate = (ImageButton) findViewById(R.id.navigate);
-		mMap = (ImageButton) findViewById(R.id.map);
+		mGoogleMaps = (ImageButton) findViewById(R.id.google_maps);
+		mShowMap = (ImageButton) findViewById(R.id.show_map);
 		if (!mStation.isOpen()) {
 			findViewById(R.id.open_layout).setVisibility(View.GONE);
 			findViewById(R.id.closed_layout).setVisibility(View.VISIBLE);
@@ -114,6 +117,29 @@ public class StationDetails extends Activity {
 						+ getString(mStation.hasPayment() ? R.string.yes
 								: R.string.no));
 		mNavigate.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri
+						.parse("google.navigation:q="
+								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
+								+ "," + mStation.getGeoPoint().getLongitudeE6()
+								* 1E-6)));
+			}
+		});
+		
+		mShowMap.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				Intent intent = new Intent();
+				intent.putExtra("id", mStation.getId());
+				startActivity(intent);
+			}
+		});
+		
+		
+		mGoogleMaps.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {

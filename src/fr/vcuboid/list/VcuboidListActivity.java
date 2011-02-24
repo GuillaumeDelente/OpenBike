@@ -83,8 +83,7 @@ public class VcuboidListActivity extends ListActivity implements
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				Log.i("Vcuboid", "Item clicked");
-				intent.putExtra(
-						"id",
+				intent.putExtra("id",
 						(Integer) ((VcuboidArrayAdaptor.ViewHolder) view
 								.getTag()).favorite.getTag());
 				startActivity(intent);
@@ -98,7 +97,7 @@ public class VcuboidListActivity extends ListActivity implements
 		super.onResume();
 		mVcuboidManager.setCurrentActivity(this);
 		mVcuboidManager.startLocation();
-		// Cannot remove update even 
+		// Cannot remove update even
 		// if it's sometime useless
 		onListUpdated();
 		Log.i("Vcuboid", "onResume " + this);
@@ -140,44 +139,49 @@ public class VcuboidListActivity extends ListActivity implements
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
+
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View view,
-	                                ContextMenuInfo menuInfo) {
-	  super.onCreateContextMenu(menu, view, menuInfo);
-	  MenuInflater inflater = getMenuInflater();
-	  inflater.inflate(R.menu.list_context_menu, menu);
-	  ViewHolder holder = ((ViewHolder) ((AdapterContextMenuInfo) menuInfo)
-			  .targetView.getTag());
-	  menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite : R.id.remove_favorite);
-	  menu.setHeaderTitle(holder.name.getText());
-	  // FIXME : If listView change, we don't get the good
-	  // id in onContextItemSelected
-	  mSelected = (Integer) holder.favorite.getTag();
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, view, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.list_context_menu, menu);
+		ViewHolder holder = ((ViewHolder) ((AdapterContextMenuInfo) menuInfo).targetView
+				.getTag());
+		menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite
+				: R.id.remove_favorite);
+		menu.setHeaderTitle(holder.name.getText());
+		// FIXME : If listView change, we don't get the good
+		// id in onContextItemSelected
+		mSelected = (Integer) holder.favorite.getTag();
 	}
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-	  switch (item.getItemId()) {
-	  case R.id.show_on_map:
-	    return true;
-	  case R.id.add_favorite:
-	    mVcuboidManager.setFavorite(mSelected, true);
-	    onListUpdated();
-	    return true;
-	  case R.id.remove_favorite:
-		    mVcuboidManager.setFavorite(mSelected, false);
-		    onListUpdated();
-		    return true;
-	  case R.id.show_details:
-			Intent intent = new Intent(this, StationDetails.class);
+		Intent intent;
+		switch (item.getItemId()) {
+		case R.id.show_on_map:
+			intent = new Intent(this, VcuboidMapActivity.class);
 			intent.putExtra("id", mSelected);
 			startActivity(intent);
-		    onListUpdated();
-		    return true;    
-	  default:
-	    return super.onContextItemSelected(item);
-	  }
+			return true;
+		case R.id.add_favorite:
+			mVcuboidManager.setFavorite(mSelected, true);
+			onListUpdated();
+			return true;
+		case R.id.remove_favorite:
+			mVcuboidManager.setFavorite(mSelected, false);
+			onListUpdated();
+			return true;
+		case R.id.show_details:
+			intent = new Intent(this, StationDetails.class);
+			intent.putExtra("id", mSelected);
+			startActivity(intent);
+			onListUpdated();
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}
 
 	@Override

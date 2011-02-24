@@ -26,6 +26,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.test.IsolatedContext;
 import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
@@ -43,6 +44,7 @@ public class VcuboidManager {
 	public static boolean mIsUpdating = false;
 	public static final int RETRIEVE_ALL_STATIONS = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
+	public static boolean mIsShowStationMode = false;
 	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
 	protected static IVcuboidActivity mActivity = null;
 	protected static MyLocationProvider mLocationProvider = null;
@@ -93,6 +95,15 @@ public class VcuboidManager {
 	}
 
 	public void setCurrentActivity(IVcuboidActivity activity) {
+		setCurrentActivity(activity, false);
+	}
+	
+	public void setCurrentActivity(IVcuboidActivity activity, boolean isShowStationMode) {
+		if (mIsShowStationMode && !isShowStationMode) {
+			mIsShowStationMode = false;
+			mVcubFilter.setNeedDbQuery();
+			executeCreateVisibleStationsTask();
+		}
 		mActivity = activity;
 		if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50)
 			activity.showUpdateAllStationsOnProgress(false);
@@ -174,6 +185,12 @@ public class VcuboidManager {
 	
 	private void initializeFilter() {
 		mVcubFilter = new VcubFilter((Context) mActivity);
+	}
+	
+	public void setShowStationMode(int id) {
+		mIsShowStationMode = true;
+		mVisibleStations.clear();
+		mVisibleStations.add(new StationOverlay(getStation(id)));
 	}
 
 	public void clearDB() {
@@ -260,6 +277,11 @@ public class VcuboidManager {
 	}
 	
 	public void onLocationChanged(Location location) {
+		if (mIsShowStationMode) {
+			computeDistance(mVisibleStations.get(0).getStation());
+			mActivity.onLocationChanged(location);
+			return;
+		}
 		if (mCreateVisibleStationsTask == null) {
 			if (location == null) {
 				mVcubFilter.setNeedDbQuery();

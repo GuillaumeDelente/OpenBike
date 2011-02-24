@@ -170,7 +170,12 @@
             >
 		
 <ImageButton
-	    android:id="@+id/map"
+	    android:id="@+id/show_map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icon_show_map" />
+<ImageButton
+	    android:id="@+id/google_maps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/icon_maps" />
