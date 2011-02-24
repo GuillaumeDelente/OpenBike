@@ -29,7 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import fr.vcuboid.list.VcuboidArrayAdaptor;
+import fr.vcuboid.map.VcuboidMapActivity;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -38,7 +38,7 @@ import fr.vcuboid.utils.Utils;
  * 
  */
 public class StationDetails extends Activity {
-	
+
 	public static final int COMPUTE_DISTANCE = -2;
 
 	private Station mStation = null;
@@ -59,20 +59,72 @@ public class StationDetails extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_details_layout);
 		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance();
-		mStation = mVcuboidManager.getStation(getIntent().getExtras().getInt(
-				"id"));
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
 		mCreditCard = (TextView) findViewById(R.id.cc);
 		mAddress = (TextView) findViewById(R.id.address);
 		mNavigate = (ImageButton) findViewById(R.id.navigate);
-		mGoogleMaps = (ImageButton) findViewById(R.id.google_maps);
+		mGoogleMaps = (ImageButton) findViewById(R.id.show_google_maps);
 		mShowMap = (ImageButton) findViewById(R.id.show_map);
+		mGoogleMaps.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri
+						.parse("geo:0,0?q="
+								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
+								+ "," + mStation.getGeoPoint().getLongitudeE6()
+								* 1E-6 + " (" + mStation.getName() + ")")));
+			}
+		});
+
+		mNavigate.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				startActivity(new Intent(Intent.ACTION_VIEW, Uri
+						.parse("google.navigation:q="
+								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
+								+ "," + mStation.getGeoPoint().getLongitudeE6()
+								* 1E-6)));
+			}
+		});
+		final Intent intent = new Intent(this, VcuboidMapActivity.class);
+		mShowMap.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				intent.putExtra("id", mStation.getId());
+				startActivity(intent);
+			}
+		});
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mStation = mVcuboidManager.getStation(getIntent().getExtras().getInt(
+				"id"));
+		mName.setText(mStation.getId() + " - " + mStation.getName());
+		mAddress.setText(getString(R.string.address) + " : "
+				+ mStation.getAddress());
+		mCreditCard
+				.setText(getString(R.string.cc)
+						+ " : "
+						+ getString(mStation.hasPayment() ? R.string.yes
+								: R.string.no));
+		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
+			mDistance.setText(getString(R.string.At) + " "
+					+ Utils.formatDistance(mStation.getDistance()));
+			mDistance.setVisibility(View.VISIBLE);
+		}
 		if (!mStation.isOpen()) {
 			findViewById(R.id.open_layout).setVisibility(View.GONE);
 			findViewById(R.id.closed_layout).setVisibility(View.VISIBLE);
 		} else {
+			findViewById(R.id.open_layout).setVisibility(View.VISIBLE);
+			findViewById(R.id.closed_layout).setVisibility(View.GONE);
 			mBikes = (TextView) findViewById(R.id.bikes);
 			mSlots = (TextView) findViewById(R.id.slots);
 			if (mStation.getBikes() == 0) {
@@ -95,7 +147,7 @@ public class StationDetails extends Activity {
 							: R.string.slots));
 			mFavorite.setChecked(mStation.isFavorite());
 		}
-		mName.setText(mStation.getId() + " - " + mStation.getName());
+
 		mFavorite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
@@ -104,51 +156,11 @@ public class StationDetails extends Activity {
 				mVcuboidManager.setFavorite(mStation.getId(), isChecked);
 			}
 		});
-		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
-			mDistance.setText(getString(R.string.At) + " "
-					+ Utils.formatDistance(mStation.getDistance()));
-			mDistance.setVisibility(View.VISIBLE);
-		}
-		mAddress.setText(getString(R.string.address) + " : "
-				+ mStation.getAddress());
-		mCreditCard
-				.setText(getString(R.string.cc)
-						+ " : "
-						+ getString(mStation.hasPayment() ? R.string.yes
-								: R.string.no));
-		mNavigate.setOnClickListener(new OnClickListener() {
+	}
 
-			@Override
-			public void onClick(View arg0) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri
-						.parse("google.navigation:q="
-								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-								+ "," + mStation.getGeoPoint().getLongitudeE6()
-								* 1E-6)));
-			}
-		});
-		
-		mShowMap.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View arg0) {
-				Intent intent = new Intent();
-				intent.putExtra("id", mStation.getId());
-				startActivity(intent);
-			}
-		});
-		
-		
-		mGoogleMaps.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View arg0) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri
-						.parse("google.navigation:q="
-								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-								+ "," + mStation.getGeoPoint().getLongitudeE6()
-								* 1E-6)));
-			}
-		});
+	@Override
+	protected void onPause() {
+		mFavorite.setOnCheckedChangeListener(null);
+		super.onPause();
 	}
 }

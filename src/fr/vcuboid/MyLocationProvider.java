@@ -31,6 +31,10 @@ public class MyLocationProvider implements LocationListener {
 	public static final int ENABLE_GPS = -4;
 	public static final int NO_LOCATION_PROVIDER = -5;
 	public static final int DISTANCE_UNAVAILABLE = -1;
+	public static final int MINIMUM_DISTANCE_NETWORK = 50;
+	public static final int MINIMUM_DISTANCE_GPS = 10;
+	public static final int MINIMUM_ELAPSED_NETWORK = 5000;
+	public static final int MINIMUM_ELAPSED_GPS = 5000;
 	private boolean mIsGpsUsed = false;
 	private boolean mIsNetworkAvailable = true;
 	private boolean mIsGpsAvailable = true;
@@ -63,12 +67,12 @@ public class MyLocationProvider implements LocationListener {
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
 			Log.i("Vcuboid", "Updates for Network provider");
 			mLocationManager.requestLocationUpdates(
-					LocationManager.NETWORK_PROVIDER, 5000, 20, this);
+					LocationManager.NETWORK_PROVIDER, MINIMUM_ELAPSED_NETWORK, MINIMUM_DISTANCE_NETWORK, this);
 		}
 		if (providers.contains(LocationManager.GPS_PROVIDER)) {
 			Log.i("Vcuboid", "Updater for GPS provider");
 			mLocationManager.requestLocationUpdates(
-					LocationManager.GPS_PROVIDER, 5000, 20, this);
+					LocationManager.GPS_PROVIDER, MINIMUM_ELAPSED_GPS, MINIMUM_DISTANCE_GPS, this);
 		}
 	}
 
@@ -92,7 +96,8 @@ public class MyLocationProvider implements LocationListener {
 		// Because we stop updates as often as possible, when
 		// we switch from map to list, a new location is triggered
 		// so check if it's not the same
-		if (mLastFix != null && mLastFix.distanceTo(location) < 20)
+		if (mLastFix != null && mLastFix.distanceTo(location) < 
+				(mIsGpsUsed ? MINIMUM_DISTANCE_GPS : MINIMUM_DISTANCE_NETWORK))
 			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			Log.i("Vcuboid", "GPS Fix");

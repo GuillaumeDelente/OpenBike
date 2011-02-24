@@ -249,6 +249,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	private void zoomAndCenter(Location location) {
+		if (location == null)
+			zoomAndCenter((GeoPoint) null);
 		zoomAndCenter(new GeoPoint((int) (location.getLatitude() * 1E6),
 				(int) (location.getLongitude() * 1E6)));
 	}

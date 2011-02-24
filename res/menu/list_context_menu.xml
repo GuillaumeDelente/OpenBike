@@ -1,6 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/show_on_map"
 	      android:title="@string/show_on_map" />
+	<item android:id="@+id/show_on_google_maps"
+	      android:title="@string/show_on_google_maps" />	
+	<item android:id="@+id/navigate"
+	      android:title="@string/navigate_to" />
 	<item android:id="@+id/show_details"
 	      android:title="@string/show_details" />
 	<item android:id="@+id/add_favorite"
@@ -8,12 +12,6 @@
 	<item android:id="@+id/remove_favorite"
 	      android:title="@string/remove_from_favorite" />
 </menu>
-    
-    
-    
-    
-    
-    
     
     
     

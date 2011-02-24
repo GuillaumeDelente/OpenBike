@@ -24,6 +24,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -50,8 +51,8 @@ import fr.vcuboid.RestClient;
 import fr.vcuboid.StationDetails;
 import fr.vcuboid.VcuboidManager;
 import fr.vcuboid.list.VcuboidArrayAdaptor.ViewHolder;
-import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.map.VcuboidMapActivity;
+import fr.vcuboid.object.Station;
 
 public class VcuboidListActivity extends ListActivity implements
 		IVcuboidActivity {
@@ -159,11 +160,27 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		Intent intent;
+		Station station;
 		switch (item.getItemId()) {
 		case R.id.show_on_map:
 			intent = new Intent(this, VcuboidMapActivity.class);
 			intent.putExtra("id", mSelected);
 			startActivity(intent);
+			return true;
+		case R.id.show_on_google_maps:
+			station = mVcuboidManager.getStation(mSelected);
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
+					+ station.getGeoPoint().getLatitudeE6() * 1E-6 + ","
+					+ station.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
+					+ station.getName() + ")")));
+			return true;
+		case R.id.navigate:
+			station = mVcuboidManager.getStation(mSelected);
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri
+					.parse("google.navigation:q="
+							+ station.getGeoPoint().getLatitudeE6() * 1E-6
+							+ "," + station.getGeoPoint().getLongitudeE6()
+							* 1E-6)));
 			return true;
 		case R.id.add_favorite:
 			mVcuboidManager.setFavorite(mSelected, true);

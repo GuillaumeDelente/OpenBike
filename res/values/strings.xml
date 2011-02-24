@@ -9,6 +9,8 @@
 	<string name="add_to_favorite">Ajouter aux favoris</string>
 	<string name="remove_from_favorite">Supprimer des favoris</string>
 	<string name="show_on_map">Montrer sur la carte</string>
+	<string name="show_on_google_maps">Afficher sur Maps</string>
+	<string name="navigate_to">Naviguer vers</string>
 	<string name="show_details">Afficher plus d\'informations</string>
 	
 	<!--  Dialogs -->
