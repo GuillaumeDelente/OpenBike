@@ -216,7 +216,7 @@ public class VcuboidManager {
 			getVisibleStations();
 		StationOverlay overlay;
 		Station station;
-		Location l = new Location(location);
+		Location l = new Location("");
 		GeoPoint point;
 		Iterator<StationOverlay> it = mVisibleStations.iterator();
 		while(it.hasNext()) {
@@ -227,6 +227,23 @@ public class VcuboidManager {
 			l.setLongitude((double) point.getLongitudeE6()*1E-6);
 			station.setDistance((int) location.distanceTo(l));
 		}
+	}
+	
+	private void computeDistance(Station station) {
+		Location location = null;
+		if (mLocationProvider == null || 
+				(location = mLocationProvider.getMyLocation()) == null) {
+			station.setDistance(MyLocationProvider.DISTANCE_UNAVAILABLE);
+			return;
+		}
+		Location l = new Location("");
+		GeoPoint point = station.getGeoPoint();
+		l.setLatitude((double) point.getLatitudeE6()*1E-6);
+		l.setLongitude((double) point.getLongitudeE6()*1E-6);
+		station.setDistance((int) location.distanceTo(l));
+		Log.d("Vcuboid", "Compute distance : " + l.getLongitude() + l.getLatitude()
+				+ location.getLongitude() + location.getLatitude() + (int) location.distanceTo(l));
+		return;
 	}
 	
 	private void resetDistances() {
@@ -302,7 +319,9 @@ public class VcuboidManager {
 	}
 	
 	public Station getStation(int id) {
-		return mVcuboidDBAdapter.getStation(id);
+		Station station = mVcuboidDBAdapter.getStation(id);
+		computeDistance(station);
+		return station;
 	}
 	
 	/************************************/
@@ -440,7 +459,7 @@ public class VcuboidManager {
 			if (mLocationProvider != null) {
 				location = mLocationProvider.getMyLocation();
 				if (location != null)
-					stationLocation = new Location(location);
+					stationLocation = new Location("");
 			}
 			while(cursor.moveToNext()) {
 				if (stationLocation != null) {

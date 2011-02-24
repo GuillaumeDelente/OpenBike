@@ -37,18 +37,20 @@ import fr.vcuboid.utils.Utils;
  * 
  */
 public class StationDetails extends Activity {
+	
+	public static final int COMPUTE_DISTANCE = -2;
 
-	Station mStation = null;
-	VcuboidManager mVcuboidManager = null;
-	TextView mName = null;
-	TextView mDistance = null;
-	TextView mBikes = null;
-	TextView mSlots = null;
-	TextView mAddress = null;
-	TextView mCreditCard = null;
-	CheckBox mFavorite = null;
-	ImageButton mNavigate = null;
-	ImageButton mMap = null;
+	private Station mStation = null;
+	private VcuboidManager mVcuboidManager = null;
+	private TextView mName = null;
+	private TextView mDistance = null;
+	private TextView mBikes = null;
+	private TextView mSlots = null;
+	private TextView mAddress = null;
+	private TextView mCreditCard = null;
+	private CheckBox mFavorite = null;
+	private ImageButton mNavigate = null;
+	private ImageButton mMap = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -57,7 +59,6 @@ public class StationDetails extends Activity {
 		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance();
 		mStation = mVcuboidManager.getStation(getIntent().getExtras().getInt(
 				"id"));
-		int distance = getIntent().getExtras().getInt("distance");
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
@@ -100,9 +101,9 @@ public class StationDetails extends Activity {
 				mVcuboidManager.setFavorite(mStation.getId(), isChecked);
 			}
 		});
-		if (distance != -1) {
+		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.At) + " "
-					+ Utils.formatDistance(distance));
+					+ Utils.formatDistance(mStation.getDistance()));
 			mDistance.setVisibility(View.VISIBLE);
 		}
 		mAddress.setText(getString(R.string.address) + " : "

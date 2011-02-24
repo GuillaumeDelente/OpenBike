@@ -55,6 +55,7 @@ import fr.vcuboid.MyLocationProvider;
 import fr.vcuboid.R;
 import fr.vcuboid.RestClient;
 import fr.vcuboid.VcuboidManager;
+import fr.vcuboid.list.VcuboidListActivity;
 
 public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
 
@@ -119,6 +120,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case R.id.menu_map_preferences:
 			startActivity(new Intent(this, MapFilterActivity.class));
 			return true;
+		case R.id.menu_list:
+			startActivity(new Intent(this, VcuboidListActivity.class));
+			return true;
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
 			return true;
@@ -157,6 +161,12 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);
 		super.onPause();
+	}
+	
+	@Override
+	public void onDestroy() {
+		Log.i("Vcuboid", "Map : onDestroy");
+		super.onDestroy();
 	}
 
 	@Override

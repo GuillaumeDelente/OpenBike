@@ -30,6 +30,7 @@ public class MyLocationProvider implements LocationListener {
 
 	public static final int ENABLE_GPS = -4;
 	public static final int NO_LOCATION_PROVIDER = -5;
+	public static final int DISTANCE_UNAVAILABLE = -1;
 	private boolean mIsGpsUsed = false;
 	private boolean mIsNetworkAvailable = true;
 	private boolean mIsGpsAvailable = true;
@@ -100,7 +101,7 @@ public class MyLocationProvider implements LocationListener {
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER) && !mIsGpsUsed) {
-			Log.e("Vcuboid", "Network Fix");
+			Log.i("Vcuboid", "Network Fix");
 			if (mLastFix == null || !mIsGpsUsed) {
 				Log.i("Vcuboid", "is first or the only one");
 				mLastFix = location;

@@ -26,10 +26,12 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
@@ -38,8 +40,8 @@ import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import fr.vcuboid.IVcuboidActivity;
 import fr.vcuboid.MyLocationProvider;
@@ -47,6 +49,7 @@ import fr.vcuboid.R;
 import fr.vcuboid.RestClient;
 import fr.vcuboid.StationDetails;
 import fr.vcuboid.VcuboidManager;
+import fr.vcuboid.list.VcuboidArrayAdaptor.ViewHolder;
 import fr.vcuboid.map.StationOverlay;
 import fr.vcuboid.map.VcuboidMapActivity;
 
@@ -83,13 +86,11 @@ public class VcuboidListActivity extends ListActivity implements
 				intent.putExtra(
 						"id",
 						(Integer) ((VcuboidArrayAdaptor.ViewHolder) view
-								.getTag()).favorite.getTag()).putExtra(
-						"distance",
-						((StationOverlay) listView.getItemAtPosition(position))
-								.getStation().getDistance());
+								.getTag()).favorite.getTag());
 				startActivity(intent);
 			}
 		});
+		registerForContextMenu(listView);
 	}
 
 	@Override
@@ -138,6 +139,45 @@ public class VcuboidListActivity extends ListActivity implements
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View view,
+	                                ContextMenuInfo menuInfo) {
+	  super.onCreateContextMenu(menu, view, menuInfo);
+	  MenuInflater inflater = getMenuInflater();
+	  inflater.inflate(R.menu.list_context_menu, menu);
+	  ViewHolder holder = ((ViewHolder) ((AdapterContextMenuInfo) menuInfo)
+			  .targetView.getTag());
+	  menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite : R.id.remove_favorite);
+	  menu.setHeaderTitle(holder.name.getText());
+	  // FIXME : If listView change, we don't get the good
+	  // id in onContextItemSelected
+	  mSelected = (Integer) holder.favorite.getTag();
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	  switch (item.getItemId()) {
+	  case R.id.show_on_map:
+	    return true;
+	  case R.id.add_favorite:
+	    mVcuboidManager.setFavorite(mSelected, true);
+	    onListUpdated();
+	    return true;
+	  case R.id.remove_favorite:
+		    mVcuboidManager.setFavorite(mSelected, false);
+		    onListUpdated();
+		    return true;
+	  case R.id.show_details:
+			Intent intent = new Intent(this, StationDetails.class);
+			intent.putExtra("id", mSelected);
+			startActivity(intent);
+		    onListUpdated();
+		    return true;    
+	  default:
+	    return super.onContextItemSelected(item);
+	  }
 	}
 
 	@Override
@@ -346,7 +386,8 @@ public class VcuboidListActivity extends ListActivity implements
 		if (isChecked) {
 			mVcuboidManager.setFavorite(id, true);
 			onListUpdated();
-		} else
+		} else {
 			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
+		}
 	}
 }
