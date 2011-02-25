@@ -17,16 +17,47 @@
  */
 package fr.vcuboid.map;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import fr.vcuboid.R;
 import fr.vcuboid.filter.FilterPreferencesActivity;
 
 public class MapFilterActivity extends FilterPreferencesActivity {
+	
+	protected CheckBoxPreference mDistanceFilterCb;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.map_preferences);
-	    addPreferencesFromResource(R.xml.location_preferences);
-	    addPreferencesFromResource(R.xml.filter_preferences);
+		addPreferencesFromResource(R.xml.location_preferences);
+		addPreferencesFromResource(R.xml.filter_preferences);
+	}
+
+	@Override
+	protected void onResume() {
+		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
+				.findPreference(getString(R.string.enable_distance_filter));
+		getPreferenceScreen().findPreference(
+				getString(R.string.distance_filter)).setSummary(
+				getString(R.string.distance_filter_summary)
+						+ " "
+						+ getPreferenceScreen().getSharedPreferences().getInt(
+								getString(R.string.distance_filter), 1000)
+						+ "m");
+		super.onResume();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+			String key) {
+		if (key.equals(getString(R.string.use_location))) {
+			if (!sharedPreferences.getBoolean(getString(R.string.use_location),
+					true)) {
+				mDistanceFilterCb.setChecked(false);
+			}
+		}
+		super.onSharedPreferenceChanged(sharedPreferences, key);
 	}
 }

@@ -68,6 +68,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private MapView mMapView = null;
 	private VcuboidManager mVcuboidManager = null;
 	private int mSelected = 0;
+	private boolean mRefreshMenu = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -99,6 +100,23 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		StationOverlay.setMapView(mMapView);
 	}
 
+	@Override
+	public void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		mRefreshMenu = true;
+		Bundle bundle = intent.getExtras();
+		if (bundle == null || !bundle.containsKey("id")) {
+			mIsShowStationMode = false;
+			mVcuboidManager.setShowStationMode(-1);
+			Log.d("Vcuboid", "No key !");
+		} else if (bundle.containsKey("id")) {
+			setIntent(intent);
+			mIsShowStationMode = true;
+			mVcuboidManager.setShowStationMode(bundle.getInt("id"));
+			Log.d("Vcuboid", "Key = " + bundle.getInt("id"));
+		}
+	}
+
 	public void hideOverlayBalloon() {
 		int position = mMapOverlays.size()
 				- (mMyLocationOverlay == null ? 1 : 2);
@@ -114,9 +132,24 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		Log.i("Vcuboid", "onPrepareOptionsMenu");
+		if (mRefreshMenu) {
+			MenuInflater inflater = getMenuInflater();
+			menu.clear();
+			inflater.inflate((mIsShowStationMode ? R.menu.station_map_menu
+					: R.menu.map_menu), menu);
+			mRefreshMenu = false;
+		}
+		return true;
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.i("Vcuboid", "onCreateOptionsMenu");
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.map_menu, menu);
+		inflater.inflate((mIsShowStationMode ? R.menu.station_map_menu
+				: R.menu.map_menu), menu);
 		return true;
 	}
 
@@ -130,6 +163,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		case R.id.menu_list:
 			startActivity(new Intent(this, VcuboidListActivity.class));
 			return true;
+		case R.id.menu_map:
+			startActivity(new Intent(this, VcuboidMapActivity.class));
+			return true;
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
 			return true;
@@ -140,6 +176,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onResume() {
+		if (mIsShowStationMode)
+			mVcuboidManager.setShowStationMode(getIntent().getExtras().getInt("id"));
 		mVcuboidManager.setCurrentActivity(this, true);
 		mVcuboidManager.startLocation();
 		mMapOverlays.clear();
@@ -171,6 +209,9 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	protected void onPause() {
+		if (mIsShowStationMode) {
+			mVcuboidManager.setShowStationMode(-1);
+		}
 		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
 		hideOverlayBalloon();
@@ -240,17 +281,20 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapOverlays.add(mMyLocationOverlay);
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
-		if (!mIsShowStationMode && location != null 
+		if (!mIsShowStationMode && location != null
 				|| !mMyLocationOverlay.isMyLocationDrawn()) {
 			StationOverlay station = getLastStationOverlay();
-			station.refreshBalloon();
+			if (station != null)
+				station.refreshBalloon();
 			zoomAndCenter(location);
 		}
 	}
 
 	private void zoomAndCenter(Location location) {
-		if (location == null)
+		if (location == null) {
 			zoomAndCenter((GeoPoint) null);
+			return;
+		}
 		zoomAndCenter(new GeoPoint((int) (location.getLatitude() * 1E6),
 				(int) (location.getLongitude() * 1E6)));
 	}
@@ -265,8 +309,8 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			mMapController.setZoom(16);
 			mMapController.animateTo(geoPoint);
 		}
-		if (mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false)
+		if (mMapPreferences.getBoolean(getString(R.string.center_on_location),
+				false)
 				|| mIsFirstFix) {
 			mMapController.setZoom(16);
 			mMapController.animateTo(geoPoint);
@@ -275,8 +319,10 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	}
 
 	private StationOverlay getLastStationOverlay() {
-		return ((StationOverlay) mMapOverlays.get(mMapOverlays.size()
-				- (mMyLocationOverlay == null ? 1 : 2)));
+		int i = mMapOverlays.size() - (mMyLocationOverlay == null ? 1 : 2);
+		if (i < 0)
+			return null;
+		return ((StationOverlay) mMapOverlays.get(i));
 	}
 
 	@Override

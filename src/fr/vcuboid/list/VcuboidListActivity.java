@@ -115,7 +115,7 @@ public class VcuboidListActivity extends ListActivity implements
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.all_stations_list_menu, menu);
+		inflater.inflate(R.menu.station_list_menu, menu);
 		return true;
 	}
 

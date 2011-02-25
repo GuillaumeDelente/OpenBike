@@ -20,6 +20,7 @@ package fr.vcuboid.map;
 import java.util.Collections;
 import java.util.List;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -37,6 +38,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
+import fr.vcuboid.R;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -48,9 +50,20 @@ public class StationOverlay extends Overlay {
 	static private MapView mMapView;
 	static private List<Overlay> mMapOverlays;
 	static private BalloonOverlayView mBalloonView;
+	static private String BIKES;
+	static private String BIKE;	
+	static private String SLOTS;
+	static private String SLOT;
 	static MapController mMc;
 	private Station mStation;
 	private boolean mIsCurrent = false;
+	
+	static public void initialize(Context context) {
+		BIKES = context.getString(R.string.bikes);
+		BIKE = context.getString(R.string.bike);
+		SLOT = context.getString(R.string.slot);
+		SLOTS = context.getString(R.string.slots);
+	}
 
 	public Station getStation() {
 		return mStation;
@@ -106,8 +119,8 @@ public class StationOverlay extends Overlay {
 					out.y + 35, p1);
 			p1.setTextAlign(Align.LEFT);
 			p1.setTextSize(12);
-			canvas.drawText("Vélos", out.x + 25, out.y + 20, p1);
-			canvas.drawText("Places", out.x + 25, out.y + 35, p1);
+			canvas.drawText(mStation.getBikes() > 1 ? BIKES : BIKE, out.x + 25, out.y + 20, p1);
+			canvas.drawText(mStation.getBikes() > 1 ? SLOTS : SLOT, out.x + 25, out.y + 35, p1);
 		}
 		super.draw(canvas, mapView, shadow);
 	}

@@ -21,6 +21,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.CheckBox;
@@ -29,6 +33,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import fr.vcuboid.list.VcuboidListActivity;
+import fr.vcuboid.map.MapFilterActivity;
+import fr.vcuboid.map.StationMapFilterActivity;
 import fr.vcuboid.map.VcuboidMapActivity;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
@@ -102,6 +109,42 @@ public class StationDetails extends Activity {
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.i("Vcuboid", "onCreateOptionsMenu");
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.station_details_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		Intent intent;
+		switch (item.getItemId()) {
+		case R.id.menu_show_on_map:
+			intent = new Intent(this, VcuboidMapActivity.class);
+			intent.putExtra("id", mStation.getId());
+			startActivity(intent);
+			return true;
+		case R.id.menu_show_on_google_maps:
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
+					+ mStation.getGeoPoint().getLatitudeE6() * 1E-6 + ","
+					+ mStation.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
+					+ mStation.getName() + ")")));
+			return true;
+		case R.id.menu_navigate_to:
+			startActivity(new Intent(Intent.ACTION_VIEW, Uri
+					.parse("google.navigation:q="
+							+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
+							+ "," + mStation.getGeoPoint().getLongitudeE6()
+							* 1E-6)));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
 	protected void onResume() {
 		super.onResume();
 		mStation = mVcuboidManager.getStation(getIntent().getExtras().getInt(
@@ -115,7 +158,7 @@ public class StationDetails extends Activity {
 						+ getString(mStation.hasPayment() ? R.string.yes
 								: R.string.no));
 		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
-			mDistance.setText(getString(R.string.At) + " "
+			mDistance.setText(getString(R.string.upper_at) + " "
 					+ Utils.formatDistance(mStation.getDistance()));
 			mDistance.setVisibility(View.VISIBLE);
 		}

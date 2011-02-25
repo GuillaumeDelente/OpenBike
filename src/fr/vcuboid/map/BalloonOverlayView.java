@@ -29,7 +29,6 @@ import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.vcuboid.R;
 import fr.vcuboid.StationDetails;
-import fr.vcuboid.list.VcuboidArrayAdaptor;
 import fr.vcuboid.object.Station;
 import fr.vcuboid.utils.Utils;
 
@@ -47,7 +46,7 @@ import fr.vcuboid.utils.Utils;
  * </p>
  * 
  * @author Jeff Gilfelt
- *
+ * 
  */
 public class BalloonOverlayView extends FrameLayout {
 
@@ -64,11 +63,14 @@ public class BalloonOverlayView extends FrameLayout {
 	/**
 	 * Create a new BalloonOverlayView.
 	 * 
-	 * @param context - The activity context.
-	 * @param balloonBottomOffset - The bottom padding (in pixels) to be applied
-	 * when rendering this view.
+	 * @param context
+	 *            - The activity context.
+	 * @param balloonBottomOffset
+	 *            - The bottom padding (in pixels) to be applied when rendering
+	 *            this view.
 	 */
-	public BalloonOverlayView(Context context, int balloonBottomOffset, int ballonLeftOffset) {
+	public BalloonOverlayView(Context context, int balloonBottomOffset,
+			int ballonLeftOffset) {
 		super(context);
 		mContext = context;
 		setPadding(ballonLeftOffset, 0, 0, balloonBottomOffset);
@@ -81,10 +83,9 @@ public class BalloonOverlayView extends FrameLayout {
 		v.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-		    	Log.i("Vcuboid", "Item clicked");
-		    	intent.putExtra("id", (Integer) mFavorite.getTag())
-		    			.putExtra("distance", mDistance);
-		    	mContext.startActivity(intent);
+				Log.i("Vcuboid", "Item clicked");
+				intent.putExtra("id", (Integer) mFavorite.getTag());
+				mContext.startActivity(intent);
 			}
 		});
 		mFavorite = (CheckBox) v.findViewById(R.id.favorite);
@@ -92,8 +93,9 @@ public class BalloonOverlayView extends FrameLayout {
 		mBikes = (TextView) v.findViewById(R.id.balloon_item_bikes);
 		mSlots = (TextView) v.findViewById(R.id.balloon_item_slots);
 		mOpened = (TextView) v.findViewById(R.id.balloon_item_opened);
-		mDistanceTextView = (TextView) v.findViewById(R.id.balloon_item_distance);
-		
+		mDistanceTextView = (TextView) v
+				.findViewById(R.id.balloon_item_distance);
+
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		params.gravity = Gravity.NO_GRAVITY;
@@ -101,12 +103,13 @@ public class BalloonOverlayView extends FrameLayout {
 		addView(mLayout, params);
 
 	}
-	
+
 	/**
 	 * Sets the view data from a given overlay item.
 	 * 
-	 * @param item - The overlay item containing the relevant view data 
-	 * (title and snippet). 
+	 * @param item
+	 *            - The overlay item containing the relevant view data (title
+	 *            and snippet).
 	 */
 	public void setData(Station station) {
 		mLayout.setVisibility(VISIBLE);
@@ -122,34 +125,41 @@ public class BalloonOverlayView extends FrameLayout {
 			mOpened.setVisibility(INVISIBLE);
 			mBikes.setVisibility(VISIBLE);
 			mSlots.setVisibility(VISIBLE);
-			mBikes.setText(station.getBikes() + " vélos");
-			mSlots.setText(station.getSlots() + " places");
-		}
-		if (station.getDistance() != -1) {
-			mDistance = station.getDistance();
-			mDistanceTextView.setText("Distance : " + Utils.formatDistance(station.getDistance()));
-			mDistanceTextView.setVisibility(VISIBLE);
-		} else {
-			mDistance = -1;
-			mDistanceTextView.setVisibility(GONE);
+			mBikes
+					.setText(station.getBikes() + " " + mContext
+							.getString(station.getBikes() > 1 ? R.string.bikes : R.string.bike));
+			mSlots
+			.setText(station.getSlots() + " " + mContext
+					.getString(station.getSlots() > 1 ? R.string.slots : R.string.slot));
+			if (station.getDistance() != -1) {
+				mDistance = station.getDistance();
+				mDistanceTextView.setText(mContext.getString(R.string.at) + " "
+						+ Utils.formatDistance(station.getDistance()));
+				mDistanceTextView.setVisibility(VISIBLE);
+			} else {
+				mDistance = -1;
+				mDistanceTextView.setVisibility(GONE);
+			}
 		}
 	}
-	
+
 	public void disableListeners() {
 		mFavorite.setOnCheckedChangeListener(null);
-		
+
 	}
-	
+
 	public void refreshData(Station station) {
 		setData(station);
 	}
-	
-	//TODO : same as for the list
+
+	// TODO : same as for the list
 	class FavoriteListener implements OnCheckedChangeListener {
 		@Override
-		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		public void onCheckedChanged(CompoundButton buttonView,
+				boolean isChecked) {
 			Log.d("Vcuboid", "Checked : " + buttonView.getTag());
-			((VcuboidMapActivity) mContext).setFavorite((Integer) buttonView.getTag(), isChecked);
+			((VcuboidMapActivity) mContext).setFavorite((Integer) buttonView
+					.getTag(), isChecked);
 		}
 	}
 }

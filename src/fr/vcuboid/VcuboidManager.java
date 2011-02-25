@@ -65,18 +65,19 @@ public class VcuboidManager {
 	}
 
 	private VcuboidManager(IVcuboidActivity activity) {
-		Log.e("Vcuboid", "New Manager created");
+		Log.i("Vcuboid", "New Manager created");
 		mActivity = activity;
 		mVcuboidDBAdapter = new VcuboidDBAdapter((Context) activity);
 		mVcuboidDBAdapter.open();
-		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.location_preferences, false);
-		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.filter_preferences, false);
-		PreferenceManager.setDefaultValues((Context) mActivity, R.xml.map_preferences, false);
-		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
+		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
+		PreferenceManager.setDefaultValues((Context) activity, R.xml.filter_preferences, false);
+		PreferenceManager.setDefaultValues((Context) activity, R.xml.map_preferences, false);
+		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
 		if (mFilterPreferences.getBoolean(
-				((Context) mActivity).getString(R.string.use_location), true))
+				((Context) activity).getString(R.string.use_location), true))
 			useLocation();
 		initializeFilter();
+		StationOverlay.initialize((Context) activity);
 	}
 	
 	public static synchronized VcuboidManager getVcuboidManagerInstance(IVcuboidActivity activity) {
@@ -99,11 +100,6 @@ public class VcuboidManager {
 	}
 	
 	public void setCurrentActivity(IVcuboidActivity activity, boolean isShowStationMode) {
-		if (mIsShowStationMode && !isShowStationMode) {
-			mIsShowStationMode = false;
-			mVcubFilter.setNeedDbQuery();
-			executeCreateVisibleStationsTask();
-		}
 		mActivity = activity;
 		if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50)
 			activity.showUpdateAllStationsOnProgress(false);
@@ -188,9 +184,15 @@ public class VcuboidManager {
 	}
 	
 	public void setShowStationMode(int id) {
-		mIsShowStationMode = true;
-		mVisibleStations.clear();
-		mVisibleStations.add(new StationOverlay(getStation(id)));
+		if (id == -1) {
+			mIsShowStationMode = false;
+			mVcubFilter.setNeedDbQuery(true);
+			executeCreateVisibleStationsTask();
+		} else {
+			mIsShowStationMode = true;
+			mVisibleStations.clear();
+			mVisibleStations.add(new StationOverlay(getStation(id)));
+		}
 	}
 
 	public void clearDB() {

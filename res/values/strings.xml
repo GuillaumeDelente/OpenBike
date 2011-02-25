@@ -3,8 +3,9 @@
 	<!--  Menu -->
     <string name="app_name">Vcuboid</string>
 	<string name="clear_db">Vider la DB</string>
-	<string name="update_all">Rafraichir la liste</string>
+	<string name="update_all">Rafraichir les données</string>
 	<string name="map">Carte</string>
+	<string name="global_map">Carte globale</string>
 	<string name="list">Liste</string>
 	<string name="add_to_favorite">Ajouter aux favoris</string>
 	<string name="remove_from_favorite">Supprimer des favoris</string>
@@ -75,7 +76,8 @@
 	<string name="slot">place</string>
 	<string name="address">Adresse</string>
 	<string name="cc">Carte bancaire</string>
-	<string name="At">À</string>
+	<string name="upper_at">À</string>
+	<string name="at">à</string>
 	<string name="no_stations">Aucune station à afficher. Changez les filtres pour élargir la recherche.</string>
 	<string name="loading_list">Création de la liste en cours...</string>
 	<string name="closed">En maintenance</string>

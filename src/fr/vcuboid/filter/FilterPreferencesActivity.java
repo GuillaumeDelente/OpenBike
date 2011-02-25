@@ -20,7 +20,6 @@ package fr.vcuboid.filter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 import fr.vcuboid.R;
@@ -31,7 +30,6 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 
 	protected VcubFilter mActualFilter;
 	protected VcubFilter mModifiedFilter;
-	protected CheckBoxPreference mDistanceFilterCb;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +39,6 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.enable_distance_filter));
-		getPreferenceScreen().findPreference(
-				getString(R.string.distance_filter)).setSummary(
-				getString(R.string.distance_filter_summary)
-						+ " "
-						+ getPreferenceScreen().getSharedPreferences().getInt(
-								getString(R.string.distance_filter), 1000)
-						+ "m");
 		mActualFilter = VcuboidManager.getVcuboidManagerInstance()
 				.getVcubFilter();
 		getPreferenceScreen().getSharedPreferences()
@@ -125,7 +114,6 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 				vcubManager.useLocation();
 			} else {
 				Log.i("Vcuboid", "dont Use Location");
-				mDistanceFilterCb.setChecked(false);
 				vcubManager.dontUseLocation();
 			}
 		}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/menu_show_on_map" 
+			android:title="@string/show_on_map"
+			android:icon="@drawable/icon_show_map" />
+	<item android:id="@+id/menu_show_on_google_maps" 
+			android:title="@string/show_on_google_maps"
+			android:icon="@drawable/icon_maps" />
+	<item android:id="@+id/menu_navigate_to" 
+			android:title="@string/navigate_to"
+			android:icon="@drawable/icon_navigation" />
+</menu>
