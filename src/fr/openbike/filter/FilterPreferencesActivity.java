@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.filter;
+package fr.openbike.filter;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.util.Log;
-import fr.vcuboid.R;
-import fr.vcuboid.VcuboidManager;
+import fr.openbike.OpenBikeManager;
+import fr.openbike.R;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener {
 
-	protected VcubFilter mActualFilter;
-	protected VcubFilter mModifiedFilter;
+	protected BikeFilter mActualFilter;
+	protected BikeFilter mModifiedFilter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mActualFilter = VcuboidManager.getVcuboidManagerInstance()
+		mActualFilter = OpenBikeManager.getVcuboidManagerInstance()
 				.getVcubFilter();
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
@@ -56,16 +56,16 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 				.unregisterOnSharedPreferenceChangeListener(this);
 		if (mModifiedFilter.equals(mActualFilter)) {
 			setResult(RESULT_CANCELED);
-			Log.e("Vcuboid", "Exiting Preferences : Filter not changed");
+			Log.e("OpenBike", "Exiting Preferences : Filter not changed");
 		} else {
-			Log.e("Vcuboid", "Exiting Preferences : Filter Changed");
+			Log.e("OpenBike", "Exiting Preferences : Filter Changed");
 			setResult(RESULT_OK);
 			mModifiedFilter.setNeedDbQuery(mActualFilter);
-			VcuboidManager.getVcuboidManagerInstance().setVcubFilter(
+			OpenBikeManager.getVcuboidManagerInstance().setVcubFilter(
 					mModifiedFilter);
-			VcuboidManager.getVcuboidManagerInstance()
+			OpenBikeManager.getVcuboidManagerInstance()
 					.executeCreateVisibleStationsTask();
-			Log.e("Vcuboid", "Only Favorites ? "
+			Log.e("OpenBike", "Only Favorites ? "
 					+ mModifiedFilter.isShowOnlyFavorites());
 		}
 		super.onPause();
@@ -75,26 +75,26 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
 		if (key.equals(getString(R.string.favorite_filter))) {
-			Log.i("Vcuboid", "Favorites changed");
+			Log.i("OpenBike", "Favorites changed");
 			mModifiedFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(
 					getString(R.string.favorite_filter), false));
 		} else if (key.equals(getString(R.string.bikes_filter))) {
-			Log.i("Vcuboid", "Bikes changed");
+			Log.i("OpenBike", "Bikes changed");
 			mModifiedFilter.setShowOnlyWithBikes(sharedPreferences.getBoolean(
 					getString(R.string.bikes_filter), false));
 		} else if (key.equals(getString(R.string.slots_filter))) {
-			Log.i("Vcuboid", "Slots changed");
+			Log.i("OpenBike", "Slots changed");
 			mModifiedFilter.setShowOnlyWithSlots(sharedPreferences.getBoolean(
 					getString(R.string.slots_filter), false));
 		} else if (key.equals(getString(R.string.enable_distance_filter))) {
-			Log.i("Vcuboid", "Enable / disable filter changed");
+			Log.i("OpenBike", "Enable / disable filter changed");
 			mModifiedFilter
 					.setDistanceFilter(sharedPreferences.getBoolean(
 							getString(R.string.enable_distance_filter), true) ? sharedPreferences
 							.getInt(getString(R.string.distance_filter), 1000)
 							: 0);
 		} else if (key.equals(getString(R.string.distance_filter))) {
-			Log.i("Vcuboid", "Distance filter changed");
+			Log.i("OpenBike", "Distance filter changed");
 			mModifiedFilter.setDistanceFilter(sharedPreferences.getInt(
 					getString(R.string.distance_filter), 1000));
 			getPreferenceScreen().findPreference(
@@ -105,15 +105,15 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 									getString(R.string.distance_filter), 1000)
 							+ "m");
 		} else if (key.equals(getString(R.string.use_location))) {
-			Log.i("Vcuboid", "Location changed");
-			VcuboidManager vcubManager = VcuboidManager
+			Log.i("OpenBike", "Location changed");
+			OpenBikeManager vcubManager = OpenBikeManager
 					.getVcuboidManagerInstance();
 			if (sharedPreferences.getBoolean(getString(R.string.use_location),
 					true)) {
-				Log.i("Vcuboid", "use Location");
+				Log.i("OpenBike", "use Location");
 				vcubManager.useLocation();
 			} else {
-				Log.i("Vcuboid", "dont Use Location");
+				Log.i("OpenBike", "dont Use Location");
 				vcubManager.dontUseLocation();
 			}
 		}

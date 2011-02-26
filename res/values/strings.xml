@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!--  Menu -->
-    <string name="app_name">Vcuboid</string>
+    <string name="app_name">OpenBike</string>
 	<string name="clear_db">Vider la DB</string>
 	<string name="update_all">Rafraichir les données</string>
 	<string name="map">Carte</string>

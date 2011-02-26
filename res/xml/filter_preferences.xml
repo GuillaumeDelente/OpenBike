@@ -28,7 +28,7 @@
             android:summary="@string/enable_distance_filter_summary"
             android:defaultValue="true"
         />
-		<fr.vcuboid.filter.SeekBarPreference
+		<fr.openbike.filter.SeekBarPreference
                 android:dependency="@string/enable_distance_filter"
                 android:key="@string/distance_filter"
                 android:defaultValue="1000"

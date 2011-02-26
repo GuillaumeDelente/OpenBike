@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.list;
+package fr.openbike.list;
 
 import java.util.ArrayList;
 
@@ -32,19 +32,19 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import fr.vcuboid.R;
-import fr.vcuboid.map.StationOverlay;
-import fr.vcuboid.object.Station;
-import fr.vcuboid.utils.Utils;
+import fr.openbike.R;
+import fr.openbike.map.StationOverlay;
+import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
-public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
+public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	
 	private LayoutInflater mInflater;
 	private Context mContext;
 	private Drawable mRedBike;
 	private Drawable mGreenBike;
 
-	public VcuboidArrayAdaptor(Context context, int layout,
+	public OpenBikeArrayAdaptor(Context context, int layout,
 			ArrayList<StationOverlay> list) {
 		super(context, layout, list);
 		mInflater = LayoutInflater.from(context);
@@ -90,7 +90,7 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		}
 		StationOverlay overlay = getItem(position);
 		if (overlay == null) {
-			Log.e("Vcuboid", "Invalid position: " + position);
+			Log.e("OpenBike", "Invalid position: " + position);
 		}
 		Station station = overlay.getStation();
 		viewHolder.name.setText(station.getName());
@@ -133,7 +133,7 @@ public class VcuboidArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	class FavoriteListener implements OnCheckedChangeListener {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			((VcuboidListActivity) mContext).setFavorite((Integer) buttonView.getTag(), isChecked);
+			((OpenBikeListActivity) mContext).setFavorite((Integer) buttonView.getTag(), isChecked);
 		}
 	}
 }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid;
+package fr.openbike;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -33,12 +33,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import fr.vcuboid.list.VcuboidListActivity;
-import fr.vcuboid.map.MapFilterActivity;
-import fr.vcuboid.map.StationMapFilterActivity;
-import fr.vcuboid.map.VcuboidMapActivity;
-import fr.vcuboid.object.Station;
-import fr.vcuboid.utils.Utils;
+import fr.openbike.map.OpenBikeMapActivity;
+import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
 /**
  * @author guitou
@@ -49,7 +46,7 @@ public class StationDetails extends Activity {
 	public static final int COMPUTE_DISTANCE = -2;
 
 	private Station mStation = null;
-	private VcuboidManager mVcuboidManager = null;
+	private OpenBikeManager mVcuboidManager = null;
 	private TextView mName = null;
 	private TextView mDistance = null;
 	private TextView mBikes = null;
@@ -65,7 +62,7 @@ public class StationDetails extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_details_layout);
-		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance();
+		mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance();
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
@@ -97,7 +94,7 @@ public class StationDetails extends Activity {
 								* 1E-6)));
 			}
 		});
-		final Intent intent = new Intent(this, VcuboidMapActivity.class);
+		final Intent intent = new Intent(this, OpenBikeMapActivity.class);
 		mShowMap.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -110,7 +107,7 @@ public class StationDetails extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Log.i("Vcuboid", "onCreateOptionsMenu");
+		Log.i("OpenBike", "onCreateOptionsMenu");
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.station_details_menu, menu);
 		return true;
@@ -122,7 +119,7 @@ public class StationDetails extends Activity {
 		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.menu_show_on_map:
-			intent = new Intent(this, VcuboidMapActivity.class);
+			intent = new Intent(this, OpenBikeMapActivity.class);
 			intent.putExtra("id", mStation.getId());
 			startActivity(intent);
 			return true;

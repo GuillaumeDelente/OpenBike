@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.database;
+package fr.openbike.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -26,11 +26,11 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
-import fr.vcuboid.object.Station;
+import fr.openbike.object.Station;
 
-public class VcuboidDBAdapter {
-	private static final String DATABASE_NAME = "vcuboid.db";
-	private static final String DATABASE_TABLE = "vcuboid";
+public class OpenBikeDBAdapter {
+	private static final String DATABASE_NAME = "openbike.db";
+	private static final String DATABASE_TABLE = "openbike";
 	private static final int DATABASE_VERSION = 1;
 	public static final int ID_COLUMN = 0;
 	public static final int ADDRESS_COLUMN = 1;
@@ -45,8 +45,7 @@ public class VcuboidDBAdapter {
 	public static final int PAYMENT_COLUMN = 10;
 	
 	private SQLiteDatabase mDb;
-	private VcuboidDBOpenHelper mDbHelper;
-	//private Context mContext;
+	private OpenBikeDBOpenHelper mDbHelper;
 	public static final String KEY_ID = "_id";
 	public static final String KEY_ADDRESS = "address";
 	public static final String KEY_BIKES = "availableBikes";
@@ -74,9 +73,9 @@ public class VcuboidDBAdapter {
 		+ KEY_FAVORITE + " integer not null, "
 		+ KEY_PAYMENT + " integer not null );";
 
-	public VcuboidDBAdapter(Context context) {
+	public OpenBikeDBAdapter(Context context) {
 		//mContext = context;
-		mDbHelper = new VcuboidDBOpenHelper(context, DATABASE_NAME, null,
+		mDbHelper = new OpenBikeDBOpenHelper(context, DATABASE_NAME, null,
 				DATABASE_VERSION);
 	}
 
@@ -136,7 +135,7 @@ public class VcuboidDBAdapter {
 	}
 	
 	public boolean updateFavorite(int id, boolean isFavorite) {
-		Log.e("Vcuboid", "updateFavorite " + id + " est " + isFavorite);
+		Log.e("OpenBike", "updateFavorite " + id + " est " + isFavorite);
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
 		return mDb.update(DATABASE_TABLE, newValues, KEY_ID + "=" + id, null) > 0;
@@ -155,7 +154,7 @@ public class VcuboidDBAdapter {
 	}
 	
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
-		Log.e("Vcuboid", "In db : getFilteredStationsCursor");
+		Log.e("OpenBike", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, where, null, null, null, orderBy);
@@ -191,8 +190,8 @@ public class VcuboidDBAdapter {
 		return count;
 	}
 
-	private static class VcuboidDBOpenHelper extends SQLiteOpenHelper {
-		public VcuboidDBOpenHelper(Context context, String name,
+	private static class OpenBikeDBOpenHelper extends SQLiteOpenHelper {
+		public OpenBikeDBOpenHelper(Context context, String name,
 				CursorFactory factory, int version) {
 			super(context, name, factory, version);
 		}
@@ -216,7 +215,7 @@ public class VcuboidDBAdapter {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log
-					.w("VcuboidDBAdapter", "Upgrading from version "
+					.i("OpenBike", "Upgrading from version "
 							+ oldVersion + " to " + newVersion
 							+ ", which will destroy all old data");
 			// Drop the old table.

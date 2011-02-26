@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.map;
+package fr.openbike.map;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,14 +50,14 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
-import fr.vcuboid.IVcuboidActivity;
-import fr.vcuboid.MyLocationProvider;
-import fr.vcuboid.R;
-import fr.vcuboid.RestClient;
-import fr.vcuboid.VcuboidManager;
-import fr.vcuboid.list.VcuboidListActivity;
+import fr.openbike.IOpenBikeActivity;
+import fr.openbike.MyLocationProvider;
+import fr.openbike.OpenBikeManager;
+import fr.openbike.R;
+import fr.openbike.RestClient;
+import fr.openbike.list.OpenBikeListActivity;
 
-public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity {
+public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivity {
 
 	private boolean mIsShowStationMode = false;
 	private MapController mMapController;
@@ -66,14 +66,14 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 	private boolean mIsFirstFix = true;
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
-	private VcuboidManager mVcuboidManager = null;
+	private OpenBikeManager mVcuboidManager = null;
 	private int mSelected = 0;
 	private boolean mRefreshMenu = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.i("Vcuboid", "Map on create");
+		Log.i("OpenBike", "Map on create");
 		setContentView(R.layout.map_layout);
 		mMapView = (MapView) findViewById(R.id.map_view);
 		mMapController = mMapView.getController();
@@ -83,7 +83,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		Bundle bundle = getIntent().getExtras();
 		if (bundle != null && bundle.containsKey("id"))
 			mIsShowStationMode = true;
-		mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
+		mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		if (mIsShowStationMode) {
 			mVcuboidManager.setShowStationMode(bundle.getInt("id"));
 		}
@@ -108,12 +108,12 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 		if (bundle == null || !bundle.containsKey("id")) {
 			mIsShowStationMode = false;
 			mVcuboidManager.setShowStationMode(-1);
-			Log.d("Vcuboid", "No key !");
+			Log.d("OpenBike", "No key !");
 		} else if (bundle.containsKey("id")) {
 			setIntent(intent);
 			mIsShowStationMode = true;
 			mVcuboidManager.setShowStationMode(bundle.getInt("id"));
-			Log.d("Vcuboid", "Key = " + bundle.getInt("id"));
+			Log.d("OpenBike", "Key = " + bundle.getInt("id"));
 		}
 	}
 
@@ -133,7 +133,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		Log.i("Vcuboid", "onPrepareOptionsMenu");
+		Log.i("OpenBike", "onPrepareOptionsMenu");
 		if (mRefreshMenu) {
 			MenuInflater inflater = getMenuInflater();
 			menu.clear();
@@ -146,7 +146,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Log.i("Vcuboid", "onCreateOptionsMenu");
+		Log.i("OpenBike", "onCreateOptionsMenu");
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate((mIsShowStationMode ? R.menu.station_map_menu
 				: R.menu.map_menu), menu);
@@ -161,10 +161,10 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			startActivity(new Intent(this, MapFilterActivity.class));
 			return true;
 		case R.id.menu_list:
-			startActivity(new Intent(this, VcuboidListActivity.class));
+			startActivity(new Intent(this, OpenBikeListActivity.class));
 			return true;
 		case R.id.menu_map:
-			startActivity(new Intent(this, VcuboidMapActivity.class));
+			startActivity(new Intent(this, OpenBikeMapActivity.class));
 			return true;
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask();
@@ -221,7 +221,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 
 	@Override
 	public void onDestroy() {
-		Log.i("Vcuboid", "Map : onDestroy");
+		Log.i("OpenBike", "Map : onDestroy");
 		super.onDestroy();
 	}
 
@@ -266,11 +266,11 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 			if (overlay instanceof StationOverlay) {
 				((StationOverlay) overlay).getStation().setFavorite(true);
 			} else {
-				Log.d("Vcuboid", "before last not a StationOverlay");
+				Log.d("OpenBike", "before last not a StationOverlay");
 			}
 			// onListUpdated();
 		} else {
-			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
+			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);
 		}
 	}
 
@@ -448,7 +448,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
-			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
+			Log.i("OpenBike", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -469,7 +469,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 								}
 							}).create();
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
-			Log.i("Vcuboid", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"
@@ -489,7 +489,7 @@ public class VcuboidMapActivity extends MapActivity implements IVcuboidActivity 
 									dialog.cancel();
 								}
 							}).create();
-		case VcuboidManager.REMOVE_FROM_FAVORITE:
+		case OpenBikeManager.REMOVE_FROM_FAVORITE:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.remove_favorite)).setMessage(
 					(getString(R.string.remove_favorite_sure)))

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid;
+package fr.openbike;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,9 +34,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
-import fr.vcuboid.database.VcuboidDBAdapter;
-import fr.vcuboid.map.StationOverlay;
-import fr.vcuboid.object.Station;
+import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.map.StationOverlay;
+import fr.openbike.object.Station;
 
 public class RestClient {
 	
@@ -75,7 +75,7 @@ public class RestClient {
 	 * Connect to the server
 	 */
 	public static String connect(String url) {
-		Log.i("Vcuboid", "connect");
+		Log.i("OpenBike", "connect");
 		HttpClient httpclient = new DefaultHttpClient();
 
 		// Prepare a request object
@@ -112,8 +112,8 @@ public class RestClient {
 	}
 
 	public static boolean jsonStationsToDb(String json,
-			VcuboidDBAdapter vcuboidDBAdapter) {
-		Log.i("Vcuboid", "jsonStationsToDb");
+			OpenBikeDBAdapter vcuboidDBAdapter) {
+		Log.i("OpenBike", "jsonStationsToDb");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -139,7 +139,7 @@ public class RestClient {
 
 	public static boolean updateListFromJson(String json,
 			ArrayList<StationOverlay> mVisibleStations) {
-		Log.i("Vcuboid", "updateListFromJson");
+		Log.i("OpenBike", "updateListFromJson");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
@@ -149,7 +149,7 @@ public class RestClient {
 				station = mVisibleStations.get(i).getStation();
 				id = station.getId();
 				jsonStation = jsonArray.getJSONObject(id-1);
-				Log.e("Vcuboid", "Station : " + id + " " + jsonStation.getInt("id"));
+				Log.e("OpenBike", "Station : " + id + " " + jsonStation.getInt("id"));
 				station.setBikes(jsonStation.getInt("availableBikes"));
 				station.setSlots(jsonStation.getInt("freeSlots"));
 				station.setOpen(jsonStation.getBoolean("open"));
@@ -162,8 +162,8 @@ public class RestClient {
 	}
 
 	public static boolean updateDbFromJson(String json,
-			VcuboidDBAdapter vcuboidDBAdapter) {
-		Log.i("Vcuboid", "updateDbFromJson");
+			OpenBikeDBAdapter vcuboidDBAdapter) {
+		Log.i("OpenBike", "updateDbFromJson");
 		try {
 			boolean success = true;
 			JSONArray jsonArray = new JSONArray(json);

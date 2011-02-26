@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid;
+package fr.openbike;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,43 +30,43 @@ import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 
-import fr.vcuboid.database.VcuboidDBAdapter;
-import fr.vcuboid.filter.Filtering;
-import fr.vcuboid.filter.VcubFilter;
-import fr.vcuboid.list.VcuboidListActivity;
-import fr.vcuboid.map.StationOverlay;
-import fr.vcuboid.object.Station;
-import fr.vcuboid.utils.Utils;
+import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.filter.BikeFilter;
+import fr.openbike.filter.Filtering;
+import fr.openbike.list.OpenBikeListActivity;
+import fr.openbike.map.StationOverlay;
+import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
-public class VcuboidManager {
+public class OpenBikeManager {
 	
 	public static boolean mIsUpdating = false;
 	public static final int RETRIEVE_ALL_STATIONS = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
 	public static boolean mIsShowStationMode = false;
-	protected static VcuboidDBAdapter mVcuboidDBAdapter = null;
-	protected static IVcuboidActivity mActivity = null;
+	protected static OpenBikeDBAdapter mVcuboidDBAdapter = null;
+	protected static IOpenBikeActivity mActivity = null;
 	protected static MyLocationProvider mLocationProvider = null;
-	private static VcuboidManager mThis;
+	private static OpenBikeManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
 	private static ArrayList<StationOverlay> mVisibleStations = null;
-	private VcubFilter mVcubFilter = null;
+	private BikeFilter mVcubFilter = null;
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
 	private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	
-	public VcubFilter getVcubFilter() {
+	public BikeFilter getVcubFilter() {
 		return mVcubFilter;
 	}
 
-	public void setVcubFilter(VcubFilter vcubFilter) {
+	public void setVcubFilter(BikeFilter vcubFilter) {
 		mVcubFilter = vcubFilter;
 	}
 
-	private VcuboidManager(IVcuboidActivity activity) {
-		Log.i("Vcuboid", "New Manager created");
+	private OpenBikeManager(IOpenBikeActivity activity) {
+		Log.i("OpenBike", "New Manager created");
 		mActivity = activity;
-		mVcuboidDBAdapter = new VcuboidDBAdapter((Context) activity);
+		mVcuboidDBAdapter = new OpenBikeDBAdapter((Context) activity);
 		mVcuboidDBAdapter.open();
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.filter_preferences, false);
@@ -79,10 +79,10 @@ public class VcuboidManager {
 		StationOverlay.initialize((Context) activity);
 	}
 	
-	public static synchronized VcuboidManager getVcuboidManagerInstance(IVcuboidActivity activity) {
-		Log.e("Vcuboid", "Getting VcuboidManager instance");
+	public static synchronized OpenBikeManager getVcuboidManagerInstance(IOpenBikeActivity activity) {
+		Log.e("OpenBike", "Getting VcuboidManager instance");
 		if (mThis == null) {
-			mThis = new VcuboidManager(activity);
+			mThis = new OpenBikeManager(activity);
 		} else {
 			mActivity = activity;
 			mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
@@ -90,21 +90,21 @@ public class VcuboidManager {
 		return mThis;
 	}
 
-	public static synchronized VcuboidManager getVcuboidManagerInstance() {
+	public static synchronized OpenBikeManager getVcuboidManagerInstance() {
 		return mThis;
 	}
 
-	public void setCurrentActivity(IVcuboidActivity activity) {
+	public void setCurrentActivity(IOpenBikeActivity activity) {
 		setCurrentActivity(activity, false);
 	}
 	
-	public void setCurrentActivity(IVcuboidActivity activity, boolean isShowStationMode) {
+	public void setCurrentActivity(IOpenBikeActivity activity, boolean isShowStationMode) {
 		mActivity = activity;
 		if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50)
 			activity.showUpdateAllStationsOnProgress(false);
 	}
 
-	public void attach(VcuboidListActivity activity) {
+	public void attach(OpenBikeListActivity activity) {
 		mActivity = activity;
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		if (mGetAllStationsTask != null) {
@@ -120,7 +120,7 @@ public class VcuboidManager {
 	}
 
 	public boolean executeGetAllStationsTask() {
-		Log.e("Vcuboid", "executeGetAllStationsTask");
+		Log.e("OpenBike", "executeGetAllStationsTask");
 		if (mGetAllStationsTask == null) {
 			mGetAllStationsTask = (GetAllStationsTask) new GetAllStationsTask()
 					.execute();
@@ -140,7 +140,7 @@ public class VcuboidManager {
 			}
 			return true;
 		} else {
-			Log.e("Vcuboid", "VisibleStationsTask already launched");
+			Log.e("OpenBike", "VisibleStationsTask already launched");
 		}
 		return false;
 	}
@@ -151,7 +151,7 @@ public class VcuboidManager {
 					.execute();
 			return true;
 		} else {
-			Log.e("Vcuboid", "VisibleStationsTask already launched");
+			Log.e("OpenBike", "VisibleStationsTask already launched");
 		}
 		return false;
 	}
@@ -165,7 +165,7 @@ public class VcuboidManager {
 					.getProgress());
 					*/
 		} else {
-			((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
+			((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
 			mGetAllStationsTask = null;
 		}
 	}
@@ -176,12 +176,12 @@ public class VcuboidManager {
 			mIsUpdating = false;
 			mUpdateAllStationsTask = null;
 		} else {
-			((IVcuboidActivity) mActivity).showUpdateAllStationsOnProgress(false);
+			((IOpenBikeActivity) mActivity).showUpdateAllStationsOnProgress(false);
 		}
 	}
 	
 	private void initializeFilter() {
-		mVcubFilter = new VcubFilter((Context) mActivity);
+		mVcubFilter = new BikeFilter((Context) mActivity);
 	}
 	
 	public void setShowStationMode(int id) {
@@ -212,15 +212,15 @@ public class VcuboidManager {
 			station = overlay.getStation();
 			if (station.getId() == id) {
 				station.setFavorite(isChecked);
-				Log.d("Vcuboid", "Favorite in DB id " + station.getId());
+				Log.d("OpenBike", "Favorite in DB id " + station.getId());
 				if (mVcubFilter.isShowOnlyFavorites() && !isChecked) {
-					Log.d("Vcuboid", "Removing station");
+					Log.d("OpenBike", "Removing station");
 					it.remove();
 				}
 				return;
 			}
 		}
-		Log.d("Vcuboid", "List size " + mVisibleStations.size());
+		Log.d("OpenBike", "List size " + mVisibleStations.size());
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
@@ -261,7 +261,7 @@ public class VcuboidManager {
 		l.setLatitude((double) point.getLatitudeE6()*1E-6);
 		l.setLongitude((double) point.getLongitudeE6()*1E-6);
 		station.setDistance((int) location.distanceTo(l));
-		Log.d("Vcuboid", "Compute distance : " + l.getLongitude() + l.getLatitude()
+		Log.d("OpenBike", "Compute distance : " + l.getLongitude() + l.getLatitude()
 				+ location.getLongitude() + location.getLatitude() + (int) location.distanceTo(l));
 		return;
 	}
@@ -288,7 +288,7 @@ public class VcuboidManager {
 		if (mCreateVisibleStationsTask == null) {
 			if (location == null) {
 				mVcubFilter.setNeedDbQuery();
-				Log.d("Vcuboid", "Location unavailable, need db = " + mVcubFilter.isNeedDbQuery());
+				Log.d("OpenBike", "Location unavailable, need db = " + mVcubFilter.isNeedDbQuery());
 				executeCreateVisibleStationsTask();
 				//resetDistances();
 				//Utils.sortStationsByName(mVisibleStations);
@@ -363,9 +363,9 @@ public class VcuboidManager {
 
 		@Override
 		protected void onPreExecute() {
-			Log.d("Vcuboid", "onPreExecute GetAllStations");
+			Log.d("OpenBike", "onPreExecute GetAllStations");
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).showGetAllStationsOnProgress();
 			}
 		}
 
@@ -390,9 +390,9 @@ public class VcuboidManager {
 		protected void onPostExecute(Void unused) {
 			executeCreateVisibleStationsTask();
 			if (mActivity != null) {
-				((IVcuboidActivity) mActivity).finishGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
-				Log.d("Vcuboid", "Async task get all stations finished");
+				Log.d("OpenBike", "Async task get all stations finished");
 			}
 		}
 
@@ -452,7 +452,7 @@ public class VcuboidManager {
 				mIsUpdating = false;
 				executeCreateVisibleStationsTask();
 				mUpdateAllStationsTask = null;
-				Log.d("Vcuboid", "Async task update finished");
+				Log.d("OpenBike", "Async task update finished");
 			}
 		}
 
@@ -464,7 +464,7 @@ public class VcuboidManager {
 	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
 		
 		private boolean updateListFromDb(boolean useList) {
-			Log.d("Vcuboid", "UpdatingListFromDb");
+			Log.d("OpenBike", "UpdatingListFromDb");
 			ArrayList<StationOverlay> stationsList = null;
 			if (!useList)
 				stationsList = new ArrayList<StationOverlay>(mVisibleStations.size());
@@ -475,7 +475,7 @@ public class VcuboidManager {
 					.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
 							mLocationProvider == null 
 								|| mLocationProvider.getMyLocation() == null ?
-										VcuboidDBAdapter.KEY_NAME 
+										OpenBikeDBAdapter.KEY_NAME 
 										: null);
 			StationOverlay stationOverlay;
 			Location stationLocation = null;
@@ -489,28 +489,28 @@ public class VcuboidManager {
 			while(cursor.moveToNext()) {
 				if (stationLocation != null) {
 					stationLocation.setLatitude((double) cursor
-							.getInt(VcuboidDBAdapter.LATITUDE_COLUMN)*1E-6);
+							.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN)*1E-6);
 					stationLocation.setLongitude((double) cursor
-							.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN)*1E-6);
+							.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN)*1E-6);
 					distanceToStation = (int) stationLocation.distanceTo(location);
 					if (mVcubFilter.isFilteringByDistance() && 
 							mVcubFilter.getDistanceFilter() < distanceToStation)
 						continue;
 				}
 				stationOverlay = new StationOverlay(
-						new Station(cursor.getInt(VcuboidDBAdapter.ID_COLUMN), 
-								cursor.getString(VcuboidDBAdapter.NETWORK_COLUMN), 
-								cursor.getString(VcuboidDBAdapter.NAME_COLUMN), 
-								cursor.getString(VcuboidDBAdapter.ADDRESS_COLUMN), 
-								cursor.getInt(VcuboidDBAdapter.LONGITUDE_COLUMN), 
-								cursor.getInt(VcuboidDBAdapter.LATITUDE_COLUMN),
-								cursor.getInt(VcuboidDBAdapter.BIKES_COLUMN), 
-								cursor.getInt(VcuboidDBAdapter.SLOTS_COLUMN), 
-								cursor.getInt(VcuboidDBAdapter.OPEN_COLUMN) == 0 ?
+						new Station(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN), 
+								cursor.getString(OpenBikeDBAdapter.NETWORK_COLUMN), 
+								cursor.getString(OpenBikeDBAdapter.NAME_COLUMN), 
+								cursor.getString(OpenBikeDBAdapter.ADDRESS_COLUMN), 
+								cursor.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN), 
+								cursor.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN),
+								cursor.getInt(OpenBikeDBAdapter.BIKES_COLUMN), 
+								cursor.getInt(OpenBikeDBAdapter.SLOTS_COLUMN), 
+								cursor.getInt(OpenBikeDBAdapter.OPEN_COLUMN) == 0 ?
 										false : true,
-								cursor.getInt(VcuboidDBAdapter.FAVORITE_COLUMN) == 0 ?
+								cursor.getInt(OpenBikeDBAdapter.FAVORITE_COLUMN) == 0 ?
 										false : true,
-								cursor.getInt(VcuboidDBAdapter.PAYMENT_COLUMN) == 0 ?
+								cursor.getInt(OpenBikeDBAdapter.PAYMENT_COLUMN) == 0 ?
 												false : true,
 										stationLocation != null ? distanceToStation : -1));
 				if (useList)
@@ -523,7 +523,7 @@ public class VcuboidManager {
 				Utils.sortStationsByDistance(useList ? mVisibleStations : stationsList);
 			}
 			if (!useList) {
-				Log.d("Vcuboid", "Create List without mVisibleStation");
+				Log.d("OpenBike", "Create List without mVisibleStation");
 				mVisibleStations.clear();
 				mVisibleStations.addAll(stationsList);
 				stationsList = null;
@@ -535,21 +535,21 @@ public class VcuboidManager {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-			if (mActivity instanceof VcuboidListActivity) {
-				((VcuboidListActivity) mActivity).setLoadingList();
+			if (mActivity instanceof OpenBikeListActivity) {
+				((OpenBikeListActivity) mActivity).setLoadingList();
 			}
 		}
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
 			if (mVisibleStations == null) {
-				Log.e("Vcuboid", "mVisibleStations is null in createVisibleStationList");
+				Log.e("OpenBike", "mVisibleStations is null in createVisibleStationList");
 				//mVisibleStations = new ArrayList<StationOverlay>();
 				//return false;
 			}
-			Log.d("Vcuboid", "Create Visible station list");
+			Log.d("OpenBike", "Create Visible station list");
 			// Hack for ArrayAdapter & Background thread
-			if (mActivity instanceof VcuboidListActivity) {
+			if (mActivity instanceof OpenBikeListActivity) {
 				return updateListFromDb(false);
 			} else {
 				mVisibleStations.clear();
@@ -565,11 +565,11 @@ public class VcuboidManager {
 					executeGetAllStationsTask();
 				else 
 					mActivity.onListUpdated();
-				if (mActivity instanceof VcuboidListActivity) {
-					((VcuboidListActivity) mActivity).setEmptyList();
+				if (mActivity instanceof OpenBikeListActivity) {
+					((OpenBikeListActivity) mActivity).setEmptyList();
 				}
 				mCreateVisibleStationsTask = null;
-				Log.d("Vcuboid", "Async task create station list finished");
+				Log.d("OpenBike", "Async task create station list finished");
 			}
 		}
 	}

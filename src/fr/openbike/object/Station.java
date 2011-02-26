@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.object;
+package fr.openbike.object;
 
 import com.google.android.maps.GeoPoint;
 

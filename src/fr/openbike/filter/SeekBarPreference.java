@@ -1,6 +1,5 @@
-package fr.vcuboid.filter;
+package fr.openbike.filter;
 
-import fr.vcuboid.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -8,25 +7,20 @@ import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import fr.openbike.R;
 
 public class SeekBarPreference extends DialogPreference implements
 		SeekBar.OnSeekBarChangeListener {
 	private SeekBar mBar;
 	private TextView mDistanceTextView;
-	private Context mContext;
 	private static SharedPreferences mSharedPreferences;
 	private static String DISTANCE_FILTER;
 	private static final int DEFAULT_DISTANCE = 1000;
-	private static final int LAYOUT_PADDING = 10;
 
 	public SeekBarPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		mContext = context;
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		DISTANCE_FILTER = context.getString(R.string.distance_filter);

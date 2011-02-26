@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.list;
+package fr.openbike.list;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import fr.vcuboid.R;
-import fr.vcuboid.filter.FilterPreferencesActivity;
+import fr.openbike.R;
+import fr.openbike.filter.FilterPreferencesActivity;
 
 public class ListFilterActivity extends FilterPreferencesActivity {
 	

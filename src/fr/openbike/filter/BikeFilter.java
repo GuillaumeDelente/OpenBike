@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.filter;
+package fr.openbike.filter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import fr.vcuboid.R;
+import fr.openbike.R;
 
-public class VcubFilter implements Cloneable {
+public class BikeFilter implements Cloneable {
 
 	private boolean mShowOnlyFavorites = false;
 	private boolean mShowOnlyWithSlots = false;
@@ -30,7 +30,7 @@ public class VcubFilter implements Cloneable {
 	private boolean mNeedDbQuery = false;
 	private int mDistanceFilter = 0;
 
-	public VcubFilter(Context context) {
+	public BikeFilter(Context context) {
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		mShowOnlyFavorites = preferences.getBoolean(context
@@ -83,7 +83,7 @@ public class VcubFilter implements Cloneable {
 		mDistanceFilter = distance;
 	}
 
-	public void setNeedDbQuery(VcubFilter actualFilter) {
+	public void setNeedDbQuery(BikeFilter actualFilter) {
 		if (actualFilter.isShowOnlyFavorites() && !mShowOnlyFavorites) {
 			mNeedDbQuery = true;
 			return;
@@ -119,8 +119,8 @@ public class VcubFilter implements Cloneable {
 	}
 
 	@Override
-	public VcubFilter clone() throws CloneNotSupportedException {
-		return (VcubFilter) super.clone();
+	public BikeFilter clone() throws CloneNotSupportedException {
+		return (BikeFilter) super.clone();
 	}
 
 	@Override
@@ -129,10 +129,10 @@ public class VcubFilter implements Cloneable {
 		if (this == aThat)
 			return true;
 
-		if (!(aThat instanceof VcubFilter))
+		if (!(aThat instanceof BikeFilter))
 			return false;
 
-		VcubFilter that = (VcubFilter) aThat;
+		BikeFilter that = (BikeFilter) aThat;
 
 		// now a proper field-by-field evaluation can be made
 		return mShowOnlyFavorites == that.mShowOnlyFavorites

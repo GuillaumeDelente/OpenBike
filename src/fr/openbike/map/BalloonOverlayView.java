@@ -13,7 +13,7 @@
  * 
  */
 
-package fr.vcuboid.map;
+package fr.openbike.map;
 
 import android.content.Context;
 import android.content.Intent;
@@ -27,10 +27,10 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import fr.vcuboid.R;
-import fr.vcuboid.StationDetails;
-import fr.vcuboid.object.Station;
-import fr.vcuboid.utils.Utils;
+import fr.openbike.R;
+import fr.openbike.StationDetails;
+import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
 /**
  * A view representing a MapView marker information balloon.
@@ -58,7 +58,6 @@ public class BalloonOverlayView extends FrameLayout {
 	private TextView mBikes;
 	private TextView mSlots;
 	private TextView mDistanceTextView;
-	private int mDistance = -1;
 
 	/**
 	 * Create a new BalloonOverlayView.
@@ -83,7 +82,7 @@ public class BalloonOverlayView extends FrameLayout {
 		v.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Log.i("Vcuboid", "Item clicked");
+				Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id", (Integer) mFavorite.getTag());
 				mContext.startActivity(intent);
 			}
@@ -132,12 +131,10 @@ public class BalloonOverlayView extends FrameLayout {
 			.setText(station.getSlots() + " " + mContext
 					.getString(station.getSlots() > 1 ? R.string.slots : R.string.slot));
 			if (station.getDistance() != -1) {
-				mDistance = station.getDistance();
 				mDistanceTextView.setText(mContext.getString(R.string.at) + " "
 						+ Utils.formatDistance(station.getDistance()));
 				mDistanceTextView.setVisibility(VISIBLE);
 			} else {
-				mDistance = -1;
 				mDistanceTextView.setVisibility(GONE);
 			}
 		}
@@ -157,8 +154,8 @@ public class BalloonOverlayView extends FrameLayout {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView,
 				boolean isChecked) {
-			Log.d("Vcuboid", "Checked : " + buttonView.getTag());
-			((VcuboidMapActivity) mContext).setFavorite((Integer) buttonView
+			Log.d("OpenBike", "Checked : " + buttonView.getTag());
+			((OpenBikeMapActivity) mContext).setFavorite((Integer) buttonView
 					.getTag(), isChecked);
 		}
 	}

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.utils;
+package fr.openbike.utils;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,16 +26,16 @@ import android.util.Log;
 
 import com.google.android.maps.Overlay;
 
-import fr.vcuboid.database.VcuboidDBAdapter;
-import fr.vcuboid.filter.VcubFilter;
-import fr.vcuboid.map.MyLocationOverlay;
-import fr.vcuboid.map.StationOverlay;
-import fr.vcuboid.object.Station;
+import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.filter.BikeFilter;
+import fr.openbike.map.MyLocationOverlay;
+import fr.openbike.map.StationOverlay;
+import fr.openbike.object.Station;
 
 public class Utils {
 
 	static public void sortStationsByDistance(List<? extends Overlay> list) {
-		Log.d("Vcuboid", "Sorting stations by distance");
+		Log.d("OpenBike", "Sorting stations by distance");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -65,7 +65,7 @@ public class Utils {
 	}
 
 	static public void sortStationsByName(List<? extends Overlay> list) {
-		Log.d("Vcuboid", "Sorting stations by name");
+		Log.d("OpenBike", "Sorting stations by name");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -88,14 +88,14 @@ public class Utils {
 		});
 	}
 
-	static public String whereClauseFromFilter(VcubFilter filter) {
+	static public String whereClauseFromFilter(BikeFilter filter) {
 		Vector<String> selection = new Vector<String>();
 		if (filter.isShowOnlyFavorites())
-			selection.add("(" + VcuboidDBAdapter.KEY_FAVORITE + " = 1 )");
+			selection.add("(" + OpenBikeDBAdapter.KEY_FAVORITE + " = 1 )");
 		if (filter.isShowOnlyWithBikes())
-			selection.add("(" + VcuboidDBAdapter.KEY_BIKES + " >= 1 )");
+			selection.add("(" + OpenBikeDBAdapter.KEY_BIKES + " >= 1 )");
 		else if (filter.isShowOnlyWithSlots())
-			selection.add("(" + VcuboidDBAdapter.KEY_SLOTS + " >= 1 )");
+			selection.add("(" + OpenBikeDBAdapter.KEY_SLOTS + " >= 1 )");
 		int size = selection.size();
 		if (size == 0)
 			return null;

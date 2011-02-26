@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid;
+package fr.openbike;
 
 import android.location.Location;
 
-public interface IVcuboidActivity {
+public interface IOpenBikeActivity {
 	public void showGetAllStationsOnProgress();
 	public void updateGetAllStationsOnProgress(int progress);
 	public void finishGetAllStationsOnProgress();

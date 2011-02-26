@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.map;
+package fr.openbike.map;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -32,7 +32,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
-import fr.vcuboid.R;
+import fr.openbike.R;
 
 public class MyLocationOverlay extends Overlay {
 	private Bitmap mMarker;
@@ -43,7 +43,7 @@ public class MyLocationOverlay extends Overlay {
 	private Paint paint = new Paint();
 
 	public MyLocationOverlay(Context context, MapView mapView) {
-		Log.e("Vcuboid", "MyLocationOverlay");
+		Log.e("OpenBike", "MyLocationOverlay");
 		mMarker = BitmapFactory.decodeResource(context.getResources(), 
 				R.drawable.ic_maps_indicator_current_position);
 		mShiftX = mMarker.getWidth() / 2;

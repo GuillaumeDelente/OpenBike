@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.filter;
+package fr.openbike.filter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.util.Log;
-import fr.vcuboid.map.StationOverlay;
-import fr.vcuboid.object.Station;
+import fr.openbike.map.StationOverlay;
+import fr.openbike.object.Station;
 
 public class Filtering {
 
@@ -34,8 +34,8 @@ public class Filtering {
 	}
 
 	public static void filter(ArrayList<StationOverlay> mVisibleStations,
-			VcubFilter mVcubFilter) {
-		Log.d("Vcuboid", "Filtering stations");
+			BikeFilter mVcubFilter) {
+		Log.d("OpenBike", "Filtering stations");
 		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
 				.hasNext();) {
 			Station s = ((StationOverlay) it.next()).getStation();

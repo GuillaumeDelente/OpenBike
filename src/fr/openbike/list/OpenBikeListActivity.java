@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.list;
+package fr.openbike.list;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -44,38 +44,38 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import fr.vcuboid.IVcuboidActivity;
-import fr.vcuboid.MyLocationProvider;
-import fr.vcuboid.R;
-import fr.vcuboid.RestClient;
-import fr.vcuboid.StationDetails;
-import fr.vcuboid.VcuboidManager;
-import fr.vcuboid.list.VcuboidArrayAdaptor.ViewHolder;
-import fr.vcuboid.map.VcuboidMapActivity;
-import fr.vcuboid.object.Station;
+import fr.openbike.IOpenBikeActivity;
+import fr.openbike.MyLocationProvider;
+import fr.openbike.OpenBikeManager;
+import fr.openbike.R;
+import fr.openbike.RestClient;
+import fr.openbike.StationDetails;
+import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
+import fr.openbike.map.OpenBikeMapActivity;
+import fr.openbike.object.Station;
 
-public class VcuboidListActivity extends ListActivity implements
-		IVcuboidActivity {
+public class OpenBikeListActivity extends ListActivity implements
+		IOpenBikeActivity {
 
-	private VcuboidManager mVcuboidManager = null;
-	private VcuboidArrayAdaptor mAdapter = null;
+	private OpenBikeManager mVcuboidManager = null;
+	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
 	private int mSelected = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.i("Vcuboid", "OnCreate");
+		Log.i("OpenBike", "OnCreate");
 		setContentView(R.layout.station_list);
-		mVcuboidManager = (VcuboidManager) getLastNonConfigurationInstance();
+		mVcuboidManager = (OpenBikeManager) getLastNonConfigurationInstance();
 		if (mVcuboidManager == null) { // No AsyncTask running
-			Log.d("Vcuboid", "Bundle empty");
-			mVcuboidManager = VcuboidManager.getVcuboidManagerInstance(this);
+			Log.d("OpenBike", "Bundle empty");
+			mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		} else {
-			Log.d("Vcuboid", "Recovering from bundle");
+			Log.d("OpenBike", "Recovering from bundle");
 			mVcuboidManager.attach(this);
 		}
-		mAdapter = new VcuboidArrayAdaptor(this, R.layout.station_list_entry,
+		mAdapter = new OpenBikeArrayAdaptor(this, R.layout.station_list_entry,
 				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
 		final Intent intent = new Intent(this, StationDetails.class);
@@ -83,9 +83,9 @@ public class VcuboidListActivity extends ListActivity implements
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				Log.i("Vcuboid", "Item clicked");
+				Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id",
-						(Integer) ((VcuboidArrayAdaptor.ViewHolder) view
+						(Integer) ((OpenBikeArrayAdaptor.ViewHolder) view
 								.getTag()).favorite.getTag());
 				startActivity(intent);
 			}
@@ -101,7 +101,7 @@ public class VcuboidListActivity extends ListActivity implements
 		// Cannot remove update even
 		// if it's sometime useless
 		onListUpdated();
-		Log.i("Vcuboid", "onResume " + this);
+		Log.i("OpenBike", "onResume " + this);
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class VcuboidListActivity extends ListActivity implements
 		super.onPause();
 		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
-		Log.i("Vcuboid", "onPause");
+		Log.i("OpenBike", "onPause");
 	}
 
 	@Override
@@ -134,7 +134,7 @@ public class VcuboidListActivity extends ListActivity implements
 			startActivity(new Intent(this, ListFilterActivity.class));
 			return true;
 		case R.id.menu_map:
-			startActivity(new Intent(this, VcuboidMapActivity.class));
+			startActivity(new Intent(this, OpenBikeMapActivity.class));
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -163,7 +163,7 @@ public class VcuboidListActivity extends ListActivity implements
 		Station station;
 		switch (item.getItemId()) {
 		case R.id.show_on_map:
-			intent = new Intent(this, VcuboidMapActivity.class);
+			intent = new Intent(this, OpenBikeMapActivity.class);
 			intent.putExtra("id", mSelected);
 			startActivity(intent);
 			return true;
@@ -214,20 +214,20 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void showGetAllStationsOnProgress() {
-		Log.i("Vcuboid", "showGetAllStationsOnProgress");
-		showDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
+		Log.i("OpenBike", "showGetAllStationsOnProgress");
+		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
-		Log.i("Vcuboid", "updateGetAllStationsOnProgress");
+		Log.i("OpenBike", "updateGetAllStationsOnProgress");
 		mPdialog.setMessage(getString(R.string.saving_db_summary));
 	}
 
 	@Override
 	public void finishGetAllStationsOnProgress() {
 		// onListUpdated();
-		dismissDialog(VcuboidManager.RETRIEVE_ALL_STATIONS);
+		dismissDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	public void setEmptyList() {
@@ -291,7 +291,7 @@ public class VcuboidListActivity extends ListActivity implements
 
 	@Override
 	public void onListUpdated() {
-		Log.i("Vcuboid", "notifyDataSetChanged");
+		Log.i("OpenBike", "notifyDataSetChanged");
 		mAdapter.notifyDataSetChanged();
 	}
 
@@ -330,7 +330,7 @@ public class VcuboidListActivity extends ListActivity implements
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
-			Log.i("Vcuboid", "onPrepareDialog : ENABLE_GPS");
+			Log.i("OpenBike", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -351,7 +351,7 @@ public class VcuboidListActivity extends ListActivity implements
 								}
 							}).create();
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
-			Log.i("Vcuboid", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"
@@ -371,13 +371,13 @@ public class VcuboidListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case VcuboidManager.RETRIEVE_ALL_STATIONS:
-			mPdialog = new ProgressDialog(VcuboidListActivity.this);
+		case OpenBikeManager.RETRIEVE_ALL_STATIONS:
+			mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 			mPdialog.setCancelable(false);
 			mPdialog.setTitle(getString(R.string.retrieve_all));
 			mPdialog.setMessage((getString(R.string.querying_server_summary)));
 			return mPdialog;
-		case VcuboidManager.REMOVE_FROM_FAVORITE:
+		case OpenBikeManager.REMOVE_FROM_FAVORITE:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.remove_favorite)).setMessage(
 					(getString(R.string.remove_favorite_sure)))
@@ -408,7 +408,7 @@ public class VcuboidListActivity extends ListActivity implements
 			mVcuboidManager.setFavorite(id, true);
 			onListUpdated();
 		} else {
-			showDialog(VcuboidManager.REMOVE_FROM_FAVORITE);
+			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);
 		}
 	}
 }

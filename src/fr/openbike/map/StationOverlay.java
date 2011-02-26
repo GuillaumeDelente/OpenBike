@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.vcuboid.map;
+package fr.openbike.map;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,9 +38,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
-import fr.vcuboid.R;
-import fr.vcuboid.object.Station;
-import fr.vcuboid.utils.Utils;
+import fr.openbike.R;
+import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
 public class StationOverlay extends Overlay {
 
@@ -127,7 +127,7 @@ public class StationOverlay extends Overlay {
 
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
-		//Log.d("Vcuboid", "OnTap : ");
+		//Log.d("OpenBike", "OnTap : ");
 		Point touched = new Point();
 		Point marker = new Point();
 		Projection projection = mapView.getProjection();
@@ -136,7 +136,7 @@ public class StationOverlay extends Overlay {
 		if (touched.x >= marker.x && touched.x <= marker.x + mMarkerWidth
 				&& touched.y <= marker.y
 				&& touched.y >= marker.y - mMarkerHeight) {
-			Log.d("Vcuboid", "station");
+			Log.d("OpenBike", "station");
 			boolean isRecycled;
 			if (mBalloonView == null) {
 				mBalloonView = new BalloonOverlayView(mapView.getContext(),
@@ -167,7 +167,7 @@ public class StationOverlay extends Overlay {
 			mMc.animateTo(mStation.getGeoPoint());
 			return true;
 		} else {
-			//Log.d("Vcuboid", "not a station");
+			//Log.d("OpenBike", "not a station");
 			if (this == mMapOverlays.get(0))
 				hideOtherBalloons();
 			return false;
@@ -183,7 +183,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
-		Log.i("Vcuboid", "hideBalloon " + mStation.getId());
+		Log.i("OpenBike", "hideBalloon " + mStation.getId());
 		if (mIsCurrent) {
 			mIsCurrent = false;
 			if (mBalloonView != null) {				
@@ -191,12 +191,12 @@ public class StationOverlay extends Overlay {
 				mBalloonView.setVisibility(View.GONE);
 			}
 		} else {
-			Log.d("Vcuboid", "isNotCurrent");
+			Log.d("OpenBike", "isNotCurrent");
 		}
 	}
 	
 	public static void hideBalloonWithNoStation() {
-		Log.i("Vcuboid", "Hide balloon without Station");
+		Log.i("OpenBike", "Hide balloon without Station");
 		if (mBalloonView != null) {				
 			mBalloonView.disableListeners();
 			mBalloonView.setVisibility(View.GONE);
@@ -204,7 +204,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void refreshBalloon() {
-		Log.i("Vcuboid", "Refreshing Balloon");
+		Log.i("OpenBike", "Refreshing Balloon");
 		if (mIsCurrent) {
 			if (mBalloonView != null) {
 				mBalloonView.disableListeners();
@@ -215,7 +215,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	private void hideOtherBalloons() {
-		Log.d("Vcuboid", "hideOtherBalloons");
+		Log.d("OpenBike", "hideOtherBalloons");
 		int size = mMapOverlays.size();
 		int baloonPosition = size
 				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
@@ -223,7 +223,7 @@ public class StationOverlay extends Overlay {
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			Log.d("Vcuboid", "before last not a StationOverlay");
+			Log.d("OpenBike", "before last not a StationOverlay");
 		}
 	}
 	
