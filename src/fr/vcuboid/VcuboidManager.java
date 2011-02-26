@@ -26,7 +26,6 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.test.IsolatedContext;
 import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
@@ -141,7 +140,7 @@ public class VcuboidManager {
 			}
 			return true;
 		} else {
-			new Exception("CreateVisibleStation already launched");
+			Log.e("Vcuboid", "VisibleStationsTask already launched");
 		}
 		return false;
 	}
@@ -151,6 +150,8 @@ public class VcuboidManager {
 			mUpdateAllStationsTask = (UpdateAllStationsTask) new UpdateAllStationsTask()
 					.execute();
 			return true;
+		} else {
+			Log.e("Vcuboid", "VisibleStationsTask already launched");
 		}
 		return false;
 	}
