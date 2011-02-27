@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010 Guillaume Delente
+ * Copyright (C) 2011 Guillaume Delente
  *
- * This file is part of .
+ * This file is part of OpenBike.
  *
- * Vcuboid is free software: you can redistribute it and/or modify
+ * OpenBike is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
  *
- * Vcuboid is distributed in the hope that it will be useful,
+ * OpenBike is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.openbike.object;
 
@@ -38,26 +38,30 @@ public class Station {
 	private boolean mIsOpen;
 	private boolean mIsFavorite;
 	private boolean mHasPayment;
+	private boolean mIsSpecial;
 
 	public Station(int id, String network, String name, String address,
 			double longitude, double latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment) {
+			int freeLocations, boolean isOpen, boolean isFavorite,
+			boolean hasPayment, boolean isSpecial) {
 		this(id, network, name, address, (int) (longitude * 1E6),
 				(int) (latitude * 1E6), availablesBikes, freeLocations,
-				isOpen, isFavorite, hasPayment);
+				isOpen, isFavorite, hasPayment, isSpecial);
 	}
 	
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment) {
+			int freeLocations, boolean isOpen, boolean isFavorite, 
+			boolean hasPayment, boolean isSpecial) {
 		this(id, network, name, address, longitude,
 				latitude, availablesBikes, freeLocations,
-				isOpen, isFavorite, hasPayment, -1);
+				isOpen, isFavorite, hasPayment, isSpecial, -1);
 	}
 
 	public Station(int id, String network, String name, String address,
 			int longitude, int latitude, int availablesBikes,
-			int freeLocations, boolean isOpen, boolean isFavorite, boolean hasPayment, int distance) {
+			int freeLocations, boolean isOpen, boolean isFavorite, 
+			boolean hasPayment, boolean isSpecial, int distance) {
 		mId = id;
 		mNetwork = network;
 		mAddress = address;
@@ -69,6 +73,7 @@ public class Station {
 		mIsFavorite = isFavorite;
 		mDistance = distance;
 		mHasPayment = hasPayment;
+		mIsSpecial = isSpecial;
 	}
 
 	public Station() {
@@ -164,5 +169,13 @@ public class Station {
 	
 	public void setPayment(boolean hasPayment) {
 		mHasPayment = hasPayment;
+	}	
+	
+	public boolean isSpecial() {
+		return mIsSpecial;
+	}
+	
+	public void setSpecial(boolean isSpecial) {
+		mIsSpecial = isSpecial;
 	}
 }

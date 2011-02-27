@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010 Guillaume Delente
+ * Copyright (C) 2011 Guillaume Delente
  *
- * This file is part of .
+ * This file is part of OpenBike.
  *
- * Vcuboid is free software: you can redistribute it and/or modify
+ * OpenBike is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
  *
- * Vcuboid is distributed in the hope that it will be useful,
+ * OpenBike is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.openbike;
 
@@ -112,13 +112,13 @@ public class RestClient {
 	}
 
 	public static boolean jsonStationsToDb(String json,
-			OpenBikeDBAdapter vcuboidDBAdapter) {
+			OpenBikeDBAdapter openBikeDBAdapter) {
 		Log.i("OpenBike", "jsonStationsToDb");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				vcuboidDBAdapter.insertStation(jsonStation.getInt("id"),
+				openBikeDBAdapter.insertStation(jsonStation.getInt("id"),
 						jsonStation.getString("name"), jsonStation
 								.getString("address"), jsonStation
 								.getString("network"), jsonStation
@@ -127,7 +127,8 @@ public class RestClient {
 								.getInt("availableBikes"), jsonStation
 								.getInt("freeSlots"), jsonStation
 								.getBoolean("open"), jsonStation
-								.getBoolean("payment"));
+								.getBoolean("payment"), jsonStation
+								.getBoolean("special"));
 			}
 			return true;
 		} catch (JSONException e) {
@@ -162,7 +163,7 @@ public class RestClient {
 	}
 
 	public static boolean updateDbFromJson(String json,
-			OpenBikeDBAdapter vcuboidDBAdapter) {
+			OpenBikeDBAdapter openBikeDBAdapter) {
 		Log.i("OpenBike", "updateDbFromJson");
 		try {
 			boolean success = true;
@@ -170,10 +171,24 @@ public class RestClient {
 			JSONObject jsonStation;
 			for (int i = 0; i < jsonArray.length(); i++) {
 				jsonStation = jsonArray.getJSONObject(i);
-				if (!vcuboidDBAdapter.updateStation(jsonStation.getInt("id"),
+				if (!openBikeDBAdapter.updateStation(jsonStation.getInt("id"),
 						jsonStation.getInt("availableBikes"), jsonStation
 								.getInt("freeSlots"), jsonStation
 								.getBoolean("open"))) {
+					Log.i("OpenBike", "update DB failed, station " 
+							+ jsonStation.getInt("id") + " try to insert it");
+					// New station ? Try to insert it
+					if (openBikeDBAdapter.insertStation(jsonStation.getInt("id"),
+							jsonStation.getString("name"), jsonStation
+									.getString("address"), jsonStation
+									.getString("network"), jsonStation
+									.getDouble("latitude"), jsonStation
+									.getDouble("longitude"), jsonStation
+									.getInt("availableBikes"), jsonStation
+									.getInt("freeSlots"), jsonStation
+									.getBoolean("open"), jsonStation
+									.getBoolean("payment"), jsonStation
+									.getBoolean("special")) == -1)
 					success = false;
 				}
 

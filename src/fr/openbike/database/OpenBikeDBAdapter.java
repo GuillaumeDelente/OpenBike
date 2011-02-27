@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010 Guillaume Delente
+ * Copyright (C) 2011 Guillaume Delente
  *
- * This file is part of .
+ * This file is part of OpenBike.
  *
- * Vcuboid is free software: you can redistribute it and/or modify
+ * OpenBike is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
  *
- * Vcuboid is distributed in the hope that it will be useful,
+ * OpenBike is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.openbike.database;
 
@@ -43,6 +43,7 @@ public class OpenBikeDBAdapter {
 	public static final int NETWORK_COLUMN = 8;
 	public static final int FAVORITE_COLUMN = 9;
 	public static final int PAYMENT_COLUMN = 10;
+	public static final int SPECIAL_COLUMN = 11;
 	
 	private SQLiteDatabase mDb;
 	private OpenBikeDBOpenHelper mDbHelper;
@@ -57,6 +58,7 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_NETWORK = "network";
 	public static final String KEY_FAVORITE = "isFavorite";
 	public static final String KEY_PAYMENT = "hasPayment";
+	public static final String KEY_SPECIAL = "isSpecial";
 	
 	//TODO: remove this, only for debugging
 	private static final String DATABASE_CREATE = "create table "
@@ -71,7 +73,8 @@ public class OpenBikeDBAdapter {
 		+ KEY_LONGITUDE + " integer not null, "
 		+ KEY_NETWORK + " text not null, " 
 		+ KEY_FAVORITE + " integer not null, "
-		+ KEY_PAYMENT + " integer not null );";
+		+ KEY_PAYMENT + " integer not null, "
+		+ KEY_SPECIAL + " integer not null );";
 
 	public OpenBikeDBAdapter(Context context) {
 		//mContext = context;
@@ -102,7 +105,7 @@ public class OpenBikeDBAdapter {
 	// Insert a new task
 	public long insertStation(int id, String name, String address,
 			String network, double latitude, double longitude, int bikes, int slots,
-			 boolean open, boolean payment) {
+			 boolean open, boolean payment, boolean isSpecial) {
 		// Create a new row of values to insert.
 		ContentValues newVcubValues = new ContentValues();
 		// Assign values for each row.
@@ -117,6 +120,7 @@ public class OpenBikeDBAdapter {
 		newVcubValues.put(KEY_NETWORK, network);
 		newVcubValues.put(KEY_FAVORITE, false);
 		newVcubValues.put(KEY_PAYMENT, payment);
+		newVcubValues.put(KEY_SPECIAL, isSpecial);
 		// Insert the row.
 		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
 	}
@@ -150,20 +154,20 @@ public class OpenBikeDBAdapter {
 	public Cursor getAllStationsCursor() {
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, null, null, null, null, null);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, null, null, null, null, null);
 	}
 	
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
 		Log.e("OpenBike", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, where, null, null, null, orderBy);
+				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, where, null, null, null, orderBy);
 	}
 
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
 				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT }, KEY_ID + "=" + id,
+				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, KEY_ID + "=" + id,
 				null, null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
@@ -178,7 +182,8 @@ public class OpenBikeDBAdapter {
 				cursor.getInt(SLOTS_COLUMN),
 				cursor.getInt(OPEN_COLUMN) != 0,
 				cursor.getInt(FAVORITE_COLUMN) != 0,
-				cursor.getInt(PAYMENT_COLUMN) != 0);
+				cursor.getInt(PAYMENT_COLUMN) != 0,
+				cursor.getInt(SPECIAL_COLUMN) != 0);
 		return result;
 	}
 	

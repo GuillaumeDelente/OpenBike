@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010 Guillaume Delente
+ * Copyright (C) 2011 Guillaume Delente
  *
- * This file is part of .
+ * This file is part of OpenBike.
  *
- * Vcuboid is free software: you can redistribute it and/or modify
+ * OpenBike is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
  *
- * Vcuboid is distributed in the hope that it will be useful,
+ * OpenBike is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Vcuboid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
 package fr.openbike;
 
@@ -53,6 +53,7 @@ public class StationDetails extends Activity {
 	private TextView mSlots = null;
 	private TextView mAddress = null;
 	private TextView mCreditCard = null;
+	private TextView mSpecial = null;
 	private CheckBox mFavorite = null;
 	private ImageButton mNavigate = null;
 	private ImageButton mGoogleMaps = null;
@@ -67,6 +68,7 @@ public class StationDetails extends Activity {
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
 		mCreditCard = (TextView) findViewById(R.id.cc);
+		mSpecial = (TextView) findViewById(R.id.special);
 		mAddress = (TextView) findViewById(R.id.address);
 		mNavigate = (ImageButton) findViewById(R.id.navigate);
 		mGoogleMaps = (ImageButton) findViewById(R.id.show_google_maps);
@@ -154,6 +156,11 @@ public class StationDetails extends Activity {
 						+ " : "
 						+ getString(mStation.hasPayment() ? R.string.yes
 								: R.string.no));
+		mSpecial
+		.setText(getString(R.string.special)
+				+ " : "
+				+ getString(mStation.isSpecial() ? R.string.yes
+						: R.string.no));
 		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.upper_at) + " "
 					+ Utils.formatDistance(mStation.getDistance()));
