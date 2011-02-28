@@ -85,6 +85,11 @@ public class RestClient {
 		HttpResponse response;
 		try {
 			response = httpclient.execute(httpget);
+			if (response.getStatusLine().getStatusCode() != 200) {
+				Log.i("OpenBike", "Bad Status code : " 
+						+ response.getStatusLine().getStatusCode());
+				return null;
+			}
 			// Examine the response status
 			Log.i("JSON", response.getStatusLine().toString());
 

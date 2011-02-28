@@ -368,7 +368,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 		if (mMyLocationOverlay != null) {
 			mMapOverlays.add(mMyLocationOverlay);
 		}
-		// mMapView.invalidate();
+		mMapView.invalidate();
 	}
 
 	@Override
