@@ -2,29 +2,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="fr.openbike"
       android:versionCode="1"
-      android:versionName="1.0">
+      android:versionName="Beta 1">
       <supports-screens 
-                  android:smallScreens="false"
-                  android:normalScreens="true"
-                  android:largeScreens="true"
-                  />
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+      	android:smallScreens="false"
+      	android:normalScreens="true"
+      	android:largeScreens="true"
+       />
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="OpenBike">
     	<uses-library android:name="com.google.android.maps" />
         <activity android:name=".list.OpenBikeListActivity"
                   android:label="@string/app_name"
                   android:launchMode = "singleTask"
+                  android:theme="@android:style/Theme.NoTitleBar"
                   >
                     <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-         <activity android:name=".map.OpenBikeMapActivity" android:label="@string/app_name"
-        		android:launchMode = "singleTask" />
-		<activity android:name=".list.ListFilterActivity" android:label="@string/app_name" />
-		<activity android:name=".map.MapFilterActivity" />
-		<activity android:name=".map.StationMapFilterActivity" />
-		<activity android:name=".StationDetails" />
+         <activity android:name=".map.OpenBikeMapActivity" 
+         		android:launchMode = "singleTask" 
+        		android:theme="@android:style/Theme.NoTitleBar"/>
+		<activity android:name=".list.ListFilterActivity" 
+					android:label="@string/configuration_title"/>
+		<activity android:name=".map.MapFilterActivity" 
+					android:label="@string/configuration_title" />
+		<activity android:name=".map.StationMapFilterActivity" 
+					android:label="@string/configuration_title" />
+		<activity android:name=".StationDetails"/>
     </application>
 <uses-sdk android:minSdkVersion="4" />
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

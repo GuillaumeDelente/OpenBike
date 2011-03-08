@@ -32,7 +32,6 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -73,7 +72,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.i("OpenBike", "Map on create");
+		//Log.i("OpenBike", "Map on create");
 		setContentView(R.layout.map_layout);
 		mMapView = (MapView) findViewById(R.id.map_view);
 		mMapController = mMapView.getController();
@@ -108,12 +107,12 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 		if (bundle == null || !bundle.containsKey("id")) {
 			mIsShowStationMode = false;
 			mVcuboidManager.setShowStationMode(-1);
-			Log.d("OpenBike", "No key !");
+			//Log.d("OpenBike", "No key !");
 		} else if (bundle.containsKey("id")) {
 			setIntent(intent);
 			mIsShowStationMode = true;
 			mVcuboidManager.setShowStationMode(bundle.getInt("id"));
-			Log.d("OpenBike", "Key = " + bundle.getInt("id"));
+			//Log.d("OpenBike", "Key = " + bundle.getInt("id"));
 		}
 	}
 
@@ -125,15 +124,15 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 			if (overlay instanceof StationOverlay) {
 				((StationOverlay) overlay).hideBalloon();
 			} else {
-				Log.e("Balloon",
-						"hideOtherBalloons, before last not a StationOverlay");
+				//Log.e("Balloon",
+				//		"hideOtherBalloons, before last not a StationOverlay");
 			}
 		}
 	}
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		Log.i("OpenBike", "onPrepareOptionsMenu");
+		//Log.i("OpenBike", "onPrepareOptionsMenu");
 		if (mRefreshMenu) {
 			MenuInflater inflater = getMenuInflater();
 			menu.clear();
@@ -146,7 +145,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Log.i("OpenBike", "onCreateOptionsMenu");
+		//Log.i("OpenBike", "onCreateOptionsMenu");
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate((mIsShowStationMode ? R.menu.station_map_menu
 				: R.menu.map_menu), menu);
@@ -157,7 +156,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.menu_map_preferences:
+		case R.id.menu_settings:
 			startActivity(new Intent(this, MapFilterActivity.class));
 			return true;
 		case R.id.menu_list:
@@ -167,7 +166,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 			startActivity(new Intent(this, OpenBikeMapActivity.class));
 			return true;
 		case R.id.menu_update_all:
-			mVcuboidManager.executeUpdateAllStationsTask();
+			mVcuboidManager.executeUpdateAllStationsTask(true);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -221,7 +220,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 
 	@Override
 	public void onDestroy() {
-		Log.i("OpenBike", "Map : onDestroy");
+		//Log.i("OpenBike", "Map : onDestroy");
 		super.onDestroy();
 	}
 
@@ -266,7 +265,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 			if (overlay instanceof StationOverlay) {
 				((StationOverlay) overlay).getStation().setFavorite(true);
 			} else {
-				Log.d("OpenBike", "before last not a StationOverlay");
+				//Log.d("OpenBike", "before last not a StationOverlay");
 			}
 			// onListUpdated();
 		} else {
@@ -448,7 +447,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
-			Log.i("OpenBike", "onPrepareDialog : ENABLE_GPS");
+			//Log.i("OpenBike", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -469,7 +468,7 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 								}
 							}).create();
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
-			Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			//Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"

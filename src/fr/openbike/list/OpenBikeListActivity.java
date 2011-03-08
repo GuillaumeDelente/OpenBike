@@ -26,7 +26,6 @@ import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -65,14 +64,14 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.i("OpenBike", "OnCreate");
+		//Log.i("OpenBike", "OnCreate");
 		setContentView(R.layout.station_list);
 		mVcuboidManager = (OpenBikeManager) getLastNonConfigurationInstance();
 		if (mVcuboidManager == null) { // No AsyncTask running
-			Log.d("OpenBike", "Bundle empty");
+			//Log.d("OpenBike", "Bundle empty");
 			mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		} else {
-			Log.d("OpenBike", "Recovering from bundle");
+			//Log.d("OpenBike", "Recovering from bundle");
 			mVcuboidManager.attach(this);
 		}
 		mAdapter = new OpenBikeArrayAdaptor(this, R.layout.station_list_entry,
@@ -83,7 +82,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				Log.i("OpenBike", "Item clicked");
+				//Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id",
 						(Integer) ((OpenBikeArrayAdaptor.ViewHolder) view
 								.getTag()).favorite.getTag());
@@ -101,7 +100,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		// Cannot remove update even
 		// if it's sometime useless
 		onListUpdated();
-		Log.i("OpenBike", "onResume " + this);
+		//Log.i("OpenBike", "onResume " + this);
 	}
 
 	@Override
@@ -109,7 +108,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		super.onPause();
 		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
-		Log.i("OpenBike", "onPause");
+		//Log.i("OpenBike", "onPause");
 	}
 
 	@Override
@@ -123,14 +122,10 @@ public class OpenBikeListActivity extends ListActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.menu_clear_db:
-			mVcuboidManager.clearDB();
-			finish();
-			return true;
 		case R.id.menu_update_all:
-			mVcuboidManager.executeUpdateAllStationsTask();
+			mVcuboidManager.executeUpdateAllStationsTask(true);
 			return true;
-		case R.id.menu_filters:
+		case R.id.menu_settings:
 			startActivity(new Intent(this, ListFilterActivity.class));
 			return true;
 		case R.id.menu_map:
@@ -214,13 +209,13 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void showGetAllStationsOnProgress() {
-		Log.i("OpenBike", "showGetAllStationsOnProgress");
+		//Log.i("OpenBike", "showGetAllStationsOnProgress");
 		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
-		Log.i("OpenBike", "updateGetAllStationsOnProgress");
+		//Log.i("OpenBike", "updateGetAllStationsOnProgress");
 		mPdialog.setMessage(getString(R.string.saving_db_summary));
 	}
 
@@ -285,13 +280,15 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onLocationChanged(Location l) {
 		onListUpdated();
+		if (l == null)
+			return;
 		Toast.makeText(this, getString(R.string.position_updated),
 				Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
 	public void onListUpdated() {
-		Log.i("OpenBike", "notifyDataSetChanged");
+		//Log.i("OpenBike", "notifyDataSetChanged");
 		mAdapter.notifyDataSetChanged();
 	}
 
@@ -330,7 +327,6 @@ public class OpenBikeListActivity extends ListActivity implements
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
-			Log.i("OpenBike", "onPrepareDialog : ENABLE_GPS");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -351,7 +347,7 @@ public class OpenBikeListActivity extends ListActivity implements
 								}
 							}).create();
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
-			Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			//Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"

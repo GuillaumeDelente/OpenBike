@@ -14,6 +14,9 @@
 	<string name="navigate_to">Naviguer vers</string>
 	<string name="show_details">Afficher plus d\'informations</string>
 	
+	<!-- Titles -->
+	<string name="configuration_title">OpenBike - Configuration</string>
+	
 	<!--  Dialogs -->
 	<string name="yes">Oui</string>
 	<string name="no">Non</string>
@@ -40,10 +43,13 @@
 	<string name="remove_favorite_sure">Êtes-vous certain de vouloir enlever cette station des favoris ?</string>
 	<string name="position_updated">Votre position à été mise à jour.</string>
 	<string name="already_uptodate">Les données sont à jour.</string>
+	<string name="crash_toast_text">OpenBike a crashé mais un rapport a été envoyé au développeur pour 
+	réparer le bug au plus vite !</string>
+	<string name="reset_dialog_title">Remize à zéro des stations</string>
+	<string name="reset_dialog_message">Attention ! Cela supprimera vos stations favorites, voulez vous continuer ?</string>
 	
 	<!--  Preferences -->
-	<string name="menu_filters_title">Filtres</string>
-	<string name="menu_map_preferences_title">Configuration</string>
+	<string name="menu_settings_title">Configuration</string>
 	<string name="filter_preferences_title">Configuration des filtres</string>
 	<string name="map_preferences_title">Configuration de la carte</string>
 	<string name="favorite_filter">favorite_filter</string>
@@ -69,6 +75,12 @@
 	<string name="center_on_location_title">Centrer sur ma position</string>
 	<string name="center_on_location_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
+	<string name="other_preferences_title">Autre</string>
+	<string name="reporting_title">Rapports de bug</string>
+	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash (pris en compte au prochain lancement).</string>
+	<string name="reset_stations">reset_stations</string>
+	<string name="reset_stations_title">RAZ des stations</string>
+	<string name="reset_stations_summary">Efface toutes les stations de la base de donnée.</string>
 	
 	<!--  Autre -->	
 	<string name="bikes">vélos</string>

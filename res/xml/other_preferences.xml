@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+   <PreferenceCategory
+            android:title="@string/other_preferences_title">
+		<CheckBoxPreference android:key="acra.enable"
+		        android:title="@string/reporting_title"
+		        android:summary="@string/reporting_summary"
+		        android:defaultValue="true"/>
+		    
+		   <Preference android:key="@string/reset_stations"
+		        android:title="@string/reset_stations_title"
+		        android:summary="@string/reset_stations_summary" />
+		    </PreferenceCategory>
+</PreferenceScreen>

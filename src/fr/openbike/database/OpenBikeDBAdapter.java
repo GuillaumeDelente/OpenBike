@@ -29,6 +29,8 @@ import android.util.Log;
 import fr.openbike.object.Station;
 
 public class OpenBikeDBAdapter {
+	
+	private static boolean mIsFirstUse = false;
 	private static final String DATABASE_NAME = "openbike.db";
 	private static final String DATABASE_TABLE = "openbike";
 	private static final int DATABASE_VERSION = 1;
@@ -139,7 +141,7 @@ public class OpenBikeDBAdapter {
 	}
 	
 	public boolean updateFavorite(int id, boolean isFavorite) {
-		Log.e("OpenBike", "updateFavorite " + id + " est " + isFavorite);
+		//Log.e("OpenBike", "updateFavorite " + id + " est " + isFavorite);
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
 		return mDb.update(DATABASE_TABLE, newValues, KEY_ID + "=" + id, null) > 0;
@@ -158,7 +160,7 @@ public class OpenBikeDBAdapter {
 	}
 	
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
-		Log.e("OpenBike", "In db : getFilteredStationsCursor");
+		//Log.e("OpenBike", "In db : getFilteredStationsCursor");
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ID, KEY_ADDRESS,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
 				KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, where, null, null, null, orderBy);
@@ -187,12 +189,16 @@ public class OpenBikeDBAdapter {
 		return result;
 	}
 	
-	public int getStationCount()  throws SQLException {
+	public int getStationCount() throws SQLException {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM " + DATABASE_TABLE, null);
 		cursor.moveToNext();
 		int count = cursor.getInt(0);
 		cursor.close();
 		return count;
+	}
+	
+	public boolean isFirstUse() {
+		return mIsFirstUse;
 	}
 
 	private static class OpenBikeDBOpenHelper extends SQLiteOpenHelper {
@@ -214,6 +220,7 @@ public class OpenBikeDBAdapter {
 		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
+			mIsFirstUse = true;
 			db.execSQL(DATABASE_CREATE);
 		}
 

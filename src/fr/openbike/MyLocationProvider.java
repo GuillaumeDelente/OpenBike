@@ -24,7 +24,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 
 public class MyLocationProvider implements LocationListener {
 
@@ -47,13 +46,21 @@ public class MyLocationProvider implements LocationListener {
 
 	public MyLocationProvider(Context context, OpenBikeManager vcuboidManager) {
 		// this.context = context;
-		Log.e("OpenBike", "MyLocationProvider");
+		//Log.e("OpenBike", "MyLocationProvider");
 		mLocationManager = (LocationManager) context
 				.getSystemService(Context.LOCATION_SERVICE);
 		mVcuboidManager = vcuboidManager;
 		enableMyLocation();
 	}
 
+	public boolean isGpsEnabled() {
+		return mIsGpsAvailable;
+	}
+	
+	public boolean isProviderEnabled() {
+		return mIsGpsAvailable || mIsNetworkAvailable;
+	}
+	
 	public boolean isLocationAvailable() {
 		return mLastFix != null;
 	}
@@ -61,16 +68,16 @@ public class MyLocationProvider implements LocationListener {
 	public synchronized void enableMyLocation() {
 		if (!mIsInPause)
 			return;
-		Log.i("OpenBike", "MyLocationProvider : enable location");
+		//Log.i("OpenBike", "MyLocationProvider : enable location");
 		mIsInPause = false;
 		List<String> providers = mLocationManager.getProviders(false);
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
-			Log.i("OpenBike", "Updates for Network provider");
+			//Log.i("OpenBike", "Updates for Network provider");
 			mLocationManager.requestLocationUpdates(
 					LocationManager.NETWORK_PROVIDER, MINIMUM_ELAPSED_NETWORK, MINIMUM_DISTANCE_NETWORK, this);
 		}
 		if (providers.contains(LocationManager.GPS_PROVIDER)) {
-			Log.i("OpenBike", "Updater for GPS provider");
+			//Log.i("OpenBike", "Updater for GPS provider");
 			mLocationManager.requestLocationUpdates(
 					LocationManager.GPS_PROVIDER, MINIMUM_ELAPSED_GPS, MINIMUM_DISTANCE_GPS, this);
 		}
@@ -84,7 +91,7 @@ public class MyLocationProvider implements LocationListener {
 		mIsGpsUsed = false;
 		mIsNetworkAvailable = true;
 		mIsGpsAvailable = true;
-		Log.e("OpenBike", "Location provider On Pause");
+		//Log.e("OpenBike", "Location provider On Pause");
 	}
 
 	public Location getMyLocation() {
@@ -100,15 +107,15 @@ public class MyLocationProvider implements LocationListener {
 				(mIsGpsUsed ? MINIMUM_DISTANCE_GPS : MINIMUM_DISTANCE_NETWORK))
 			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-			Log.i("OpenBike", "GPS Fix");
+			//Log.i("OpenBike", "GPS Fix");
 			mLastFix = location;
 			mVcuboidManager.onLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER) && !mIsGpsUsed) {
-			Log.i("OpenBike", "Network Fix");
+			//Log.i("OpenBike", "Network Fix");
 			if (mLastFix == null || !mIsGpsUsed) {
-				Log.i("OpenBike", "is first or the only one");
+				//Log.i("OpenBike", "is first or the only one");
 				mLastFix = location;
 				mVcuboidManager.onLocationChanged(location);
 			}
@@ -117,7 +124,7 @@ public class MyLocationProvider implements LocationListener {
 	
 	@Override
 	public void onProviderDisabled(String provider) {
-		Log.i("OpenBike", "onProviderDisabled " + provider);
+		//Log.i("OpenBike", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = false;
 			mIsGpsUsed = false;
@@ -139,7 +146,7 @@ public class MyLocationProvider implements LocationListener {
 
 	@Override
 	public void onProviderEnabled(String provider) {
-		Log.i("OpenBike", "onProviderEnabled : " + provider);
+		//Log.i("OpenBike", "onProviderEnabled : " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = true;
 		}

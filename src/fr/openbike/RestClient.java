@@ -33,7 +33,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.Station;
@@ -75,7 +74,7 @@ public class RestClient {
 	 * Connect to the server
 	 */
 	public static String connect(String url) {
-		Log.i("OpenBike", "connect");
+		//Log.i("OpenBike", "connect");
 		HttpClient httpclient = new DefaultHttpClient();
 
 		// Prepare a request object
@@ -86,12 +85,12 @@ public class RestClient {
 		try {
 			response = httpclient.execute(httpget);
 			if (response.getStatusLine().getStatusCode() != 200) {
-				Log.i("OpenBike", "Bad Status code : " 
-						+ response.getStatusLine().getStatusCode());
+				//Log.i("OpenBike", "Bad Status code : " 
+				//		+ response.getStatusLine().getStatusCode());
 				return null;
 			}
 			// Examine the response status
-			Log.i("JSON", response.getStatusLine().toString());
+			//Log.i("JSON", response.getStatusLine().toString());
 
 			// Get hold of the response entity
 			HttpEntity entity = response.getEntity();
@@ -118,7 +117,7 @@ public class RestClient {
 
 	public static boolean jsonStationsToDb(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
-		Log.i("OpenBike", "jsonStationsToDb");
+		//Log.i("OpenBike", "jsonStationsToDb");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -145,7 +144,7 @@ public class RestClient {
 
 	public static boolean updateListFromJson(String json,
 			ArrayList<StationOverlay> mVisibleStations) {
-		Log.i("OpenBike", "updateListFromJson");
+		//Log.i("OpenBike", "updateListFromJson");
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
@@ -155,7 +154,7 @@ public class RestClient {
 				station = mVisibleStations.get(i).getStation();
 				id = station.getId();
 				jsonStation = jsonArray.getJSONObject(id-1);
-				Log.e("OpenBike", "Station : " + id + " " + jsonStation.getInt("id"));
+				//Log.e("OpenBike", "Station : " + id + " " + jsonStation.getInt("id"));
 				station.setBikes(jsonStation.getInt("availableBikes"));
 				station.setSlots(jsonStation.getInt("freeSlots"));
 				station.setOpen(jsonStation.getBoolean("open"));
@@ -169,7 +168,7 @@ public class RestClient {
 
 	public static boolean updateDbFromJson(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
-		Log.i("OpenBike", "updateDbFromJson");
+		//Log.i("OpenBike", "updateDbFromJson");
 		try {
 			boolean success = true;
 			JSONArray jsonArray = new JSONArray(json);
@@ -180,8 +179,8 @@ public class RestClient {
 						jsonStation.getInt("availableBikes"), jsonStation
 								.getInt("freeSlots"), jsonStation
 								.getBoolean("open"))) {
-					Log.i("OpenBike", "update DB failed, station " 
-							+ jsonStation.getInt("id") + " try to insert it");
+					//Log.i("OpenBike", "update DB failed, station " 
+					//		+ jsonStation.getInt("id") + " try to insert it");
 					// New station ? Try to insert it
 					if (openBikeDBAdapter.insertStation(jsonStation.getInt("id"),
 							jsonStation.getString("name"), jsonStation

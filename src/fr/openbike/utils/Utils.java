@@ -22,8 +22,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
-import android.util.Log;
-
 import com.google.android.maps.Overlay;
 
 import fr.openbike.database.OpenBikeDBAdapter;
@@ -35,7 +33,7 @@ import fr.openbike.object.Station;
 public class Utils {
 
 	static public void sortStationsByDistance(List<? extends Overlay> list) {
-		Log.d("OpenBike", "Sorting stations by distance");
+		//Log.d("OpenBike", "Sorting stations by distance");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -65,7 +63,7 @@ public class Utils {
 	}
 
 	static public void sortStationsByName(List<? extends Overlay> list) {
-		Log.d("OpenBike", "Sorting stations by name");
+		//Log.d("OpenBike", "Sorting stations by name");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {

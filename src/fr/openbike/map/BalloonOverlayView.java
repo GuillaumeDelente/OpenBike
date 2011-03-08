@@ -17,7 +17,6 @@ package fr.openbike.map;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -82,7 +81,7 @@ public class BalloonOverlayView extends FrameLayout {
 		v.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Log.i("OpenBike", "Item clicked");
+				//Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id", (Integer) mFavorite.getTag());
 				mContext.startActivity(intent);
 			}
@@ -154,7 +153,7 @@ public class BalloonOverlayView extends FrameLayout {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView,
 				boolean isChecked) {
-			Log.d("OpenBike", "Checked : " + buttonView.getTag());
+			//Log.d("OpenBike", "Checked : " + buttonView.getTag());
 			((OpenBikeMapActivity) mContext).setFavorite((Integer) buttonView
 					.getTag(), isChecked);
 		}

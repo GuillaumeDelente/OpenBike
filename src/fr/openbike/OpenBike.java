@@ -15,20 +15,28 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.map;
+package fr.openbike;
 
-import android.os.Bundle;
-import android.preference.Preference;
-import fr.openbike.R;
-import fr.openbike.filter.FilterPreferencesActivity;
+import org.acra.ACRA;
+import org.acra.ReportingInteractionMode;
+import org.acra.annotation.ReportsCrashes;
 
-public class StationMapFilterActivity extends FilterPreferencesActivity {
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.map_preferences);
-	    addPreferencesFromResource(R.xml.location_preferences);
-	    addPreferencesFromResource(R.xml.other_preferences);
-	    mResetButton = (Preference) getPreferenceScreen().findPreference(getString(R.string.reset_stations));
-	}
+import android.app.Application;
+
+/**
+ * @author Guillaume Delente
+ *
+ */
+@ReportsCrashes(formKey = "dEpJRldPb3hJRXN1XzU0aGFwb2Vlanc6MQ",
+		mode = ReportingInteractionMode.TOAST,
+		resToastText = R.string.crash_toast_text)
+public class OpenBike extends Application {
+
+    @Override
+    public void onCreate() {
+        // The following line triggers the initialization of ACRA
+        ACRA.init(this);
+        super.onCreate();
+    }
+    
 }

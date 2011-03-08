@@ -28,7 +28,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.Paint.Align;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 
@@ -127,7 +126,7 @@ public class StationOverlay extends Overlay {
 
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
-		//Log.d("OpenBike", "OnTap : ");
+		////Log.d("OpenBike", "OnTap : ");
 		Point touched = new Point();
 		Point marker = new Point();
 		Projection projection = mapView.getProjection();
@@ -136,7 +135,7 @@ public class StationOverlay extends Overlay {
 		if (touched.x >= marker.x && touched.x <= marker.x + mMarkerWidth
 				&& touched.y <= marker.y
 				&& touched.y >= marker.y - mMarkerHeight) {
-			Log.d("OpenBike", "station");
+			//Log.d("OpenBike", "station");
 			boolean isRecycled;
 			if (mBalloonView == null) {
 				mBalloonView = new BalloonOverlayView(mapView.getContext(),
@@ -167,7 +166,7 @@ public class StationOverlay extends Overlay {
 			mMc.animateTo(mStation.getGeoPoint());
 			return true;
 		} else {
-			//Log.d("OpenBike", "not a station");
+			////Log.d("OpenBike", "not a station");
 			if (this == mMapOverlays.get(0))
 				hideOtherBalloons();
 			return false;
@@ -183,7 +182,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
-		Log.i("OpenBike", "hideBalloon " + mStation.getId());
+		//Log.i("OpenBike", "hideBalloon " + mStation.getId());
 		if (mIsCurrent) {
 			mIsCurrent = false;
 			if (mBalloonView != null) {				
@@ -191,12 +190,12 @@ public class StationOverlay extends Overlay {
 				mBalloonView.setVisibility(View.GONE);
 			}
 		} else {
-			Log.d("OpenBike", "isNotCurrent");
+			//Log.d("OpenBike", "isNotCurrent");
 		}
 	}
 	
 	public static void hideBalloonWithNoStation() {
-		Log.i("OpenBike", "Hide balloon without Station");
+		//Log.i("OpenBike", "Hide balloon without Station");
 		if (mBalloonView != null) {				
 			mBalloonView.disableListeners();
 			mBalloonView.setVisibility(View.GONE);
@@ -204,7 +203,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void refreshBalloon() {
-		Log.i("OpenBike", "Refreshing Balloon");
+		//Log.i("OpenBike", "Refreshing Balloon");
 		if (mIsCurrent) {
 			if (mBalloonView != null) {
 				mBalloonView.disableListeners();
@@ -215,7 +214,7 @@ public class StationOverlay extends Overlay {
 	}
 
 	private void hideOtherBalloons() {
-		Log.d("OpenBike", "hideOtherBalloons");
+		//Log.d("OpenBike", "hideOtherBalloons");
 		int size = mMapOverlays.size();
 		int baloonPosition = size
 				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
@@ -223,7 +222,7 @@ public class StationOverlay extends Overlay {
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			Log.d("OpenBike", "before last not a StationOverlay");
+			//Log.d("OpenBike", "before last not a StationOverlay");
 		}
 	}
 	
@@ -262,7 +261,7 @@ public class StationOverlay extends Overlay {
 	 * 
 	 * } });
 	 * 
-	 * } catch (SecurityException e) { Log.e("BalloonItemizedOverlay",
+	 * } catch (SecurityException e) { //Log.e("BalloonItemizedOverlay",
 	 * "setBalloonTouchListener reflection SecurityException"); return; } catch
 	 * (NoSuchMethodException e) { // method not overridden - do nothing return;
 	 * } }

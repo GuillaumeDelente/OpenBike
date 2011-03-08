@@ -21,7 +21,6 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,7 +89,7 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		}
 		StationOverlay overlay = getItem(position);
 		if (overlay == null) {
-			Log.e("OpenBike", "Invalid position: " + position);
+			//Log.e("OpenBike", "Invalid position: " + position);
 		}
 		Station station = overlay.getStation();
 		viewHolder.name.setText(station.getName());

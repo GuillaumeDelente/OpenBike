@@ -20,7 +20,6 @@ package fr.openbike.filter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import android.util.Log;
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.Station;
 
@@ -35,7 +34,7 @@ public class Filtering {
 
 	public static void filter(ArrayList<StationOverlay> mVisibleStations,
 			BikeFilter mVcubFilter) {
-		Log.d("OpenBike", "Filtering stations");
+		//Log.d("OpenBike", "Filtering stations");
 		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
 				.hasNext();) {
 			Station s = ((StationOverlay) it.next()).getStation();

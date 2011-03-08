@@ -25,7 +25,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.location.Location;
-import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -43,7 +42,7 @@ public class MyLocationOverlay extends Overlay {
 	private Paint paint = new Paint();
 
 	public MyLocationOverlay(Context context, MapView mapView) {
-		Log.e("OpenBike", "MyLocationOverlay");
+		//Log.e("OpenBike", "MyLocationOverlay");
 		mMarker = BitmapFactory.decodeResource(context.getResources(), 
 				R.drawable.ic_maps_indicator_current_position);
 		mShiftX = mMarker.getWidth() / 2;
