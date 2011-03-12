@@ -27,7 +27,7 @@ public class StationMapFilterActivity extends FilterPreferencesActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.map_preferences);
-	    addPreferencesFromResource(R.xml.location_preferences);
+	    //addPreferencesFromResource(R.xml.location_preferences);
 	    addPreferencesFromResource(R.xml.other_preferences);
 	    mResetButton = (Preference) getPreferenceScreen().findPreference(getString(R.string.reset_stations));
 	}

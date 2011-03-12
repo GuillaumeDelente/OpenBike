@@ -157,7 +157,8 @@ public class OpenBikeMapActivity extends MapActivity implements IOpenBikeActivit
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.menu_settings:
-			startActivity(new Intent(this, MapFilterActivity.class));
+			startActivity(new Intent(this, mIsShowStationMode ?
+					StationMapFilterActivity.class : MapFilterActivity.class));
 			return true;
 		case R.id.menu_list:
 			startActivity(new Intent(this, OpenBikeListActivity.class));

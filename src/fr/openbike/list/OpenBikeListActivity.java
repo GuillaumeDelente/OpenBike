@@ -77,6 +77,9 @@ public class OpenBikeListActivity extends ListActivity implements
 		mAdapter = new OpenBikeArrayAdaptor(this, R.layout.station_list_entry,
 				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
+		//Maybe mAdapter was null when calling onListUpdated
+		//so do it now
+		onListUpdated();
 		final Intent intent = new Intent(this, StationDetails.class);
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
@@ -274,7 +277,6 @@ public class OpenBikeListActivity extends ListActivity implements
 			loading.startAnimation(set);
 			loading.setVisibility(View.INVISIBLE);
 		}
-		// onListUpdated();
 	}
 
 	@Override
@@ -289,6 +291,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onListUpdated() {
 		//Log.i("OpenBike", "notifyDataSetChanged");
+		if (mAdapter == null) //OnCreate
+			return;
 		mAdapter.notifyDataSetChanged();
 	}
 

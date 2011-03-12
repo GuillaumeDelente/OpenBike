@@ -115,7 +115,7 @@ public class OpenBikeDBAdapter {
 		newVcubValues.put(KEY_ADDRESS, address);
 		newVcubValues.put(KEY_BIKES, bikes);
 		newVcubValues.put(KEY_SLOTS, slots);
-		newVcubValues.put(KEY_OPEN, open ? 1 : 2);
+		newVcubValues.put(KEY_OPEN, open ? 1 : 0);
 		newVcubValues.put(KEY_LATITUDE, (int) (latitude * 1E6));
 		newVcubValues.put(KEY_LONGITUDE, (int) (longitude * 1E6));
 		newVcubValues.put(KEY_NAME, name);

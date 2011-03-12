@@ -27,7 +27,7 @@ public class BikeFilter implements Cloneable {
 	private boolean mShowOnlyFavorites = false;
 	private boolean mShowOnlyWithSlots = false;
 	private boolean mShowOnlyWithBikes = false;
-	private boolean mNeedDbQuery = false;
+	private boolean mNeedDbQuery = true;
 	private int mDistanceFilter = 0;
 
 	public BikeFilter(Context context) {
@@ -44,7 +44,6 @@ public class BikeFilter implements Cloneable {
 						preferences.getInt(
 								context.getString(R.string.distance_filter), 1000)
 				: 0;
-		setNeedDbQuery();
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
@@ -95,7 +94,7 @@ public class BikeFilter implements Cloneable {
 		}
 
 		if (mDistanceFilter == 0 && actualFilter.getDistanceFilter() != 0 // Filter disabled
-				|| (actualFilter.getDistanceFilter() != 0 &&				// Distance increased
+				|| (actualFilter.getDistanceFilter() != 0 &&			  // Distance increased
 						actualFilter.getDistanceFilter() < mDistanceFilter)) {
 			mNeedDbQuery = true;
 			return;
@@ -103,19 +102,24 @@ public class BikeFilter implements Cloneable {
 		mNeedDbQuery = false;
 	}
 
-	public void setNeedDbQuery() {
+
+	private void setNeedDbQuery() {
 		if (isFilteringByDistance())
 			mNeedDbQuery = true;
 		else
-			mNeedDbQuery = true;
+			mNeedDbQuery = false;
 	}
 	
+	/*
 	public void setNeedDbQuery(boolean need) {
 		mNeedDbQuery = need;
 	}
+	*/
 
 	public boolean isNeedDbQuery() {
-		return mNeedDbQuery;
+		boolean query = mNeedDbQuery;
+		setNeedDbQuery();
+		return query;
 	}
 
 	@Override

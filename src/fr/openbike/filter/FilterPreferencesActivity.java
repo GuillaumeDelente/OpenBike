@@ -27,7 +27,6 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
-import android.widget.Toast;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 
@@ -72,7 +71,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			OpenBikeManager.getVcuboidManagerInstance().setVcubFilter(
 					mModifiedFilter);
 			OpenBikeManager.getVcuboidManagerInstance()
-					.executeCreateVisibleStationsTask();
+					.executeCreateVisibleStationsTask(false);
 			// Log.e("OpenBike", "Only Favorites ? "
 			// + mModifiedFilter.isShowOnlyFavorites());
 		}
