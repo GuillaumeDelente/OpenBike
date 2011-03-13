@@ -57,7 +57,7 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 			String key) {
 		if (key.equals(getString(R.string.use_location))) {
 			if (!sharedPreferences.getBoolean(getString(R.string.use_location),
-					true)) {
+					false)) {
 				mDistanceFilterCb.setChecked(false);
 			}
 		}

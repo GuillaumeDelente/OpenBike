@@ -56,6 +56,7 @@ import fr.openbike.object.Station;
 public class OpenBikeListActivity extends ListActivity implements
 		IOpenBikeActivity {
 
+	public static final int WELCOME_MESSAGE = 2;
 	private OpenBikeManager mVcuboidManager = null;
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
@@ -398,6 +399,15 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
+		case WELCOME_MESSAGE:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.welcome_message_title)).setMessage(
+					(getString(R.string.welcome_message))).setPositiveButton(
+					"Ok", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					}).create();
 		}
 		return super.onCreateDialog(id);
 	}

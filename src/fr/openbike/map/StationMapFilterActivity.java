@@ -17,18 +17,31 @@
  */
 package fr.openbike.map;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.Preference;
 import fr.openbike.R;
 import fr.openbike.filter.FilterPreferencesActivity;
 
 public class StationMapFilterActivity extends FilterPreferencesActivity {
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.map_preferences);
-	    //addPreferencesFromResource(R.xml.location_preferences);
-	    addPreferencesFromResource(R.xml.other_preferences);
-	    mResetButton = (Preference) getPreferenceScreen().findPreference(getString(R.string.reset_stations));
+		addPreferencesFromResource(R.xml.location_preferences);
+		addPreferencesFromResource(R.xml.other_preferences);
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+			String key) {
+		if (key.equals(getString(R.string.use_location))) {
+			if (!sharedPreferences.getBoolean(getString(R.string.use_location),
+					false)) {
+				sharedPreferences.edit().putBoolean(
+						getString(R.string.enable_distance_filter), false).commit();
+			}
+		}
+		super.onSharedPreferenceChanged(sharedPreferences, key);
 	}
 }

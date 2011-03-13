@@ -20,6 +20,7 @@ package fr.openbike.filter;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import fr.openbike.R;
 
 public class BikeFilter implements Cloneable {
@@ -40,10 +41,11 @@ public class BikeFilter implements Cloneable {
 		mShowOnlyWithSlots = preferences.getBoolean(context
 				.getString(R.string.slots_filter), false);
 		mDistanceFilter = preferences.getBoolean(context
-				.getString(R.string.enable_distance_filter), true) ? 
+				.getString(R.string.enable_distance_filter), false) ? 
 						preferences.getInt(
 								context.getString(R.string.distance_filter), 1000)
 				: 0;
+								Log.d("OpenBike", "Distance : " + mDistanceFilter);
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {

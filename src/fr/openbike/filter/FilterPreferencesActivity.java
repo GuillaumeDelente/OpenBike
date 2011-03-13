@@ -126,7 +126,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Log.i("OpenBike", "Enable / disable filter changed");
 			mModifiedFilter
 					.setDistanceFilter(sharedPreferences.getBoolean(
-							getString(R.string.enable_distance_filter), true) ? sharedPreferences
+							getString(R.string.enable_distance_filter), false) ? sharedPreferences
 							.getInt(getString(R.string.distance_filter), 1000)
 							: 0);
 		} else if (key.equals(getString(R.string.distance_filter))) {
@@ -142,15 +142,15 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 							+ "m");
 		} else if (key.equals(getString(R.string.use_location))) {
 			// Log.i("OpenBike", "Location changed");
-			OpenBikeManager vcubManager = OpenBikeManager
+			OpenBikeManager openBikeManager = OpenBikeManager
 					.getVcuboidManagerInstance();
 			if (sharedPreferences.getBoolean(getString(R.string.use_location),
-					true)) {
+					false)) {
 				// Log.i("OpenBike", "use Location");
-				vcubManager.useLocation();
+				openBikeManager.useLocation();
 			} else {
 				// Log.i("OpenBike", "dont Use Location");
-				vcubManager.dontUseLocation();
+				openBikeManager.dontUseLocation();
 			}
 		}
 	}

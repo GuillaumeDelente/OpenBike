@@ -47,6 +47,9 @@
 	réparer le bug au plus vite !</string>
 	<string name="reset_dialog_title">Remize à zéro des stations</string>
 	<string name="reset_dialog_message">Attention ! Cela supprimera vos stations favorites, voulez vous continuer ?</string>
+	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
+	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans Menu->Configuration 
+	et jouez avec les réglages pour activer la géolocalisation et les filtres.</string>
 	
 	<!--  Preferences -->
 	<string name="menu_settings_title">Configuration</string>

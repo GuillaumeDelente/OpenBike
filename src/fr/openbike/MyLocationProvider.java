@@ -24,6 +24,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 public class MyLocationProvider implements LocationListener {
 
@@ -40,16 +41,16 @@ public class MyLocationProvider implements LocationListener {
 	private boolean mAskForGps = true;
 	private boolean mAskForLocation = true;
 	private boolean mIsInPause = true;
-	private OpenBikeManager mVcuboidManager = null;
+	private OpenBikeManager mOpenBikeManager = null;
 	private LocationManager mLocationManager = null;
 	private Location mLastFix = null;
 
-	public MyLocationProvider(Context context, OpenBikeManager vcuboidManager) {
+	public MyLocationProvider(Context context, OpenBikeManager openBikeManager) {
 		// this.context = context;
 		//Log.e("OpenBike", "MyLocationProvider");
 		mLocationManager = (LocationManager) context
 				.getSystemService(Context.LOCATION_SERVICE);
-		mVcuboidManager = vcuboidManager;
+		mOpenBikeManager = openBikeManager;
 		enableMyLocation();
 	}
 
@@ -68,7 +69,7 @@ public class MyLocationProvider implements LocationListener {
 	public synchronized void enableMyLocation() {
 		if (!mIsInPause)
 			return;
-		//Log.i("OpenBike", "MyLocationProvider : enable location");
+		Log.i("OpenBike", "MyLocationProvider : enable location");
 		mIsInPause = false;
 		List<String> providers = mLocationManager.getProviders(false);
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
@@ -109,7 +110,7 @@ public class MyLocationProvider implements LocationListener {
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
 			//Log.i("OpenBike", "GPS Fix");
 			mLastFix = location;
-			mVcuboidManager.onLocationChanged(location);
+			mOpenBikeManager.onLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER) && !mIsGpsUsed) {
@@ -117,14 +118,14 @@ public class MyLocationProvider implements LocationListener {
 			if (mLastFix == null || !mIsGpsUsed) {
 				//Log.i("OpenBike", "is first or the only one");
 				mLastFix = location;
-				mVcuboidManager.onLocationChanged(location);
+				mOpenBikeManager.onLocationChanged(location);
 			}
 		}
 	}
 	
 	@Override
 	public void onProviderDisabled(String provider) {
-		//Log.i("OpenBike", "onProviderDisabled " + provider);
+		Log.i("OpenBike", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = false;
 			mIsGpsUsed = false;
@@ -133,13 +134,13 @@ public class MyLocationProvider implements LocationListener {
 		}
 		if (!mIsNetworkAvailable && !mIsGpsAvailable && (mLastFix != null || mAskForLocation)) {
 			mLastFix = null;
-			mVcuboidManager.onLocationChanged(null);
+			mOpenBikeManager.onLocationChanged(null);
 			if (mAskForLocation) {
-				mVcuboidManager.showNoLocationProvider();
+				mOpenBikeManager.showNoLocationProvider();
 				mAskForLocation = false;
 			}
 		} else if (mAskForGps && !mIsGpsAvailable && mIsNetworkAvailable) {
-			mVcuboidManager.showAskForGps();
+			mOpenBikeManager.showAskForGps();
 			mAskForGps = false;
 		}
 	}

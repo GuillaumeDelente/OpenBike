@@ -17,6 +17,9 @@
  */
 package fr.openbike.database;
 
+import java.util.ArrayList;
+import java.util.ListIterator;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -24,13 +27,13 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 import fr.openbike.object.Station;
 
 public class OpenBikeDBAdapter {
 	
-	private static boolean mIsFirstUse = false;
 	private static final String DATABASE_NAME = "openbike.db";
 	private static final String DATABASE_TABLE = "openbike";
 	private static final int DATABASE_VERSION = 1;
@@ -95,7 +98,7 @@ public class OpenBikeDBAdapter {
 			mDb = mDbHelper.getReadableDatabase();
 		}
 	}
-	//TODO: remove this, only for debugging
+
 	public void reset() throws SQLException {
 		try {
 			mDb.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
@@ -104,27 +107,42 @@ public class OpenBikeDBAdapter {
 		}
 	}
 
-	// Insert a new task
-	public long insertStation(int id, String name, String address,
-			String network, double latitude, double longitude, int bikes, int slots,
-			 boolean open, boolean payment, boolean isSpecial) {
-		// Create a new row of values to insert.
-		ContentValues newVcubValues = new ContentValues();
-		// Assign values for each row.
-		newVcubValues.put(KEY_ID, id);
-		newVcubValues.put(KEY_ADDRESS, address);
-		newVcubValues.put(KEY_BIKES, bikes);
-		newVcubValues.put(KEY_SLOTS, slots);
-		newVcubValues.put(KEY_OPEN, open ? 1 : 0);
-		newVcubValues.put(KEY_LATITUDE, (int) (latitude * 1E6));
-		newVcubValues.put(KEY_LONGITUDE, (int) (longitude * 1E6));
-		newVcubValues.put(KEY_NAME, name);
-		newVcubValues.put(KEY_NETWORK, network);
-		newVcubValues.put(KEY_FAVORITE, false);
-		newVcubValues.put(KEY_PAYMENT, payment);
-		newVcubValues.put(KEY_SPECIAL, isSpecial);
-		// Insert the row.
-		return mDb.insert(DATABASE_TABLE, null, newVcubValues);
+	public boolean insertStations(ArrayList<Station> stations) {
+		boolean success = true;
+		ListIterator<Station> it = stations.listIterator();
+		mDb.beginTransaction();
+    	String sql = "INSERT INTO " + DATABASE_TABLE + 
+    		" (" + KEY_ID + ","  + KEY_ADDRESS + "," + KEY_BIKES + "," + KEY_SLOTS + "," 
+    		+ KEY_OPEN + "," + KEY_LATITUDE + "," + KEY_LONGITUDE + "," + KEY_NAME + "," 
+    		+ KEY_NETWORK + "," + KEY_FAVORITE + "," + KEY_PAYMENT + "," + KEY_SPECIAL 
+    		+ ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+    	Station station;
+        try {
+        	SQLiteStatement insert = mDb.compileStatement(sql);
+            while (it.hasNext()) {
+            	station = it.next();
+            	insert.bindLong(1, station.getId());
+            	insert.bindString(2, station.getAddress());
+            	insert.bindLong(3, station.getBikes());
+            	insert.bindLong(4, station.getSlots());
+            	insert.bindLong(5, station.isOpen() ? 1 : 0);
+            	insert.bindLong(6, station.getGeoPoint().getLatitudeE6());
+            	insert.bindLong(7, station.getGeoPoint().getLongitudeE6());
+            	insert.bindString(8, station.getName());
+            	insert.bindString(9, station.getNetwork());
+            	insert.bindLong(10, station.isFavorite() ? 1 : 0);
+            	insert.bindLong(11, station.hasPayment() ? 1 : 0);
+            	insert.bindLong(12, station.isSpecial() ? 1 : 0);
+            	insert.executeInsert();
+            }
+        	mDb.setTransactionSuccessful();
+        } catch (Exception e) {
+        	success = false;
+        } finally {
+        	mDb.endTransaction();
+        	stations = null;
+        }
+        return success;
 	}
 
 	public boolean removeStation(int id) {
@@ -196,10 +214,6 @@ public class OpenBikeDBAdapter {
 		cursor.close();
 		return count;
 	}
-	
-	public boolean isFirstUse() {
-		return mIsFirstUse;
-	}
 
 	private static class OpenBikeDBOpenHelper extends SQLiteOpenHelper {
 		public OpenBikeDBOpenHelper(Context context, String name,
@@ -220,7 +234,6 @@ public class OpenBikeDBAdapter {
 		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			mIsFirstUse = true;
 			db.execSQL(DATABASE_CREATE);
 		}
 

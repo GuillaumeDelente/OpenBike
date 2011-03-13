@@ -115,30 +115,32 @@ public class RestClient {
 		}
 	}
 
-	public static boolean jsonStationsToDb(String json,
+	public static int jsonStationsToDb(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
 		//Log.i("OpenBike", "jsonStationsToDb");
+		ArrayList<Station> stations = new ArrayList<Station>();
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				openBikeDBAdapter.insertStation(jsonStation.getInt("id"),
-						jsonStation.getString("name"), jsonStation
-								.getString("address"), jsonStation
-								.getString("network"), jsonStation
-								.getDouble("latitude"), jsonStation
-								.getDouble("longitude"), jsonStation
-								.getInt("availableBikes"), jsonStation
-								.getInt("freeSlots"), jsonStation
-								.getBoolean("open"), jsonStation
-								.getBoolean("payment"), jsonStation
-								.getBoolean("special"));
+				stations.add(new Station(jsonStation.getInt("id"),
+						 jsonStation.getString("network"),
+						 jsonStation.getString("name"), 
+						 jsonStation.getString("address"),
+						 jsonStation.getDouble("longitude"),
+						 jsonStation.getDouble("latitude"), 
+						 jsonStation.getInt("availableBikes"), 
+						 jsonStation.getInt("freeSlots"), 
+						 jsonStation.getBoolean("open"), 
+						 false, 
+						 jsonStation.getBoolean("payment"), 
+						 jsonStation.getBoolean("special")));
 			}
-			return true;
+			return openBikeDBAdapter.insertStations(stations) ? 1 : DB_ERROR;
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return false;
+			return JSON_ERROR;
 		}
 	}
 
@@ -166,13 +168,13 @@ public class RestClient {
 		}
 	}
 
-	public static boolean updateDbFromJson(String json,
+	public static int updateDbFromJson(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
 		//Log.i("OpenBike", "updateDbFromJson");
 		try {
-			boolean success = true;
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
+			ArrayList<Station> stations = new ArrayList<Station>();
 			for (int i = 0; i < jsonArray.length(); i++) {
 				jsonStation = jsonArray.getJSONObject(i);
 				if (!openBikeDBAdapter.updateStation(jsonStation.getInt("id"),
@@ -182,25 +184,24 @@ public class RestClient {
 					//Log.i("OpenBike", "update DB failed, station " 
 					//		+ jsonStation.getInt("id") + " try to insert it");
 					// New station ? Try to insert it
-					if (openBikeDBAdapter.insertStation(jsonStation.getInt("id"),
-							jsonStation.getString("name"), jsonStation
-									.getString("address"), jsonStation
-									.getString("network"), jsonStation
-									.getDouble("latitude"), jsonStation
-									.getDouble("longitude"), jsonStation
-									.getInt("availableBikes"), jsonStation
-									.getInt("freeSlots"), jsonStation
-									.getBoolean("open"), jsonStation
-									.getBoolean("payment"), jsonStation
-									.getBoolean("special")) == -1)
-					success = false;
+					stations.add(new Station(jsonStation.getInt("id"),
+							 jsonStation.getString("network"),
+							 jsonStation.getString("name"), 
+							 jsonStation.getString("address"),
+							 jsonStation.getDouble("longitude"),
+							 jsonStation.getDouble("latitude"), 
+							 jsonStation.getInt("availableBikes"), 
+							 jsonStation.getInt("freeSlots"), 
+							 jsonStation.getBoolean("open"), 
+							 false, 
+							 jsonStation.getBoolean("payment"), 
+							 jsonStation.getBoolean("special")));
 				}
-
 			}
-			return success;
+			return openBikeDBAdapter.insertStations(stations) ? 1 : DB_ERROR;
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return false;
+			return JSON_ERROR;
 		}
 	}
 }
