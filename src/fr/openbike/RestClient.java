@@ -33,15 +33,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.Station;
 
 public class RestClient {
 	
 	public static final int NETWORK_ERROR = -1;
-	public static final int JSON_ERROR = -2;
-	public static final int DB_ERROR = -3;
 
 	private static String convertStreamToString(InputStream is) {
 		/*
@@ -115,6 +112,7 @@ public class RestClient {
 		}
 	}
 
+	/*
 	public static int jsonStationsToDb(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
 		//Log.i("OpenBike", "jsonStationsToDb");
@@ -143,7 +141,7 @@ public class RestClient {
 			return JSON_ERROR;
 		}
 	}
-
+*/
 	public static boolean updateListFromJson(String json,
 			ArrayList<StationOverlay> mVisibleStations) {
 		//Log.i("OpenBike", "updateListFromJson");
@@ -168,6 +166,37 @@ public class RestClient {
 		}
 	}
 
+	/*
+	public static int updateDbFromJson(String json,
+			OpenBikeDBAdapter openBikeDBAdapter) {
+		//Log.i("OpenBike", "jsonStationsToDb");
+		ArrayList<Station> stations = new ArrayList<Station>();
+		try {
+			JSONArray jsonArray = new JSONArray(json);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONObject jsonStation = jsonArray.getJSONObject(i);
+				stations.add(new Station(jsonStation.getInt("id"),
+						 jsonStation.getString("network"),
+						 jsonStation.getString("name"), 
+						 jsonStation.getString("address"),
+						 jsonStation.getDouble("longitude"),
+						 jsonStation.getDouble("latitude"), 
+						 jsonStation.getInt("availableBikes"), 
+						 jsonStation.getInt("freeSlots"), 
+						 jsonStation.getBoolean("open"), 
+						 false, 
+						 jsonStation.getBoolean("payment"), 
+						 jsonStation.getBoolean("special")));
+			}
+			return openBikeDBAdapter.insertStations(stations) ? 1 : DB_ERROR;
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return JSON_ERROR;
+		}
+	}
+	
+	
 	public static int updateDbFromJson(String json,
 			OpenBikeDBAdapter openBikeDBAdapter) {
 		//Log.i("OpenBike", "updateDbFromJson");
@@ -204,4 +233,5 @@ public class RestClient {
 			return JSON_ERROR;
 		}
 	}
+	*/
 }

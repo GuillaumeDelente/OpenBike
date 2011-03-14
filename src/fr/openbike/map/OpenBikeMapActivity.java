@@ -54,6 +54,7 @@ import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
+import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.list.OpenBikeListActivity;
 
 public class OpenBikeMapActivity extends MapActivity implements
@@ -96,8 +97,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapOverlays = mMapView.getOverlays();
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
 				R.drawable.v3);
-		StationOverlay.setMarker(marker);
-		StationOverlay.setMapView(mMapView);
+		StationOverlay.init(marker, mMapView, this);
 	}
 
 	@Override
@@ -431,7 +431,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case RestClient.JSON_ERROR:
+		case OpenBikeDBAdapter.JSON_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.json_error)).setMessage(
 					(getString(R.string.json_error_summary)))
@@ -442,7 +442,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case RestClient.DB_ERROR:
+		case OpenBikeDBAdapter.DB_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.db_error)).setMessage(
 					(getString(R.string.db_error_summary))).setPositiveButton(

@@ -49,6 +49,7 @@ import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
 import fr.openbike.StationDetails;
+import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.map.OpenBikeMapActivity;
 import fr.openbike.object.Station;
@@ -311,7 +312,7 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case RestClient.JSON_ERROR:
+		case OpenBikeDBAdapter.JSON_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.json_error)).setMessage(
 					(getString(R.string.json_error_summary)))
@@ -322,7 +323,7 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case RestClient.DB_ERROR:
+		case OpenBikeDBAdapter.DB_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.db_error)).setMessage(
 					(getString(R.string.db_error_summary))).setPositiveButton(

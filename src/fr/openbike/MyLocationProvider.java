@@ -24,7 +24,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 
 public class MyLocationProvider implements LocationListener {
 
@@ -69,7 +68,7 @@ public class MyLocationProvider implements LocationListener {
 	public synchronized void enableMyLocation() {
 		if (!mIsInPause)
 			return;
-		Log.i("OpenBike", "MyLocationProvider : enable location");
+		//Log.i("OpenBike", "MyLocationProvider : enable location");
 		mIsInPause = false;
 		List<String> providers = mLocationManager.getProviders(false);
 		if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
@@ -125,7 +124,7 @@ public class MyLocationProvider implements LocationListener {
 	
 	@Override
 	public void onProviderDisabled(String provider) {
-		Log.i("OpenBike", "onProviderDisabled " + provider);
+		//Log.i("OpenBike", "onProviderDisabled " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = false;
 			mIsGpsUsed = false;

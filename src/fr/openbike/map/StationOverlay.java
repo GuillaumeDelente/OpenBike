@@ -57,13 +57,6 @@ public class StationOverlay extends Overlay {
 	private Station mStation;
 	private boolean mIsCurrent = false;
 	
-	static public void initialize(Context context) {
-		BIKES = context.getString(R.string.bikes);
-		BIKE = context.getString(R.string.bike);
-		SLOT = context.getString(R.string.slot);
-		SLOTS = context.getString(R.string.slots);
-	}
-
 	public Station getStation() {
 		return mStation;
 	}
@@ -266,15 +259,17 @@ public class StationOverlay extends Overlay {
 	 * (NoSuchMethodException e) { // method not overridden - do nothing return;
 	 * } }
 	 */
-	public static void setMarker(Bitmap marker) {
+
+	public static void init(Bitmap marker, MapView mapview, Context context) {
 		mMarker = marker;
 		mMarkerHeight = marker.getHeight();
 		mMarkerWidth = marker.getWidth();
-	}
-
-	public static void setMapView(MapView mapview) {
 		mMapView = mapview;
 		mMc = mapview.getController();
 		mMapOverlays = mapview.getOverlays();
+		BIKES = context.getString(R.string.bikes_);
+		BIKE = context.getString(R.string.bike_);
+		SLOT = context.getString(R.string.slot_);
+		SLOTS = context.getString(R.string.slots_);
 	}
 }

@@ -86,10 +86,18 @@
 	<string name="reset_stations_summary">Efface toutes les stations de la base de donnée.</string>
 	
 	<!--  Autre -->	
-	<string name="bikes">vélos</string>
-	<string name="bike">vélo</string>
-	<string name="slots">places</string>
-	<string name="slot">place</string>
+    <plurals name="bike">
+        <item quantity="one">1 vélo</item>
+        <item quantity="other">%d vélos</item>
+    </plurals>
+    <plurals name="slot">
+        <item quantity="one">1 place</item>
+        <item quantity="other">%d places</item>
+    </plurals>
+    <string name="slot_">place</string>
+    <string name="slots_">places</string>
+    <string name="bike_">vélo</string>
+    <string name="bikes_">vélos</string>
 	<string name="address">Adresse</string>
 	<string name="cc">Carte bancaire</string>
 	<string name="upper_at">À</string>
@@ -98,4 +106,6 @@
 	<string name="loading_list">Création de la liste en cours...</string>
 	<string name="closed">En maintenance</string>
 	<string name="special">Station Vcub+</string>
+	
+	
 </resources>

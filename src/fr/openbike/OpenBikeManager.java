@@ -27,7 +27,6 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -75,14 +74,14 @@ public class OpenBikeManager {
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.map_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.other_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
-		Log.d("OpenBike", "Location : " + PreferenceManager.getDefaultSharedPreferences((Context) activity)
-			.getBoolean("use_location", false));
+		//Log.d("OpenBike", "Location : " + PreferenceManager.getDefaultSharedPreferences((Context) activity)
+		//	.getBoolean("use_location", false));
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
 		if (mFilterPreferences.getBoolean(
 				((Context) activity).getString(R.string.use_location), false))
 			useLocation();
 		initializeFilter();
-		StationOverlay.initialize((Context) activity);
+		//StationOverlay.initialize((Context) activity);
 	}
 	
 	public static synchronized OpenBikeManager getVcuboidManagerInstance(IOpenBikeActivity activity) {
@@ -136,15 +135,15 @@ public class OpenBikeManager {
 	}
 	
 	public boolean executeCreateVisibleStationsTask(boolean forceDbQuery) {
-		Log.e("OpenBike", "executeCreateVisibleStationsTask");
+		//Log.e("OpenBike", "executeCreateVisibleStationsTask");
 		if (mCreateVisibleStationsTask == null) {
 			if (mVcubFilter.isNeedDbQuery() || forceDbQuery) {
-				Log.d("OpenBike", "need Query");
+				//Log.d("OpenBike", "need Query");
 				mCreateVisibleStationsTask = 
 					(CreateVisibleStationsTask) new CreateVisibleStationsTask()
 						.execute();
 			} else {
-				Log.d("OpenBike", "Not need Query");
+				//Log.d("OpenBike", "Not need Query");
 				Filtering.filter(mVisibleStations, mVcubFilter);
 				mActivity.onListUpdated();
 			}
@@ -295,7 +294,7 @@ public class OpenBikeManager {
 	}
 	
 	public void onLocationChanged(Location location) {
-		Log.d("OpenBike", "On Location Changed");
+		//Log.d("OpenBike", "On Location Changed");
 		if (mIsShowStationMode) {
 			computeDistance(mVisibleStations.get(0).getStation());
 			mActivity.onLocationChanged(location);
@@ -326,7 +325,7 @@ public class OpenBikeManager {
 			mCreateVisibleStationsTask = null;
 			//FIXME:
 			//mVcubFilter.setNeedDbQuery(true);
-			executeCreateVisibleStationsTask(false);
+			executeCreateVisibleStationsTask(true);
 		}
 		mActivity.onLocationChanged(location);
 	}
@@ -371,10 +370,12 @@ public class OpenBikeManager {
 	*/
 	
 	public void showAskForGps() {
+		if (mActivity != null)
 			mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
 	}
 	
 	public void showNoLocationProvider() {
+		if (mActivity != null)
 			mActivity.showDialog(MyLocationProvider.NO_LOCATION_PROVIDER);
 	}
 	
@@ -436,7 +437,7 @@ public class OpenBikeManager {
 				return false;
 			}
 			publishProgress(50);
-			result = RestClient.jsonStationsToDb(json, mOpenBikeDBAdapter);
+			result = mOpenBikeDBAdapter.insertStations(json);
 			if (result != 1) {
 				publishProgress(result);
 				return false;
@@ -496,12 +497,11 @@ public class OpenBikeManager {
 			}
 			if (!RestClient.updateListFromJson(json,
 					mVisibleStations)) {
-				publishProgress(RestClient.JSON_ERROR);
+				publishProgress(OpenBikeDBAdapter.JSON_ERROR);
 				return false;
 			}
 			publishProgress(50);
-			result = RestClient.updateDbFromJson(json,
-					mOpenBikeDBAdapter);
+			result = mOpenBikeDBAdapter.updateStations(json);
 			if (result != 1) {
 				publishProgress(result);
 				return false;
@@ -539,6 +539,7 @@ public class OpenBikeManager {
 		}
 	}
 	
+	//FIXME : We can avoid some useless list creation when we haven't yet the location
 	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
 		
 		private boolean updateListFromDb(boolean useList) {
@@ -553,7 +554,7 @@ public class OpenBikeManager {
 					.getFilteredStationsCursor(Utils.whereClauseFromFilter(mVcubFilter), 
 							mLocationProvider == null 
 								|| mLocationProvider.getMyLocation() == null ?
-										OpenBikeDBAdapter.KEY_NAME 
+										OpenBikeDBAdapter.KEY_NAME + " COLLATE NOCASE"
 										: null);
 			StationOverlay stationOverlay;
 			Location stationLocation = null;

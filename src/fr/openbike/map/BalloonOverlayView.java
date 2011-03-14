@@ -67,7 +67,7 @@ public class BalloonOverlayView extends FrameLayout {
 	 *            - The bottom padding (in pixels) to be applied when rendering
 	 *            this view.
 	 */
-	public BalloonOverlayView(Context context, int balloonBottomOffset,
+	public BalloonOverlayView(final Context context, int balloonBottomOffset,
 			int ballonLeftOffset) {
 		super(context);
 		mContext = context;
@@ -77,13 +77,13 @@ public class BalloonOverlayView extends FrameLayout {
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = inflater.inflate(R.layout.balloon_overlay, mLayout);
-		final Intent intent = new Intent(mContext, StationDetails.class);
+		final Intent intent = new Intent(context, StationDetails.class);
 		v.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				//Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id", (Integer) mFavorite.getTag());
-				mContext.startActivity(intent);
+				context.startActivity(intent);
 			}
 		});
 		mFavorite = (CheckBox) v.findViewById(R.id.favorite);
@@ -123,12 +123,8 @@ public class BalloonOverlayView extends FrameLayout {
 			mOpened.setVisibility(INVISIBLE);
 			mBikes.setVisibility(VISIBLE);
 			mSlots.setVisibility(VISIBLE);
-			mBikes
-					.setText(station.getBikes() + " " + mContext
-							.getString(station.getBikes() > 1 ? R.string.bikes : R.string.bike));
-			mSlots
-			.setText(station.getSlots() + " " + mContext
-					.getString(station.getSlots() > 1 ? R.string.slots : R.string.slot));
+			mBikes.setText(mContext.getResources().getQuantityString(R.plurals.bike, station.getBikes(), station.getBikes()));
+			mSlots.setText(mContext.getResources().getQuantityString(R.plurals.slot, station.getSlots(), station.getSlots()));
 			if (station.getDistance() != -1) {
 				mDistanceTextView.setText(mContext.getString(R.string.at) + " "
 						+ Utils.formatDistance(station.getDistance()));

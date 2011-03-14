@@ -108,7 +108,7 @@ public class StationDetails extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		//Log.i("OpenBike", "onCreateOptionsMenu");
+		// Log.i("OpenBike", "onCreateOptionsMenu");
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.station_details_menu, menu);
 		return true;
@@ -155,11 +155,8 @@ public class StationDetails extends Activity {
 						+ " : "
 						+ getString(mStation.hasPayment() ? R.string.yes
 								: R.string.no));
-		mSpecial
-		.setText(getString(R.string.special)
-				+ " : "
-				+ getString(mStation.isSpecial() ? R.string.yes
-						: R.string.no));
+		mSpecial.setText(getString(R.string.special) + " : "
+				+ getString(mStation.isSpecial() ? R.string.yes : R.string.no));
 		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.upper_at) + " "
 					+ Utils.formatDistance(mStation.getDistance()));
@@ -183,14 +180,10 @@ public class StationDetails extends Activity {
 						.setImageDrawable(getResources().getDrawable(
 								R.drawable.no_parking_sign));
 			}
-			mBikes.setText(mStation.getBikes()
-					+ " "
-					+ getString(mStation.getBikes() == 1 ? R.string.bike
-							: R.string.bikes));
-			mSlots.setText(mStation.getSlots()
-					+ " "
-					+ getString(mStation.getSlots() == 1 ? R.string.slot
-							: R.string.slots));
+			mBikes.setText(getResources().getQuantityString(R.plurals.bike,
+					mStation.getBikes(), mStation.getBikes()));
+			mSlots.setText(getResources().getQuantityString(R.plurals.slot,
+					mStation.getSlots(), mStation.getSlots()));
 			mFavorite.setChecked(mStation.isFavorite());
 		}
 
