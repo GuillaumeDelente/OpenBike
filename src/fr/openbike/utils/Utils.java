@@ -22,6 +22,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.util.Log;
+
 import com.google.android.maps.Overlay;
 
 import fr.openbike.database.OpenBikeDBAdapter;
@@ -108,5 +114,13 @@ public class Utils {
 		int km = distance / 1000;
 		int m = distance % 1000;
 		return km == 0 ? m + "m" : km + "," + m + "km ";
+	}
+	
+	static public boolean isIntentAvailable(Intent intent, Context context) {
+		final PackageManager packageManager = context.getPackageManager();
+		List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
+				PackageManager.MATCH_DEFAULT_ONLY);
+		Log.d("OpenBike", "Liste intent : " + list.size());
+		return list.size() > 0;
 	}
 }

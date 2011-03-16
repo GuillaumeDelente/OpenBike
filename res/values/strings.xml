@@ -84,6 +84,9 @@
 	<string name="reset_stations">reset_stations</string>
 	<string name="reset_stations_title">RAZ des stations</string>
 	<string name="reset_stations_summary">Efface toutes les stations de la base de donnée.</string>
+	<string name="not_available">Non disponible</string>
+	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
+	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
 	
 	<!--  Autre -->	
     <plurals name="bike">

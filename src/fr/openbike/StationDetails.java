@@ -18,6 +18,9 @@
 package fr.openbike;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,6 +46,8 @@ import fr.openbike.utils.Utils;
 public class StationDetails extends Activity {
 
 	public static final int COMPUTE_DISTANCE = -2;
+	public static final int MAPS_NOT_AVAILABLE = 0;
+	public static final int NAVIGATION_NOT_AVAILABLE = 1;
 
 	private Station mStation = null;
 	private OpenBikeManager mVcuboidManager = null;
@@ -76,11 +81,7 @@ public class StationDetails extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri
-						.parse("geo:0,0?q="
-								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-								+ "," + mStation.getGeoPoint().getLongitudeE6()
-								* 1E-6 + " (" + mStation.getName() + ")")));
+				startMaps();
 			}
 		});
 
@@ -88,11 +89,7 @@ public class StationDetails extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
-				startActivity(new Intent(Intent.ACTION_VIEW, Uri
-						.parse("google.navigation:q="
-								+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-								+ "," + mStation.getGeoPoint().getLongitudeE6()
-								* 1E-6)));
+				startNavigation();
 			}
 		});
 		final Intent intent = new Intent(this, OpenBikeMapActivity.class);
@@ -125,21 +122,66 @@ public class StationDetails extends Activity {
 			startActivity(intent);
 			return true;
 		case R.id.menu_show_on_google_maps:
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
-					+ mStation.getGeoPoint().getLatitudeE6() * 1E-6 + ","
-					+ mStation.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
-					+ mStation.getName() + ")")));
+			startMaps();
 			return true;
 		case R.id.menu_navigate_to:
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-					.parse("google.navigation:q="
-							+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-							+ "," + mStation.getGeoPoint().getLongitudeE6()
-							* 1E-6)));
+			startNavigation();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	void startMaps() {
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
+				+ mStation.getGeoPoint().getLatitudeE6() * 1E-6 + ","
+				+ mStation.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
+				+ mStation.getName() + ")"));
+		if (Utils.isIntentAvailable(intent, this))
+			startActivity(intent);
+		else
+			showDialog(MAPS_NOT_AVAILABLE);
+	}
+
+	void startNavigation() {
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri
+				.parse("google.navigation:q="
+						+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
+						+ "," + mStation.getGeoPoint().getLongitudeE6()
+						* 1E-6));
+		if (Utils.isIntentAvailable(intent, this))
+			startActivity(intent);
+		else
+			showDialog(NAVIGATION_NOT_AVAILABLE);
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case MAPS_NOT_AVAILABLE:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.not_available)).setMessage(
+					(getString(R.string.maps_not_available_summary)))
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case NAVIGATION_NOT_AVAILABLE:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.not_available)).setMessage(
+					(getString(R.string.navigation_not_available_summary)))
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		}
+		return super.onCreateDialog(id);
 	}
 
 	@Override

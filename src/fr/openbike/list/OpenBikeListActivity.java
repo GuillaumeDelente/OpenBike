@@ -53,6 +53,7 @@ import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.map.OpenBikeMapActivity;
 import fr.openbike.object.Station;
+import fr.openbike.utils.Utils;
 
 public class OpenBikeListActivity extends ListActivity implements
 		IOpenBikeActivity {
@@ -66,28 +67,28 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//Log.i("OpenBike", "OnCreate");
+		// Log.i("OpenBike", "OnCreate");
 		setContentView(R.layout.station_list);
 		mVcuboidManager = (OpenBikeManager) getLastNonConfigurationInstance();
 		if (mVcuboidManager == null) { // No AsyncTask running
-			//Log.d("OpenBike", "Bundle empty");
+			// Log.d("OpenBike", "Bundle empty");
 			mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		} else {
-			//Log.d("OpenBike", "Recovering from bundle");
+			// Log.d("OpenBike", "Recovering from bundle");
 			mVcuboidManager.attach(this);
 		}
 		mAdapter = new OpenBikeArrayAdaptor(this, R.layout.station_list_entry,
 				mVcuboidManager.getVisibleStations());
 		this.setListAdapter(mAdapter);
-		//Maybe mAdapter was null when calling onListUpdated
-		//so do it now
+		// Maybe mAdapter was null when calling onListUpdated
+		// so do it now
 		onListUpdated();
 		final Intent intent = new Intent(this, StationDetails.class);
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				//Log.i("OpenBike", "Item clicked");
+				// Log.i("OpenBike", "Item clicked");
 				intent.putExtra("id",
 						(Integer) ((OpenBikeArrayAdaptor.ViewHolder) view
 								.getTag()).favorite.getTag());
@@ -105,7 +106,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		// Cannot remove update even
 		// if it's sometime useless
 		onListUpdated();
-		//Log.i("OpenBike", "onResume " + this);
+		// Log.i("OpenBike", "onResume " + this);
 	}
 
 	@Override
@@ -113,7 +114,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		super.onPause();
 		finishUpdateAllStationsOnProgress(false);
 		mVcuboidManager.stopLocation();
-		//Log.i("OpenBike", "onPause");
+		// Log.i("OpenBike", "onPause");
 	}
 
 	@Override
@@ -151,10 +152,18 @@ public class OpenBikeListActivity extends ListActivity implements
 				.getTag());
 		menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite
 				: R.id.remove_favorite);
+		if (!Utils.isIntentAvailable(new Intent(Intent.ACTION_VIEW, Uri
+				.parse("geo:0,0?q=bibi")), this)) {
+			menu.removeItem(R.id.show_on_google_maps);
+		}
+		if (!Utils.isIntentAvailable(new Intent(Intent.ACTION_VIEW, Uri
+				.parse("google.navigation:q=bibi")), this)) {
+			menu.removeItem(R.id.navigate);
+		}
+		menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite
+				: R.id.remove_favorite);
+		mSelected = ((Integer) holder.favorite.getTag());
 		menu.setHeaderTitle(holder.name.getText());
-		// FIXME : If listView change, we don't get the good
-		// id in onContextItemSelected
-		mSelected = (Integer) holder.favorite.getTag();
 	}
 
 	@Override
@@ -214,13 +223,13 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void showGetAllStationsOnProgress() {
-		//Log.i("OpenBike", "showGetAllStationsOnProgress");
+		// Log.i("OpenBike", "showGetAllStationsOnProgress");
 		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
 	}
 
 	@Override
 	public void updateGetAllStationsOnProgress(int progress) {
-		//Log.i("OpenBike", "updateGetAllStationsOnProgress");
+		// Log.i("OpenBike", "updateGetAllStationsOnProgress");
 		mPdialog.setMessage(getString(R.string.saving_db_summary));
 	}
 
@@ -292,8 +301,8 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onListUpdated() {
-		//Log.i("OpenBike", "notifyDataSetChanged");
-		if (mAdapter == null) //OnCreate
+		// Log.i("OpenBike", "notifyDataSetChanged");
+		if (mAdapter == null) // OnCreate
 			return;
 		mAdapter.notifyDataSetChanged();
 	}
@@ -353,7 +362,7 @@ public class OpenBikeListActivity extends ListActivity implements
 								}
 							}).create();
 		case MyLocationProvider.NO_LOCATION_PROVIDER:
-			//Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"
