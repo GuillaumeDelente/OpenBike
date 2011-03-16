@@ -34,7 +34,7 @@ import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
 import fr.openbike.map.MyLocationOverlay;
 import fr.openbike.map.StationOverlay;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 
 public class Utils {
 
@@ -49,8 +49,8 @@ public class Utils {
 						return -1;
 					if (((StationOverlay) o2).isCurrent())
 						return 1;
-					Station s1 = ((StationOverlay) o1).getStation();
-					Station s2 = ((StationOverlay) o2).getStation();
+					MinimalStation s1 = ((StationOverlay) o1).getStation();
+					MinimalStation s2 = ((StationOverlay) o2).getStation();
 					if (s1.getDistance() < s2.getDistance()) {
 						return -1;
 					} else if (s1.getDistance() > s2.getDistance()) {
@@ -79,8 +79,8 @@ public class Utils {
 					return -1;
 				if (((StationOverlay) o2).isCurrent())
 					return 1;
-				Station s1 = ((StationOverlay) o1).getStation();
-				Station s2 = ((StationOverlay) o2).getStation();
+				MinimalStation s1 = ((StationOverlay) o1).getStation();
+				MinimalStation s2 = ((StationOverlay) o2).getStation();
 				return s1.getName().compareToIgnoreCase(s2.getName());
 				} else if (o1 instanceof MyLocationOverlay) {
 					return -1;

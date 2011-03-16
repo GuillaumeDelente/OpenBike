@@ -17,7 +17,8 @@
  */
 package fr.openbike.object;
 
-import com.google.android.maps.GeoPoint;
+import android.util.Log;
+
 
 /**
  * Model class which will store the Station Items
@@ -26,17 +27,8 @@ import com.google.android.maps.GeoPoint;
  * 
  */
 
-public class Station {
-	private int mId;
-	private String mNetwork;
-	private String mName;
+public class Station extends MinimalStation{
 	private String mAddress;
-	private GeoPoint mGeoPoint;
-	private int mBikes;
-	private int mSlots;
-	private int mDistance;
-	private boolean mIsOpen;
-	private boolean mIsFavorite;
 	private boolean mHasPayment;
 	private boolean mIsSpecial;
 
@@ -62,30 +54,13 @@ public class Station {
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite, 
 			boolean hasPayment, boolean isSpecial, int distance) {
-		mId = id;
-		mNetwork = network;
+		
+		super(id, network, name, longitude, latitude, availablesBikes,
+				freeLocations, isOpen, isFavorite, distance);
+		Log.d("OpenBike", "IsOpen : " + isOpen);
 		mAddress = address;
-		mName = name;
-		setGeoPoint(new GeoPoint(latitude, longitude));
-		mBikes = availablesBikes;
-		mSlots = freeLocations;
-		mIsOpen = isOpen;
-		mIsFavorite = isFavorite;
-		mDistance = distance;
 		mHasPayment = hasPayment;
 		mIsSpecial = isSpecial;
-	}
-
-	public Station() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public String getName() {
-		return mName;
-	}
-
-	public void setName(String name) {
-		mName = name;
 	}
 
 	public void setAddress(String address) {
@@ -96,73 +71,6 @@ public class Station {
 		return mAddress;
 	}
 
-	public int getBikes() {
-		return mBikes;
-	}
-
-	public void setBikes(int bikes) {
-		mBikes = bikes;
-	}
-
-	public int getSlots() {
-		return mSlots;
-	}
-
-	public void setSlots(int slots) {
-		mSlots = slots;
-	}
-
-	public boolean isOpen() {
-		return mIsOpen;
-	}
-
-	public void setOpen(boolean isOpen) {
-		if ((mIsOpen = isOpen) == false) {
-			mSlots = 0;
-			mBikes = 0;
-		}
-	}
-
-	public String getNetwork() {
-		return mNetwork;
-	}
-
-	public void setNetwork(String network) {
-		this.mNetwork = network;
-	}
-
-	public void setId(int id) {
-		this.mId = id;
-	}
-
-	public int getId() {
-		return this.mId;
-	}
-
-	public boolean isFavorite() {
-		return mIsFavorite;
-	}
-
-	public void setFavorite(boolean isFavorite) {
-		mIsFavorite = isFavorite;
-	}
-
-	public void setGeoPoint(GeoPoint geoPoint) {
-		mGeoPoint = geoPoint;
-	}
-
-	public GeoPoint getGeoPoint() {
-		return mGeoPoint;
-	}
-
-	public void setDistance(int distance) {
-		mDistance = distance;
-	}
-
-	public int getDistance() {
-		return mDistance;
-	}
-	
 	public boolean hasPayment() {
 		return mHasPayment;
 	}

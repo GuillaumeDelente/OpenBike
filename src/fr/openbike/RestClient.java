@@ -34,7 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import fr.openbike.map.StationOverlay;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 
 public class RestClient {
 	
@@ -148,7 +148,7 @@ public class RestClient {
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
-			Station station;
+			MinimalStation station;
 			int id = 0;
 			for (int i = 0; i < mVisibleStations.size(); i++) {
 				station = mVisibleStations.get(i).getStation();

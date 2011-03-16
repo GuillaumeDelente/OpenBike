@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import fr.openbike.map.StationOverlay;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 
 public class Filtering {
 
@@ -37,7 +37,7 @@ public class Filtering {
 		//Log.d("OpenBike", "Filtering stations");
 		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
 				.hasNext();) {
-			Station s = ((StationOverlay) it.next()).getStation();
+			MinimalStation s = ((StationOverlay) it.next()).getStation();
 			if (mVcubFilter.isShowOnlyFavorites() && !s.isFavorite()) {
 				it.remove();
 				continue;

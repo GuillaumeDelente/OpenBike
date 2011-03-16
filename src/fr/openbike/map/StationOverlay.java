@@ -38,7 +38,7 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
 import fr.openbike.R;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
 public class StationOverlay extends Overlay {
@@ -54,18 +54,18 @@ public class StationOverlay extends Overlay {
 	static private String SLOTS;
 	static private String SLOT;
 	static MapController mMc;
-	private Station mStation;
+	private MinimalStation mStation;
 	private boolean mIsCurrent = false;
 	
-	public Station getStation() {
+	public MinimalStation getStation() {
 		return mStation;
 	}
 
-	public StationOverlay(Station station) {
+	public StationOverlay(MinimalStation station) {
 		mStation = station;
 	}
 	
-	public StationOverlay(Station station, boolean isCurrent) {
+	public StationOverlay(MinimalStation station, boolean isCurrent) {
 		mStation = station;
 		mIsCurrent = isCurrent;
 	}

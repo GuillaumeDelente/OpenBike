@@ -33,15 +33,15 @@ import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
 import fr.openbike.map.StationOverlay;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 	
 	private LayoutInflater mInflater;
 	private Context mContext;
-	private Drawable mRedBike;
-	private Drawable mGreenBike;
+	private static Drawable mRedBike;
+	private static Drawable mGreenBike;
 
 	public OpenBikeArrayAdaptor(Context context, int layout,
 			ArrayList<StationOverlay> list) {
@@ -91,7 +91,7 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		if (overlay == null) {
 			//Log.e("OpenBike", "Invalid position: " + position);
 		}
-		Station station = overlay.getStation();
+		MinimalStation station = overlay.getStation();
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
 			viewHolder.closed.setVisibility(View.VISIBLE);

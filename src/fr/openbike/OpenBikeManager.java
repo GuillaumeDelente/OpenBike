@@ -36,6 +36,7 @@ import fr.openbike.filter.BikeFilter;
 import fr.openbike.filter.Filtering;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.map.StationOverlay;
+import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Station;
 import fr.openbike.utils.Utils;
 
@@ -219,7 +220,7 @@ public class OpenBikeManager {
 	public void setFavorite(int id, boolean isChecked) {
 		mOpenBikeDBAdapter.updateFavorite(id, isChecked);
 		StationOverlay overlay;
-		Station station;
+		MinimalStation station;
 		Iterator<StationOverlay> it = mVisibleStations.iterator();
 		while(it.hasNext()) {
 			overlay = it.next();
@@ -249,7 +250,7 @@ public class OpenBikeManager {
 		if (mVisibleStations == null)
 			getVisibleStations();
 		StationOverlay overlay;
-		Station station;
+		MinimalStation station;
 		Location l = new Location("");
 		GeoPoint point;
 		Iterator<StationOverlay> it = mVisibleStations.iterator();
@@ -263,7 +264,7 @@ public class OpenBikeManager {
 		}
 	}
 	
-	private void computeDistance(Station station) {
+	private void computeDistance(MinimalStation station) {
 		Location location = null;
 		if (mLocationProvider == null || 
 				(location = mLocationProvider.getMyLocation()) == null) {
@@ -284,7 +285,7 @@ public class OpenBikeManager {
 		if (mVisibleStations == null)
 			return;
 		StationOverlay overlay;
-		Station station;
+		MinimalStation station;
 		Iterator<StationOverlay> it = mVisibleStations.iterator();
 		while(it.hasNext()) {
 			overlay = it.next();
@@ -579,10 +580,9 @@ public class OpenBikeManager {
 						continue;
 				}
 				stationOverlay = new StationOverlay(
-						new Station(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN), 
+						new MinimalStation(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN), 
 								cursor.getString(OpenBikeDBAdapter.NETWORK_COLUMN), 
 								cursor.getString(OpenBikeDBAdapter.NAME_COLUMN), 
-								cursor.getString(OpenBikeDBAdapter.ADDRESS_COLUMN), 
 								cursor.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN), 
 								cursor.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN),
 								cursor.getInt(OpenBikeDBAdapter.BIKES_COLUMN), 
@@ -591,11 +591,7 @@ public class OpenBikeManager {
 										false : true,
 								cursor.getInt(OpenBikeDBAdapter.FAVORITE_COLUMN) == 0 ?
 										false : true,
-								cursor.getInt(OpenBikeDBAdapter.PAYMENT_COLUMN) == 0 ?
-												false : true,
-								cursor.getInt(OpenBikeDBAdapter.SPECIAL_COLUMN) == 0 ?
-												false : true,
-										stationLocation != null ? distanceToStation : -1));
+								stationLocation != null ? distanceToStation : -1));
 				if (useList) {
 					mVisibleStations.add(stationOverlay);
 				} else {

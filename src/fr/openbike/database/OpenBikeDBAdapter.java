@@ -199,7 +199,7 @@ public class OpenBikeDBAdapter {
 	 * 
 	 * KEY_ID KEY_ADDRESS KEY_BIKES KEY_SLOTS KEY_OPEN KEY_LATITUDE
 	 * KEY_LONGITUDE KEY_NAME KEY_NETWORK
-	 */
+	 *
 
 	public Cursor getAllStationsCursor() {
 		return mDb.query(DATABASE_TABLE,
@@ -208,6 +208,8 @@ public class OpenBikeDBAdapter {
 						KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL },
 				null, null, null, null, null);
 	}
+	
+	*/
 
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
 		// Log.e("OpenBike", "In db : getFilteredStationsCursor");

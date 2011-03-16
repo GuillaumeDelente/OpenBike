@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
 import fr.openbike.StationDetails;
-import fr.openbike.object.Station;
+import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
 /**
@@ -109,7 +109,7 @@ public class BalloonOverlayView extends FrameLayout {
 	 *            - The overlay item containing the relevant view data (title
 	 *            and snippet).
 	 */
-	public void setData(Station station) {
+	public void setData(MinimalStation station) {
 		mLayout.setVisibility(VISIBLE);
 		mName.setText(station.getName());
 		mFavorite.setChecked(station.isFavorite());
@@ -140,7 +140,7 @@ public class BalloonOverlayView extends FrameLayout {
 
 	}
 
-	public void refreshData(Station station) {
+	public void refreshData(MinimalStation station) {
 		setData(station);
 	}
 
