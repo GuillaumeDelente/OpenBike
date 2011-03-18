@@ -17,7 +17,6 @@
  */
 package fr.openbike.object;
 
-import android.util.Log;
 
 
 /**
@@ -32,32 +31,31 @@ public class Station extends MinimalStation{
 	private boolean mHasPayment;
 	private boolean mIsSpecial;
 
-	public Station(int id, String network, String name, String address,
+	public Station(int id, String name, String address,
 			double longitude, double latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite,
 			boolean hasPayment, boolean isSpecial) {
-		this(id, network, name, address, (int) (longitude * 1E6),
+		this(id, name, address, (int) (longitude * 1E6),
 				(int) (latitude * 1E6), availablesBikes, freeLocations,
 				isOpen, isFavorite, hasPayment, isSpecial);
 	}
 	
-	public Station(int id, String network, String name, String address,
+	public Station(int id, String name, String address,
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite, 
 			boolean hasPayment, boolean isSpecial) {
-		this(id, network, name, address, longitude,
+		this(id, name, address, longitude,
 				latitude, availablesBikes, freeLocations,
 				isOpen, isFavorite, hasPayment, isSpecial, -1);
 	}
 
-	public Station(int id, String network, String name, String address,
+	public Station(int id, String name, String address,
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite, 
 			boolean hasPayment, boolean isSpecial, int distance) {
 		
-		super(id, network, name, longitude, latitude, availablesBikes,
+		super(id, name, longitude, latitude, availablesBikes,
 				freeLocations, isOpen, isFavorite, distance);
-		Log.d("OpenBike", "IsOpen : " + isOpen);
 		mAddress = address;
 		mHasPayment = hasPayment;
 		mIsSpecial = isSpecial;

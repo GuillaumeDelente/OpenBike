@@ -13,6 +13,8 @@
 	<string name="show_on_google_maps">Afficher sur Maps</string>
 	<string name="navigate_to">Naviguer vers</string>
 	<string name="show_details">Afficher plus d\'informations</string>
+	<string name="search">Rechercher</string>
+	<string name="menu_search">search</string>
 	
 	<!-- Titles -->
 	<string name="configuration_title">OpenBike - Configuration</string>
@@ -80,7 +82,7 @@
 	<string name="general_preferences_title">Configuration générale</string>
 	<string name="other_preferences_title">Autre</string>
 	<string name="reporting_title">Rapports de bug</string>
-	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash (pris en compte au prochain lancement).</string>
+	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash.</string>
 	<string name="reset_stations">reset_stations</string>
 	<string name="reset_stations_title">RAZ des stations</string>
 	<string name="reset_stations_summary">Efface toutes les stations de la base de donnée.</string>

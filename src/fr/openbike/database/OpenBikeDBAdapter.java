@@ -17,10 +17,13 @@
  */
 package fr.openbike.database;
 
+import java.util.HashMap;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -28,8 +31,11 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.provider.BaseColumns;
+import android.util.Log;
 import fr.openbike.object.Station;
 
 public class OpenBikeDBAdapter {
@@ -38,7 +44,8 @@ public class OpenBikeDBAdapter {
 	public static final int DB_ERROR = -3;
 	private static final String DATABASE_NAME = "openbike.db";
 	private static final String DATABASE_TABLE = "openbike";
-	private static final int DATABASE_VERSION = 1;
+	private static final String STATIONS_VIRTUAL_TABLE = "virtual_stations";
+	private static final int DATABASE_VERSION = 2;
 	public static final int ID_COLUMN = 0;
 	public static final int ADDRESS_COLUMN = 1;
 	public static final int BIKES_COLUMN = 2;
@@ -67,7 +74,6 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_PAYMENT = "hasPayment";
 	public static final String KEY_SPECIAL = "isSpecial";
 
-	// TODO: remove this, only for debugging
 	private static final String DATABASE_CREATE = "create table "
 			+ DATABASE_TABLE + " (" + KEY_ID + " integer primary key, "
 			+ KEY_NAME + " text not null, " + KEY_OPEN + " integer not null, "
@@ -77,6 +83,10 @@ public class OpenBikeDBAdapter {
 			+ " integer not null, " + KEY_NETWORK + " text not null, "
 			+ KEY_FAVORITE + " integer not null, " + KEY_PAYMENT
 			+ " integer not null, " + KEY_SPECIAL + " integer not null );";
+	
+	private static final String DATABASE_CREATE_VIRTUAL = 
+		"CREATE VIRTUAL TABLE " + STATIONS_VIRTUAL_TABLE +
+		" USING fts3 (" + KEY_ID + ", " + KEY_NAME + ");";
 
 	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
@@ -92,6 +102,7 @@ public class OpenBikeDBAdapter {
 		try {
 			mDb = mDbHelper.getWritableDatabase();
 		} catch (SQLiteException ex) {
+			Log.d("OpenBike", "SQL : " + ex.getMessage());
 			mDb = mDbHelper.getReadableDatabase();
 		}
 	}
@@ -219,18 +230,53 @@ public class OpenBikeDBAdapter {
 						KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL },
 				where, null, null, null, orderBy);
 	}
+	
+	public Cursor getSearchCursor(String like) {
+		// Log.e("OpenBike", "In db : getFilteredStationsCursor");
+		/*Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE,
+				new String[] { KEY_ID,  KEY_NAME },
+						KEY_NAME + " MATCH ? LEFT JOIN openbike ON _id = openbike._id",
+						new String[] {like + "*"}, null, null, null);
+						*/
+		Cursor cursor = mDb.query("openbike ob, virtual_stations vs",
+				new String[] { 
+				"ob." + KEY_ID, 
+				"ob." + KEY_BIKES, 
+				"ob." + KEY_SLOTS,
+				"ob." + KEY_OPEN, 
+				"ob." + KEY_LATITUDE, 
+				"ob." + KEY_LONGITUDE, 
+				"ob." + KEY_NAME,
+				"ob." + KEY_FAVORITE },
+						"virtual_stations MATCH ? AND ob.rowid = vs.rowid",
+						new String[] {like + "*"}, null, null, null);
+		/*
+		Cursor cursor = mDb.rawQuery("SELECT ob.* " +
+        		"FROM openbike ob, virtual_stations vs " +
+        		"WHERE vs.name MATCH ? AND ob.rowid = vs.rowid", 
+        		new String[] {like + "*"});*/
+		//Log.d("OpenBike", "Query : " + query);
+        if (cursor == null) {
+            return null;
+        } /*else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+            
+        }*/
+        return cursor;
+	}
 
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
 				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
 				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE,
-				KEY_PAYMENT, KEY_SPECIAL }, KEY_ID + "=" + id, null, null,
+				KEY_PAYMENT, KEY_SPECIAL }, KEY_ID + "=?", new String[] {String.valueOf(id)}, null,
 				null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
 		}
 
-		Station result = new Station(id, cursor.getString(NETWORK_COLUMN),
+		Station result = new Station(id,
 				cursor.getString(NAME_COLUMN),
 				cursor.getString(ADDRESS_COLUMN), cursor
 						.getInt(LONGITUDE_COLUMN), cursor
@@ -271,10 +317,17 @@ public class OpenBikeDBAdapter {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
+			//db.execSQL(DATABASE_CREATE_VIRTUAL);
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if (oldVersion == 1) {
+				db.execSQL(DATABASE_CREATE_VIRTUAL);
+				db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE + "(" + KEY_ID +
+						", " + KEY_NAME + ") SELECT " + KEY_ID +
+						", " + KEY_NAME + " FROM " + DATABASE_TABLE + ";");
+			}
 		}
 	}
 }

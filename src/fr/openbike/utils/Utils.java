@@ -120,7 +120,6 @@ public class Utils {
 		final PackageManager packageManager = context.getPackageManager();
 		List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
 				PackageManager.MATCH_DEFAULT_ONLY);
-		Log.d("OpenBike", "Liste intent : " + list.size());
 		return list.size() > 0;
 	}
 }

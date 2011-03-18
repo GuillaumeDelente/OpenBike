@@ -21,11 +21,13 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -96,6 +98,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			}
 		});
 		registerForContextMenu(listView);
+		handleIntent(getIntent());
 	}
 
 	@Override
@@ -118,9 +121,23 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
+	protected void onNewIntent(Intent intent) {
+		setIntent(intent);
+		handleIntent(intent);
+	}
+
+	private void handleIntent(Intent intent) {
+		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+			// handles a search query
+			String query = intent.getStringExtra(SearchManager.QUERY);
+			showResults(query);
+		}
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.station_list_menu, menu);
+		inflater.inflate(R.menu.list_menu, menu);
 		return true;
 	}
 
@@ -128,6 +145,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
+		case R.id.menu_search:
+			onSearchRequested();
 		case R.id.menu_update_all:
 			mVcuboidManager.executeUpdateAllStationsTask(true);
 			return true;
@@ -305,6 +324,19 @@ public class OpenBikeListActivity extends ListActivity implements
 		if (mAdapter == null) // OnCreate
 			return;
 		mAdapter.notifyDataSetChanged();
+	}
+
+	/**
+	 * Searches the dictionary and displays results for the given query.
+	 * 
+	 * @param query
+	 *            The search query
+	 */
+	private void showResults(String query) {
+
+		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
+				R.layout.station_list_entry, mVcuboidManager.getSearchResults(query));
+		getListView().setAdapter(adapter);
 	}
 
 	@Override

@@ -17,8 +17,6 @@
  */
 package fr.openbike.object;
 
-import android.util.Log;
-
 import com.google.android.maps.GeoPoint;
 
 /**
@@ -30,7 +28,6 @@ import com.google.android.maps.GeoPoint;
 
 public class MinimalStation {
 	private int mId;
-	private String mNetwork;
 	private String mName;
 	private GeoPoint mGeoPoint;
 	private int mBikes;
@@ -39,11 +36,10 @@ public class MinimalStation {
 	private boolean mIsOpen;
 	private boolean mIsFavorite;
 	
-	public MinimalStation(int id, String network, String name,
+	public MinimalStation(int id, String name,
 			int longitude, int latitude, int availablesBikes,
 			int freeLocations, boolean isOpen, boolean isFavorite, int distance) {
 		mId = id;
-		mNetwork = network;
 		mName = name;
 		setGeoPoint(new GeoPoint(latitude, longitude));
 		mBikes = availablesBikes;
@@ -78,7 +74,6 @@ public class MinimalStation {
 	}
 
 	public boolean isOpen() {
-		Log.d("OpenBike", "IsOpen getter : " + mIsOpen);
 		return mIsOpen;
 	}
 
@@ -87,14 +82,6 @@ public class MinimalStation {
 			mSlots = 0;
 			mBikes = 0;
 		}
-	}
-
-	public String getNetwork() {
-		return mNetwork;
-	}
-
-	public void setNetwork(String network) {
-		this.mNetwork = network;
 	}
 
 	public void setId(int id) {

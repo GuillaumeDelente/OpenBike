@@ -27,6 +27,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -408,6 +409,50 @@ public class OpenBikeManager {
 		return false;
 	}
 	
+	public ArrayList<StationOverlay> getSearchResults (String query) {
+		Cursor cursor = mOpenBikeDBAdapter.getSearchCursor(query);
+		ArrayList<StationOverlay> results;
+		if (cursor != null && cursor.getCount() != 0) {
+			Log.d("OpenBike", "Cursor : " + cursor.getCount());
+			results = new ArrayList<StationOverlay>(cursor.getCount());
+		} else {
+			return new ArrayList<StationOverlay>(0);
+		}
+		StationOverlay stationOverlay;
+		Location stationLocation = null;
+		Location location = null;
+		int distanceToStation = 0;
+		if (mLocationProvider != null) {
+			location = mLocationProvider.getMyLocation();
+			if (location != null)
+				stationLocation = new Location("");
+		}
+		while(cursor.moveToNext()) {
+			if (stationLocation != null) {
+				stationLocation.setLatitude((double) cursor
+					.getInt(4)*1E-6);
+				stationLocation.setLongitude((double) cursor
+					.getInt(5)*1E-6);
+				distanceToStation = (int) stationLocation.distanceTo(location);
+			}
+			stationOverlay = new StationOverlay(
+					new MinimalStation(cursor.getInt(0), 
+						cursor.getString(6), 
+						cursor.getInt(4), 
+						cursor.getInt(5),
+						cursor.getInt(1), 
+						cursor.getInt(2), 
+						cursor.getInt(3) == 1 ? true : false,
+						cursor.getInt(7) == 1 ? true : false,
+						stationLocation != null ? distanceToStation : -1));
+			Log.d("OpenBike", "Overlay : " + stationOverlay);
+			results.add(stationOverlay);
+			Log.d("OpenBike", "List : " + results);
+		}
+		Log.d("OpenBike", "Liste finale : " + results);
+		return results;
+	}
+	
 	/************************************/
 	/************************************/
 	/*******					*********/
@@ -580,8 +625,7 @@ public class OpenBikeManager {
 						continue;
 				}
 				stationOverlay = new StationOverlay(
-						new MinimalStation(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN), 
-								cursor.getString(OpenBikeDBAdapter.NETWORK_COLUMN), 
+						new MinimalStation(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN),
 								cursor.getString(OpenBikeDBAdapter.NAME_COLUMN), 
 								cursor.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN), 
 								cursor.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN),

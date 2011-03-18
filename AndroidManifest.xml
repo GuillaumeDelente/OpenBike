@@ -15,16 +15,26 @@
                   android:launchMode = "singleTask"
                   android:theme="@android:style/Theme.NoTitleBar"
                   >
-                    <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <intent-filter>
+                	<action android:name="android.intent.action.MAIN" />
+                	<category android:name="android.intent.category.LAUNCHER" />
+            	</intent-filter>
+            	
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <!-- No category needed, because the Intent will specify this class component-->
             </intent-filter>
+            	
+        	<meta-data android:name="android.app.searchable"
+                   android:resource="@xml/searchable"/>
+
         </activity>
          <activity android:name=".map.OpenBikeMapActivity" 
          		android:launchMode = "singleTask" 
         		android:theme="@android:style/Theme.NoTitleBar"/>
 		<activity android:name=".list.ListFilterActivity" 
-					android:label="@string/configuration_title"/>
+					android:label="@string/configuration_title" />
+					
 		<activity android:name=".map.MapFilterActivity" 
 					android:label="@string/configuration_title" />
 		<activity android:name=".map.StationMapFilterActivity" 
