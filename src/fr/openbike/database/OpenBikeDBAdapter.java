@@ -17,8 +17,6 @@
  */
 package fr.openbike.database;
 
-import java.util.HashMap;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,11 +29,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.provider.BaseColumns;
-import android.util.Log;
 import fr.openbike.object.Station;
 
 public class OpenBikeDBAdapter {
@@ -61,7 +57,6 @@ public class OpenBikeDBAdapter {
 
 	private SQLiteDatabase mDb;
 	private OpenBikeDBOpenHelper mDbHelper;
-	public static final String KEY_ID = "_id";
 	public static final String KEY_ADDRESS = "address";
 	public static final String KEY_BIKES = "availableBikes";
 	public static final String KEY_SLOTS = "freeSlots";
@@ -75,18 +70,22 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_SPECIAL = "isSpecial";
 
 	private static final String DATABASE_CREATE = "create table "
-			+ DATABASE_TABLE + " (" + KEY_ID + " integer primary key, "
-			+ KEY_NAME + " text not null, " + KEY_OPEN + " integer not null, "
-			+ KEY_BIKES + " integer not null, " + KEY_SLOTS
-			+ " integer not null, " + KEY_ADDRESS + " text not null, "
-			+ KEY_LATITUDE + " integer not null, " + KEY_LONGITUDE
-			+ " integer not null, " + KEY_NETWORK + " text not null, "
-			+ KEY_FAVORITE + " integer not null, " + KEY_PAYMENT
-			+ " integer not null, " + KEY_SPECIAL + " integer not null );";
-	
-	private static final String DATABASE_CREATE_VIRTUAL = 
-		"CREATE VIRTUAL TABLE " + STATIONS_VIRTUAL_TABLE +
-		" USING fts3 (" + KEY_ID + ", " + KEY_NAME + ");";
+			+ DATABASE_TABLE + " (" + BaseColumns._ID
+			+ " integer primary key, " + KEY_NAME + " text not null, "
+			+ KEY_OPEN + " integer not null, " + KEY_BIKES
+			+ " integer not null, " + KEY_SLOTS + " integer not null, "
+			+ KEY_ADDRESS + " text not null, " + KEY_LATITUDE
+			+ " integer not null, " + KEY_LONGITUDE + " integer not null, "
+			+ KEY_NETWORK + " text not null, " + KEY_FAVORITE
+			+ " integer not null, " + KEY_PAYMENT + " integer not null, "
+			+ KEY_SPECIAL + " integer not null );";
+
+	private static final String DATABASE_CREATE_VIRTUAL = "CREATE VIRTUAL TABLE "
+			+ STATIONS_VIRTUAL_TABLE
+			+ " USING fts3 ("
+			+ BaseColumns._ID
+			+ ", "
+			+ KEY_NAME + ");";
 
 	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
@@ -102,7 +101,6 @@ public class OpenBikeDBAdapter {
 		try {
 			mDb = mDbHelper.getWritableDatabase();
 		} catch (SQLiteException ex) {
-			Log.d("OpenBike", "SQL : " + ex.getMessage());
 			mDb = mDbHelper.getReadableDatabase();
 		}
 	}
@@ -117,19 +115,27 @@ public class OpenBikeDBAdapter {
 
 	public int insertStations(String json) {
 		int success = 1;
-		String sql = "INSERT INTO " + DATABASE_TABLE + " (" + KEY_ID + ","
-				+ KEY_ADDRESS + "," + KEY_BIKES + "," + KEY_SLOTS + ","
+		String sql = "INSERT INTO " + DATABASE_TABLE + " (" + BaseColumns._ID
+				+ "," + KEY_ADDRESS + "," + KEY_BIKES + "," + KEY_SLOTS + ","
 				+ KEY_OPEN + "," + KEY_LATITUDE + "," + KEY_LONGITUDE + ","
 				+ KEY_NAME + "," + KEY_NETWORK + "," + KEY_FAVORITE + ","
 				+ KEY_PAYMENT + "," + KEY_SPECIAL
 				+ ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+
+		String sql_virtual = "INSERT INTO " + STATIONS_VIRTUAL_TABLE + " ("
+				+ BaseColumns._ID + "," + KEY_NAME + ") VALUES (?,?);";
 		try {
 			mDb.beginTransaction();
 			SQLiteStatement insert = mDb.compileStatement(sql);
+			SQLiteStatement insert_virtual = mDb.compileStatement(sql_virtual);
 			JSONArray jsonArray = new JSONArray(json);
+			int id;
+			String name;
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
-				insert.bindLong(1, jsonStation.getInt("id"));
+				id = jsonStation.getInt("id");
+				name = jsonStation.getString("name");
+				insert.bindLong(1, id);
 				insert.bindString(2, jsonStation.getString("address"));
 				insert.bindLong(3, jsonStation.getInt("availableBikes"));
 				insert.bindLong(4, jsonStation.getInt("freeSlots"));
@@ -138,12 +144,16 @@ public class OpenBikeDBAdapter {
 						(int) (jsonStation.getDouble("latitude") * 1E6));
 				insert.bindLong(7,
 						(int) (jsonStation.getDouble("longitude") * 1E6));
-				insert.bindString(8, jsonStation.getString("name"));
+				insert.bindString(8, name);
 				insert.bindString(9, jsonStation.getString("network"));
 				insert.bindLong(10, 0);
 				insert.bindLong(11, jsonStation.getBoolean("payment") ? 1 : 0);
 				insert.bindLong(12, jsonStation.getBoolean("special") ? 1 : 0);
 				insert.executeInsert();
+
+				insert_virtual.bindLong(1, id);
+				insert_virtual.bindString(2, name);
+				insert_virtual.executeInsert();
 			}
 			mDb.setTransactionSuccessful();
 		} catch (JSONException e) {
@@ -162,7 +172,7 @@ public class OpenBikeDBAdapter {
 		int success = 1;
 		String sql = "UPDATE " + DATABASE_TABLE + " SET " + KEY_BIKES
 				+ " = ?, " + KEY_SLOTS + " = ?, " + KEY_OPEN + " = ? "
-				+ " WHERE " + KEY_ID + " = ?;";
+				+ " WHERE " + BaseColumns._ID + " = ?;";
 		try {
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
@@ -188,7 +198,7 @@ public class OpenBikeDBAdapter {
 	}
 
 	public boolean removeStation(int id) {
-		return mDb.delete(DATABASE_TABLE, KEY_ID + "=" + id, null) > 0;
+		return mDb.delete(DATABASE_TABLE, BaseColumns._ID + "=" + id, null) > 0;
 	}
 
 	/*
@@ -203,89 +213,118 @@ public class OpenBikeDBAdapter {
 		// Log.e("OpenBike", "updateFavorite " + id + " est " + isFavorite);
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
-		return mDb.update(DATABASE_TABLE, newValues, KEY_ID + "=" + id, null) > 0;
+		return mDb.update(DATABASE_TABLE, newValues,
+				BaseColumns._ID + "=" + id, null) > 0;
 	}
 
 	/*
 	 * 
 	 * KEY_ID KEY_ADDRESS KEY_BIKES KEY_SLOTS KEY_OPEN KEY_LATITUDE
 	 * KEY_LONGITUDE KEY_NAME KEY_NETWORK
-	 *
-
-	public Cursor getAllStationsCursor() {
-		return mDb.query(DATABASE_TABLE,
-				new String[] { KEY_ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS,
-						KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE, KEY_NAME,
-						KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL },
-				null, null, null, null, null);
-	}
-	
-	*/
+	 * 
+	 * 
+	 * public Cursor getAllStationsCursor() { return mDb.query(DATABASE_TABLE,
+	 * new String[] { KEY_ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN,
+	 * KEY_LATITUDE, KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE,
+	 * KEY_PAYMENT, KEY_SPECIAL }, null, null, null, null, null); }
+	 */
 
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
 		// Log.e("OpenBike", "In db : getFilteredStationsCursor");
-		return mDb.query(DATABASE_TABLE,
-				new String[] { KEY_ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS,
-						KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE, KEY_NAME,
-						KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL },
-				where, null, null, null, orderBy);
+		return mDb.query(DATABASE_TABLE, new String[] { BaseColumns._ID,
+				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
+				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE,
+				KEY_PAYMENT, KEY_SPECIAL }, where, null, null, null, orderBy);
 	}
-	
+
 	public Cursor getSearchCursor(String like) {
-		// Log.e("OpenBike", "In db : getFilteredStationsCursor");
-		/*Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE,
-				new String[] { KEY_ID,  KEY_NAME },
-						KEY_NAME + " MATCH ? LEFT JOIN openbike ON _id = openbike._id",
-						new String[] {like + "*"}, null, null, null);
-						*/
+		String table = STATIONS_VIRTUAL_TABLE;
+		try {
+			Integer.parseInt(like);
+			table = "vs." + BaseColumns._ID;
+		} catch (NumberFormatException ex) {
+			like += "*";
+		}
+
 		Cursor cursor = mDb.query("openbike ob, virtual_stations vs",
-				new String[] { 
-				"ob." + KEY_ID, 
-				"ob." + KEY_BIKES, 
-				"ob." + KEY_SLOTS,
-				"ob." + KEY_OPEN, 
-				"ob." + KEY_LATITUDE, 
-				"ob." + KEY_LONGITUDE, 
-				"ob." + KEY_NAME,
-				"ob." + KEY_FAVORITE },
-						"virtual_stations MATCH ? AND ob.rowid = vs.rowid",
-						new String[] {like + "*"}, null, null, null);
+				new String[] { "ob." + BaseColumns._ID, "ob." + KEY_BIKES,
+						"ob." + KEY_SLOTS, "ob." + KEY_OPEN,
+						"ob." + KEY_LATITUDE, "ob." + KEY_LONGITUDE,
+						"ob." + KEY_NAME, "ob." + KEY_FAVORITE }, table
+						+ " MATCH ? AND ob.rowid = vs.rowid",
+				new String[] { like }, null, null, null);
 		/*
-		Cursor cursor = mDb.rawQuery("SELECT ob.* " +
-        		"FROM openbike ob, virtual_stations vs " +
-        		"WHERE vs.name MATCH ? AND ob.rowid = vs.rowid", 
-        		new String[] {like + "*"});*/
-		//Log.d("OpenBike", "Query : " + query);
-        if (cursor == null) {
-            return null;
-        } /*else if (!cursor.moveToFirst()) {
-            cursor.close();
-            return null;
-            
-        }*/
-        return cursor;
+		 * Cursor cursor = mDb.rawQuery("SELECT ob.* " +
+		 * "FROM openbike ob, virtual_stations vs " +
+		 * "WHERE vs.name MATCH ? AND ob.rowid = vs.rowid", new String[] {like +
+		 * "*"});
+		 */
+		if (cursor == null) {
+			return null;
+		} /*
+		 * else if (!cursor.moveToFirst()) { cursor.close(); return null;
+		 * 
+		 * }
+		 */
+		return cursor;
+	}
+
+	public Cursor getStationsMatches(String query, String[] columns) {
+		String table = STATIONS_VIRTUAL_TABLE;
+		try {
+			Integer.parseInt(query);
+			table = BaseColumns._ID;
+		} catch (NumberFormatException ex) {
+			query += "*";
+		}
+
+		Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
+				BaseColumns._ID,
+				"'n° ' || " + BaseColumns._ID + " as "
+						+ SearchManager.SUGGEST_COLUMN_TEXT_2,
+				BaseColumns._ID + " as "
+						+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID,
+				KEY_NAME + " as " + SearchManager.SUGGEST_COLUMN_TEXT_1 },
+				table + " MATCH ?", new String[] { query }, null, null, null);
+		if (cursor == null) {
+			return null;
+		} /*
+		 * else if (!cursor.moveToFirst()) { cursor.close(); return null;
+		 * 
+		 * }
+		 */
+		return cursor;
 	}
 
 	public Station getStation(int id) throws SQLException {
-		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] { KEY_ID,
-				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE,
-				KEY_PAYMENT, KEY_SPECIAL }, KEY_ID + "=?", new String[] {String.valueOf(id)}, null,
-				null, null, null);
+		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] {
+				BaseColumns._ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN,
+				KEY_LATITUDE, KEY_LONGITUDE, KEY_NAME, KEY_NETWORK,
+				KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, BaseColumns._ID
+				+ "=?", new String[] { String.valueOf(id) }, null, null, null,
+				null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
 		}
 
-		Station result = new Station(id,
-				cursor.getString(NAME_COLUMN),
-				cursor.getString(ADDRESS_COLUMN), cursor
-						.getInt(LONGITUDE_COLUMN), cursor
-						.getInt(LATITUDE_COLUMN), cursor.getInt(BIKES_COLUMN),
+		Station result = new Station(id, cursor.getString(NAME_COLUMN), cursor
+				.getString(ADDRESS_COLUMN), cursor.getInt(LONGITUDE_COLUMN),
+				cursor.getInt(LATITUDE_COLUMN), cursor.getInt(BIKES_COLUMN),
 				cursor.getInt(SLOTS_COLUMN), cursor.getInt(OPEN_COLUMN) != 0,
 				cursor.getInt(FAVORITE_COLUMN) != 0, cursor
 						.getInt(PAYMENT_COLUMN) != 0, cursor
 						.getInt(SPECIAL_COLUMN) != 0);
 		return result;
+	}
+
+	public Cursor getStation(int id, String[] columns) throws SQLException {
+		Cursor cursor = mDb.query(true, DATABASE_TABLE, columns,
+				BaseColumns._ID + "=?", new String[] { String.valueOf(id) },
+				null, null, null, null);
+		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
+			throw new SQLException("No Station found with ID " + id);
+		}
+		return cursor;
 	}
 
 	public int getStationCount() throws SQLException {
@@ -317,16 +356,17 @@ public class OpenBikeDBAdapter {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
-			//db.execSQL(DATABASE_CREATE_VIRTUAL);
+			db.execSQL(DATABASE_CREATE_VIRTUAL);
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			if (oldVersion == 1) {
 				db.execSQL(DATABASE_CREATE_VIRTUAL);
-				db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE + "(" + KEY_ID +
-						", " + KEY_NAME + ") SELECT " + KEY_ID +
-						", " + KEY_NAME + " FROM " + DATABASE_TABLE + ";");
+				db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE + "("
+						+ BaseColumns._ID + ", " + KEY_NAME + ") SELECT "
+						+ BaseColumns._ID + ", " + KEY_NAME + " FROM "
+						+ DATABASE_TABLE + ";");
 			}
 		}
 	}

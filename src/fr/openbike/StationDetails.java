@@ -20,10 +20,13 @@ package fr.openbike;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,8 +38,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.database.SuggestionProvider;
 import fr.openbike.map.OpenBikeMapActivity;
-import fr.openbike.object.Station;
 import fr.openbike.utils.Utils;
 
 /**
@@ -49,8 +53,8 @@ public class StationDetails extends Activity {
 	public static final int MAPS_NOT_AVAILABLE = 0;
 	public static final int NAVIGATION_NOT_AVAILABLE = 1;
 
-	private Station mStation = null;
-	private OpenBikeManager mVcuboidManager = null;
+	private Cursor mStation = null;
+	OpenBikeManager mOpenBikeManager = null;
 	private TextView mName = null;
 	private TextView mDistance = null;
 	private TextView mBikes = null;
@@ -67,7 +71,6 @@ public class StationDetails extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_details_layout);
-		mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance();
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
@@ -92,15 +95,26 @@ public class StationDetails extends Activity {
 				startNavigation();
 			}
 		});
-		final Intent intent = new Intent(this, OpenBikeMapActivity.class);
 		mShowMap.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View arg0) {
-				intent.putExtra("id", mStation.getId());
-				startActivity(intent);
+				showOnMap(mStation.getString(mStation
+						.getColumnIndex(BaseColumns._ID)));
 			}
 		});
+		handleIntent();
+	}
+
+	private void showOnMap(Uri uri) {
+		Intent intent = new Intent(this, OpenBikeMapActivity.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(OpenBikeMapActivity.ACTION_DETAIL);
+		intent.setData(uri);
+		startActivity(intent);
+	}
+
+	private void showOnMap(String id) {
+		showOnMap(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI, id));
 	}
 
 	@Override
@@ -114,12 +128,10 @@ public class StationDetails extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
-		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.menu_show_on_map:
-			intent = new Intent(this, OpenBikeMapActivity.class);
-			intent.putExtra("id", mStation.getId());
-			startActivity(intent);
+			showOnMap(mStation.getString(mStation
+					.getColumnIndex(BaseColumns._ID)));
 			return true;
 		case R.id.menu_show_on_google_maps:
 			startMaps();
@@ -134,9 +146,16 @@ public class StationDetails extends Activity {
 
 	void startMaps() {
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
-				+ mStation.getGeoPoint().getLatitudeE6() * 1E-6 + ","
-				+ mStation.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
-				+ mStation.getName() + ")"));
+				+ mStation.getInt(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
+				* 1E-6
+				+ ","
+				+ mStation.getInt(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
+				* 1E-6
+				+ " ("
+				+ mStation.getString(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)) + ")"));
 		if (Utils.isIntentAvailable(intent, this))
 			startActivity(intent);
 		else
@@ -144,17 +163,25 @@ public class StationDetails extends Activity {
 	}
 
 	void startNavigation() {
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri
-				.parse("google.navigation:q="
-						+ mStation.getGeoPoint().getLatitudeE6() * 1E-6
-						+ "," + mStation.getGeoPoint().getLongitudeE6()
-						* 1E-6));
+		Intent intent = new Intent(
+				Intent.ACTION_VIEW,
+				Uri
+						.parse("google.navigation:q="
+								+ mStation
+										.getInt(mStation
+												.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
+								* 1E-6
+								+ ","
+								+ mStation
+										.getInt(mStation
+												.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
+								* 1E-6));
 		if (Utils.isIntentAvailable(intent, this))
 			startActivity(intent);
 		else
 			showDialog(NAVIGATION_NOT_AVAILABLE);
 	}
-	
+
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
@@ -185,26 +212,78 @@ public class StationDetails extends Activity {
 	}
 
 	@Override
+	protected void onPause() {
+		mFavorite.setOnCheckedChangeListener(null);
+		super.onPause();
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		setIntent(intent);
+		handleIntent();
+		super.onNewIntent(intent);
+	}
+
+	@Override
 	protected void onResume() {
 		super.onResume();
-		mStation = mVcuboidManager.getStation(getIntent().getExtras().getInt(
-				"id"));
-		mName.setText(mStation.getId() + " - " + mStation.getName());
-		mAddress.setText(getString(R.string.address) + " : "
-				+ mStation.getAddress());
+		if (mStation != null)
+			mStation.moveToFirst();
+		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
+		mFavorite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			@Override
+			public void onCheckedChanged(CompoundButton button,
+					boolean isChecked) {
+				mOpenBikeManager.setFavorite(mStation.getInt(mStation
+						.getColumnIndex(BaseColumns._ID)), isChecked);
+			}
+		});
+	}
+
+	private void handleIntent() {
+		Uri uri = getIntent().getData();
+		mStation = managedQuery(uri, null, null, null, null);
+		if (mStation == null) {
+			finish();
+			return;
+		} else {
+			mStation.moveToFirst();
+		}
+
+		mName.setText(mStation.getInt(mStation.getColumnIndex(BaseColumns._ID))
+				+ " - "
+				+ mStation.getString(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)));
+		mAddress.setText(getString(R.string.address)
+				+ " : "
+				+ mStation.getString(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_ADDRESS)));
 		mCreditCard
 				.setText(getString(R.string.cc)
 						+ " : "
-						+ getString(mStation.hasPayment() ? R.string.yes
+						+ getString(mStation.getInt(mStation
+								.getColumnIndex(OpenBikeDBAdapter.KEY_PAYMENT)) == 1 ? R.string.yes
 								: R.string.no));
-		mSpecial.setText(getString(R.string.special) + " : "
-				+ getString(mStation.isSpecial() ? R.string.yes : R.string.no));
-		if (mStation.getDistance() != MyLocationProvider.DISTANCE_UNAVAILABLE) {
+		mSpecial
+				.setText(getString(R.string.special)
+						+ " : "
+						+ getString(mStation.getInt(mStation
+								.getColumnIndex(OpenBikeDBAdapter.KEY_SPECIAL)) == 1 ? R.string.yes
+								: R.string.no));
+		int distance = Utils.computeDistance(mStation.getInt(mStation
+				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), mStation
+				.getInt(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)));
+		if (distance != MyLocationProvider.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.upper_at) + " "
-					+ Utils.formatDistance(mStation.getDistance()));
+					+ Utils.formatDistance(distance));
 			mDistance.setVisibility(View.VISIBLE);
+		} else {
+			mDistance.setVisibility(View.GONE);
 		}
-		if (!mStation.isOpen()) {
+		if (mStation
+				.getInt(mStation.getColumnIndex(OpenBikeDBAdapter.KEY_OPEN)) == 0) {
 			findViewById(R.id.open_layout).setVisibility(View.GONE);
 			findViewById(R.id.closed_layout).setVisibility(View.VISIBLE);
 		} else {
@@ -212,36 +291,26 @@ public class StationDetails extends Activity {
 			findViewById(R.id.closed_layout).setVisibility(View.GONE);
 			mBikes = (TextView) findViewById(R.id.bikes);
 			mSlots = (TextView) findViewById(R.id.slots);
-			if (mStation.getBikes() == 0) {
+			int bikes = mStation.getInt(mStation
+					.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES));
+			int slots = mStation.getInt(mStation
+					.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS));
+			if (bikes == 0) {
 				((ImageView) findViewById(R.id.bike_sign))
 						.setImageDrawable(getResources().getDrawable(
 								R.drawable.no_bike_sign));
 			}
-			if (mStation.getSlots() == 0) {
+			if (slots == 0) {
 				((ImageView) findViewById(R.id.parking_sign))
 						.setImageDrawable(getResources().getDrawable(
 								R.drawable.no_parking_sign));
 			}
 			mBikes.setText(getResources().getQuantityString(R.plurals.bike,
-					mStation.getBikes(), mStation.getBikes()));
+					bikes, bikes));
 			mSlots.setText(getResources().getQuantityString(R.plurals.slot,
-					mStation.getSlots(), mStation.getSlots()));
-			mFavorite.setChecked(mStation.isFavorite());
+					slots, slots));
+			mFavorite.setChecked(mStation.getInt(mStation
+					.getColumnIndex(OpenBikeDBAdapter.KEY_FAVORITE)) == 1);
 		}
-
-		mFavorite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-			@Override
-			public void onCheckedChanged(CompoundButton button,
-					boolean isChecked) {
-				mVcuboidManager.setFavorite(mStation.getId(), isChecked);
-			}
-		});
-	}
-
-	@Override
-	protected void onPause() {
-		mFavorite.setOnCheckedChangeListener(null);
-		super.onPause();
 	}
 }

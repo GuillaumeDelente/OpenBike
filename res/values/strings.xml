@@ -15,6 +15,7 @@
 	<string name="show_details">Afficher plus d\'informations</string>
 	<string name="search">Rechercher</string>
 	<string name="menu_search">search</string>
+	<string name="menu_back_title">Retour</string>
 	
 	<!-- Titles -->
 	<string name="configuration_title">OpenBike - Configuration</string>
@@ -111,6 +112,7 @@
 	<string name="loading_list">Création de la liste en cours...</string>
 	<string name="closed">En maintenance</string>
 	<string name="special">Station Vcub+</string>
+	<string name="search_results">Résultats de la recherche :</string>
 	
 	
 </resources>

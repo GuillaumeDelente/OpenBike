@@ -26,10 +26,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.location.Location;
 import android.util.Log;
 
 import com.google.android.maps.Overlay;
 
+import fr.openbike.MyLocationProvider;
+import fr.openbike.OpenBikeManager;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
 import fr.openbike.map.MyLocationOverlay;
@@ -39,7 +42,7 @@ import fr.openbike.object.MinimalStation;
 public class Utils {
 
 	static public void sortStationsByDistance(List<? extends Overlay> list) {
-		//Log.d("OpenBike", "Sorting stations by distance");
+		Log.d("OpenBike", "sortStationsByDistance");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -69,7 +72,6 @@ public class Utils {
 	}
 
 	static public void sortStationsByName(List<? extends Overlay> list) {
-		//Log.d("OpenBike", "Sorting stations by name");
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -121,5 +123,16 @@ public class Utils {
 		List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
 				PackageManager.MATCH_DEFAULT_ONLY);
 		return list.size() > 0;
+	}
+	
+	public static int computeDistance(int latitude, int longitude) {
+		if (!OpenBikeManager.isLocationAvailable()) {
+			return MyLocationProvider.DISTANCE_UNAVAILABLE;
+		}
+		Location location = OpenBikeManager.getCurrentLocation();
+		Location l = new Location("");
+		l.setLatitude((double) latitude*1E-6);
+		l.setLongitude((double) longitude*1E-6);
+		return (int) location.distanceTo(l);
 	}
 }

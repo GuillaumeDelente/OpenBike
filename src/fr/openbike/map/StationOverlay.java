@@ -119,7 +119,6 @@ public class StationOverlay extends Overlay {
 
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
-		////Log.d("OpenBike", "OnTap : ");
 		Point touched = new Point();
 		Point marker = new Point();
 		Projection projection = mapView.getProjection();
@@ -159,7 +158,6 @@ public class StationOverlay extends Overlay {
 			mMc.animateTo(mStation.getGeoPoint());
 			return true;
 		} else {
-			////Log.d("OpenBike", "not a station");
 			if (this == mMapOverlays.get(0))
 				hideOtherBalloons();
 			return false;
@@ -183,7 +181,6 @@ public class StationOverlay extends Overlay {
 				mBalloonView.setVisibility(View.GONE);
 			}
 		} else {
-			//Log.d("OpenBike", "isNotCurrent");
 		}
 	}
 	
@@ -207,7 +204,6 @@ public class StationOverlay extends Overlay {
 	}
 
 	private void hideOtherBalloons() {
-		//Log.d("OpenBike", "hideOtherBalloons");
 		int size = mMapOverlays.size();
 		int baloonPosition = size
 				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
@@ -215,7 +211,6 @@ public class StationOverlay extends Overlay {
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
-			//Log.d("OpenBike", "before last not a StationOverlay");
 		}
 	}
 	

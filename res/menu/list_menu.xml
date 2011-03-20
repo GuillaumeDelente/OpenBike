@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/menu_search" 
+		<item android:id="@+id/menu_search" 
 			android:title="@string/search"
 			android:icon="@drawable/icon_search" />
-	<item android:id="@+id/menu_update_all" 
+		<item android:id="@+id/menu_update_all" 
 			android:title="@string/update_all"
-			android:icon="@drawable/icon_refresh" />
-	<item android:id="@+id/menu_settings" 
+			android:icon="@drawable/icon_refresh" />	
+	<group android:id="@+id/menu_group_list_view"
+           android:visibility="invisible">
+		<item android:id="@+id/menu_settings" 
 			android:title="@string/menu_settings_title"
 			android:icon="@drawable/icon_preferences" />
-	<item android:id="@+id/menu_map" 
+		<item android:id="@+id/menu_map" 
 			android:title="@string/map" 
 			android:icon="@drawable/icon_show_map" />
+	</group>
+	<group android:id="@+id/menu_group_list_search"
+           android:visibility="invisible">
+		<item android:id="@+id/menu_back" 
+			android:title="@string/menu_back_title"
+			android:icon="@drawable/icon_back" />
+	</group>
 </menu>

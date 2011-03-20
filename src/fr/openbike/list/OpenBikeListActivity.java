@@ -24,11 +24,12 @@ import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -52,60 +53,77 @@ import fr.openbike.R;
 import fr.openbike.RestClient;
 import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.database.SuggestionProvider;
 import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.map.OpenBikeMapActivity;
-import fr.openbike.object.Station;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeListActivity extends ListActivity implements
 		IOpenBikeActivity {
 
 	public static final int WELCOME_MESSAGE = 2;
-	private OpenBikeManager mVcuboidManager = null;
+	private OpenBikeManager mOpenBikeManager = null;
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
-	private int mSelected = 0;
+	private String mSelected = null;
+	private boolean mBackToList = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// Log.i("OpenBike", "OnCreate");
 		setContentView(R.layout.station_list);
-		mVcuboidManager = (OpenBikeManager) getLastNonConfigurationInstance();
-		if (mVcuboidManager == null) { // No AsyncTask running
-			// Log.d("OpenBike", "Bundle empty");
-			mVcuboidManager = OpenBikeManager.getVcuboidManagerInstance(this);
+		mOpenBikeManager = (OpenBikeManager) getLastNonConfigurationInstance();
+		if (mOpenBikeManager == null) { // No AsyncTask running
+			mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		} else {
-			// Log.d("OpenBike", "Recovering from bundle");
-			mVcuboidManager.attach(this);
+			mOpenBikeManager.attach(this);
 		}
-		mAdapter = new OpenBikeArrayAdaptor(this, R.layout.station_list_entry,
-				mVcuboidManager.getVisibleStations());
-		this.setListAdapter(mAdapter);
-		// Maybe mAdapter was null when calling onListUpdated
-		// so do it now
-		onListUpdated();
-		final Intent intent = new Intent(this, StationDetails.class);
+
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				// Log.i("OpenBike", "Item clicked");
-				intent.putExtra("id",
-						(Integer) ((OpenBikeArrayAdaptor.ViewHolder) view
-								.getTag()).favorite.getTag());
-				startActivity(intent);
+				showStationDetails(String
+						.valueOf((Integer) ((OpenBikeArrayAdaptor.ViewHolder) view
+								.getTag()).favorite.getTag()));
 			}
 		});
 		registerForContextMenu(listView);
 		handleIntent(getIntent());
 	}
 
+	private void showStationDetails(Uri uri) {
+		Intent intent = new Intent(this, StationDetails.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(uri);
+		startActivity(intent);
+	}
+
+	private void showStationDetails(String id) {
+		showStationDetails(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI,
+				id));
+	}
+
+	private void showOnMap(Uri uri) {
+		Intent intent = new Intent(this, OpenBikeMapActivity.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(OpenBikeMapActivity.ACTION_DETAIL);
+		intent.setData(uri);
+		startActivity(intent);
+	}
+
+	private void showOnMap(String id) {
+		showOnMap(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI, id));
+	}
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mVcuboidManager.setCurrentActivity(this);
-		mVcuboidManager.startLocation();
+		mOpenBikeManager.setCurrentActivity(this);
+		mOpenBikeManager.startLocation();
 		// Cannot remove update even
 		// if it's sometime useless
 		onListUpdated();
@@ -116,7 +134,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	protected void onPause() {
 		super.onPause();
 		finishUpdateAllStationsOnProgress(false);
-		mVcuboidManager.stopLocation();
+		mOpenBikeManager.stopLocation();
 		// Log.i("OpenBike", "onPause");
 	}
 
@@ -128,10 +146,45 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	private void handleIntent(Intent intent) {
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+			findViewById(R.id.search_results).setVisibility(View.VISIBLE);
 			// handles a search query
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			showResults(query);
+		} else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+			showStationDetails(intent.getData());
+		} else {
+			findViewById(R.id.search_results).setVisibility(View.GONE);
+			mAdapter = new OpenBikeArrayAdaptor(this,
+					R.layout.station_list_entry, mOpenBikeManager
+							.getVisibleStations());
+			this.setListAdapter(mAdapter);
+			// Maybe mAdapter was null when calling onListUpdated
+			// so do it now
+			onListUpdated();
 		}
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if ((keyCode == KeyEvent.KEYCODE_BACK)
+				&& Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
+			if (goBack())
+				return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	private boolean goBack() {
+		if (mBackToList) {
+			mBackToList = false;
+			startActivity(new Intent(this, OpenBikeListActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setClass(this,
+							OpenBikeListActivity.class));
+			return true;
+		} else {
+			finish();
+		}
+		return false;
 	}
 
 	@Override
@@ -142,19 +195,42 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
+			menu.setGroupVisible(R.id.menu_group_list_search, true);
+			menu.setGroupVisible(R.id.menu_group_list_view, false);
+		} else {
+			menu.setGroupVisible(R.id.menu_group_list_search, false);
+			menu.setGroupVisible(R.id.menu_group_list_view, true);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean onSearchRequested() {
+		mBackToList = true;
+		return super.onSearchRequested();
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.menu_search:
 			onSearchRequested();
+			return true;
 		case R.id.menu_update_all:
-			mVcuboidManager.executeUpdateAllStationsTask(true);
+			mOpenBikeManager.executeUpdateAllStationsTask(true);
 			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, ListFilterActivity.class));
 			return true;
 		case R.id.menu_map:
-			startActivity(new Intent(this, OpenBikeMapActivity.class));
+			startActivity(new Intent(this, OpenBikeMapActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return true;
+		case R.id.menu_back:
+			goBack();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -181,47 +257,61 @@ public class OpenBikeListActivity extends ListActivity implements
 		}
 		menu.removeItem(holder.favorite.isChecked() ? R.id.add_favorite
 				: R.id.remove_favorite);
-		mSelected = ((Integer) holder.favorite.getTag());
+		mSelected = (String.valueOf((Integer) holder.favorite.getTag()));
 		menu.setHeaderTitle(holder.name.getText());
 	}
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		Intent intent;
-		Station station;
+		Cursor station;
 		switch (item.getItemId()) {
 		case R.id.show_on_map:
-			intent = new Intent(this, OpenBikeMapActivity.class);
-			intent.putExtra("id", mSelected);
-			startActivity(intent);
+			showOnMap(String.valueOf(mSelected));
 			return true;
 		case R.id.show_on_google_maps:
-			station = mVcuboidManager.getStation(mSelected);
+			station = managedQuery(Uri.withAppendedPath(
+					SuggestionProvider.CONTENT_URI, mSelected), null, null,
+					null, null);
 			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
-					+ station.getGeoPoint().getLatitudeE6() * 1E-6 + ","
-					+ station.getGeoPoint().getLongitudeE6() * 1E-6 + " ("
-					+ station.getName() + ")")));
+					+ station.getInt(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
+					* 1E-6
+					+ ","
+					+ station.getInt(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
+					* 1E-6
+					+ " ("
+					+ station.getString(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)) + ")")));
 			return true;
 		case R.id.navigate:
-			station = mVcuboidManager.getStation(mSelected);
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri
-					.parse("google.navigation:q="
-							+ station.getGeoPoint().getLatitudeE6() * 1E-6
-							+ "," + station.getGeoPoint().getLongitudeE6()
-							* 1E-6)));
+			station = managedQuery(Uri.withAppendedPath(
+					SuggestionProvider.CONTENT_URI, mSelected), null, null,
+					null, null);
+			startActivity(new Intent(
+					Intent.ACTION_VIEW,
+					Uri
+							.parse("google.navigation:q="
+									+ station
+											.getInt(station
+													.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
+									* 1E-6
+									+ ","
+									+ station
+											.getInt(station
+													.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
+									* 1E-6)));
 			return true;
 		case R.id.add_favorite:
-			mVcuboidManager.setFavorite(mSelected, true);
+			mOpenBikeManager.setFavorite(Integer.parseInt(mSelected), true);
 			onListUpdated();
 			return true;
 		case R.id.remove_favorite:
-			mVcuboidManager.setFavorite(mSelected, false);
+			mOpenBikeManager.setFavorite(Integer.parseInt(mSelected), false);
 			onListUpdated();
 			return true;
 		case R.id.show_details:
-			intent = new Intent(this, StationDetails.class);
-			intent.putExtra("id", mSelected);
-			startActivity(intent);
+			showStationDetails(mSelected);
 			onListUpdated();
 			return true;
 		default:
@@ -231,8 +321,8 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public Object onRetainNonConfigurationInstance() {
-		mVcuboidManager.detach();
-		return (mVcuboidManager);
+		mOpenBikeManager.detach();
+		return (mOpenBikeManager);
 	}
 
 	@Override
@@ -335,7 +425,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	private void showResults(String query) {
 
 		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
-				R.layout.station_list_entry, mVcuboidManager.getSearchResults(query));
+				R.layout.station_list_entry, mOpenBikeManager
+						.getSearchResults(query));
 		getListView().setAdapter(adapter);
 	}
 
@@ -428,8 +519,8 @@ public class OpenBikeListActivity extends ListActivity implements
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
-									mVcuboidManager.setFavorite(mSelected,
-											false);
+									mOpenBikeManager.setFavorite(Integer
+											.parseInt(mSelected), false);
 									onListUpdated();
 									dialog.cancel();
 								}
@@ -455,9 +546,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	public void setFavorite(int id, boolean isChecked) {
-		mSelected = id;
+		mSelected = String.valueOf(id);
 		if (isChecked) {
-			mVcuboidManager.setFavorite(id, true);
+			mOpenBikeManager.setFavorite(id, true);
 			onListUpdated();
 		} else {
 			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);

@@ -34,7 +34,6 @@ public class Filtering {
 
 	public static void filter(ArrayList<StationOverlay> mVisibleStations,
 			BikeFilter mVcubFilter) {
-		//Log.d("OpenBike", "Filtering stations");
 		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
 				.hasNext();) {
 			MinimalStation s = ((StationOverlay) it.next()).getStation();

@@ -44,7 +44,6 @@ public class BikeFilter implements Cloneable {
 						preferences.getInt(
 								context.getString(R.string.distance_filter), 1000)
 				: 0;
-								//Log.d("OpenBike", "Distance : " + mDistanceFilter);
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {

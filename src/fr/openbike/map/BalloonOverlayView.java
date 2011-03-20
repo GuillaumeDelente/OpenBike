@@ -17,6 +17,7 @@ package fr.openbike.map;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
 import fr.openbike.StationDetails;
+import fr.openbike.database.SuggestionProvider;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
@@ -77,13 +79,11 @@ public class BalloonOverlayView extends FrameLayout {
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = inflater.inflate(R.layout.balloon_overlay, mLayout);
-		final Intent intent = new Intent(context, StationDetails.class);
 		v.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				//Log.i("OpenBike", "Item clicked");
-				intent.putExtra("id", (Integer) mFavorite.getTag());
-				context.startActivity(intent);
+				// Log.i("OpenBike", "Item clicked");
+				showStationDetails(String.valueOf((Integer) mFavorite.getTag()));
 			}
 		});
 		mFavorite = (CheckBox) v.findViewById(R.id.favorite);
@@ -100,6 +100,19 @@ public class BalloonOverlayView extends FrameLayout {
 
 		addView(mLayout, params);
 
+	}
+
+	private void showStationDetails(Uri uri) {
+		Intent intent = new Intent(mContext, StationDetails.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(uri);
+		mContext.startActivity(intent);
+	}
+
+	private void showStationDetails(String id) {
+		showStationDetails(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI,
+				id));
 	}
 
 	/**
@@ -123,8 +136,10 @@ public class BalloonOverlayView extends FrameLayout {
 			mOpened.setVisibility(INVISIBLE);
 			mBikes.setVisibility(VISIBLE);
 			mSlots.setVisibility(VISIBLE);
-			mBikes.setText(mContext.getResources().getQuantityString(R.plurals.bike, station.getBikes(), station.getBikes()));
-			mSlots.setText(mContext.getResources().getQuantityString(R.plurals.slot, station.getSlots(), station.getSlots()));
+			mBikes.setText(mContext.getResources().getQuantityString(
+					R.plurals.bike, station.getBikes(), station.getBikes()));
+			mSlots.setText(mContext.getResources().getQuantityString(
+					R.plurals.slot, station.getSlots(), station.getSlots()));
 			if (station.getDistance() != -1) {
 				mDistanceTextView.setText(mContext.getString(R.string.at) + " "
 						+ Utils.formatDistance(station.getDistance()));
@@ -149,7 +164,6 @@ public class BalloonOverlayView extends FrameLayout {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView,
 				boolean isChecked) {
-			//Log.d("OpenBike", "Checked : " + buttonView.getTag());
 			((OpenBikeMapActivity) mContext).setFavorite((Integer) buttonView
 					.getTag(), isChecked);
 		}

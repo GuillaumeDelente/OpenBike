@@ -9,4 +9,10 @@
 	<item android:id="@+id/menu_list" 
 			android:title="@string/list" 
 			android:icon="@drawable/icon_list" />
+	<group android:id="@+id/menu_group_map_station"
+           android:visibility="invisible">
+		<item android:id="@+id/menu_map" 
+				android:title="@string/global_map"
+				android:icon="@drawable/icon_show_map" />
+		</group>
 </menu>
