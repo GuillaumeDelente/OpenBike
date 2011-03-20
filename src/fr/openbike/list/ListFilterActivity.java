@@ -20,7 +20,6 @@ package fr.openbike.list;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.Preference;
 import fr.openbike.R;
 import fr.openbike.filter.FilterPreferencesActivity;
 
@@ -34,7 +33,6 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 	    addPreferencesFromResource(R.xml.location_preferences);
 	    addPreferencesFromResource(R.xml.filter_preferences);
 	    addPreferencesFromResource(R.xml.other_preferences);
-		mResetButton = (Preference) getPreferenceScreen().findPreference(getString(R.string.reset_stations));
 	}
 
 	@Override

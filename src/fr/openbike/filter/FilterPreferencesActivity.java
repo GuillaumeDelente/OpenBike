@@ -19,32 +19,24 @@ package fr.openbike.filter;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceScreen;
 import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
-import fr.openbike.RestClient;
-import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.list.OpenBikeListActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener {
 
 	protected BikeFilter mActualFilter;
 	protected BikeFilter mModifiedFilter;
-	protected Preference mResetButton;
 	protected Dialog mConfirmDialog;
 	private OpenBikeManager mOpenBikeManager;
-	public static final int RESET_DB_DIALOG = 3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -82,15 +74,6 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// + mModifiedFilter.isShowOnlyFavorites());
 		}
 		super.onPause();
-	}
-
-	@Override
-	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-			Preference preference) {
-		if (preference == mResetButton) {
-			showDialog(RESET_DB_DIALOG);
-		}
-		return false;
 	}
 
 	@Override
@@ -137,26 +120,13 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 									dialog.cancel();
 								}
 							}).create();
-		case RESET_DB_DIALOG:
-			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
-			return new AlertDialog.Builder(this).setMessage(
-					getResources().getText(R.string.reset_dialog_message))
-					.setTitle(R.string.reset_dialog_title).setIcon(
-							android.R.drawable.ic_dialog_alert)
-					.setPositiveButton(android.R.string.yes, this)
-					.setNegativeButton(android.R.string.cancel, this).create();
 		}
 		return super.onCreateDialog(id);
 	}
 
+	@Override
 	public void onClick(DialogInterface dialog, int button) {
-
-		if (button == DialogInterface.BUTTON_POSITIVE) {
-			mOpenBikeManager.resetDb();
-		} else {
-			// Unknown - should not happen
-			return;
-		}
+		return;
 	}
 
 	@Override

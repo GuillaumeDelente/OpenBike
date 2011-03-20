@@ -71,7 +71,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// Log.i("OpenBike", "OnCreate");
 		setContentView(R.layout.station_list);
 		mOpenBikeManager = (OpenBikeManager) getLastNonConfigurationInstance();
 		if (mOpenBikeManager == null) { // No AsyncTask running
@@ -93,51 +92,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		registerForContextMenu(listView);
 		handleIntent(getIntent());
 	}
-
-	private void showStationDetails(Uri uri) {
-		Intent intent = new Intent(this, StationDetails.class)
-				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.setAction(Intent.ACTION_VIEW);
-		intent.setData(uri);
-		startActivity(intent);
-	}
-
-	private void showStationDetails(String id) {
-		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
-				id));
-	}
-
-	private void showOnMap(Uri uri) {
-		Intent intent = new Intent(this, OpenBikeMapActivity.class)
-				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.setAction(OpenBikeMapActivity.ACTION_DETAIL);
-		intent.setData(uri);
-		startActivity(intent);
-	}
-
-	private void showOnMap(String id) {
-		showOnMap(Uri.withAppendedPath(StationsProvider.CONTENT_URI, id));
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		mOpenBikeManager.setCurrentActivity(this);
-		mOpenBikeManager.startLocation();
-		// Cannot remove update even
-		// if it's sometime useless
-		onListUpdated();
-		// Log.i("OpenBike", "onResume " + this);
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		finishUpdateAllStationsOnProgress(false);
-		mOpenBikeManager.stopLocation();
-		// Log.i("OpenBike", "onPause");
-	}
-
+	
 	@Override
 	protected void onNewIntent(Intent intent) {
 		setIntent(intent);
@@ -163,29 +118,32 @@ public class OpenBikeListActivity extends ListActivity implements
 			onListUpdated();
 		}
 	}
+	
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if ((keyCode == KeyEvent.KEYCODE_BACK)
-				&& Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
-			if (goBack())
-				return true;
-		}
-		return super.onKeyDown(keyCode, event);
+	protected void onResume() {
+		super.onResume();
+		mOpenBikeManager.setCurrentActivity(this);
+		mOpenBikeManager.startLocation();
+		// Cannot remove update even
+		// if it's sometime useless
+		onListUpdated();
+		// Log.i("OpenBike", "onResume " + this);
 	}
 
-	private boolean goBack() {
-		if (mBackToList) {
-			mBackToList = false;
-			startActivity(new Intent(this, OpenBikeListActivity.class)
-					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setClass(this,
-							OpenBikeListActivity.class));
-			return true;
-		} else {
-			finish();
-		}
-		return false;
+	@Override
+	protected void onPause() {
+		super.onPause();
+		finishUpdateAllStationsOnProgress(false);
+		mOpenBikeManager.stopLocation();
+		// Log.i("OpenBike", "onPause");
 	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -205,12 +163,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		}
 		return true;
 	}
-
-	@Override
-	public boolean onSearchRequested() {
-		mBackToList = true;
-		return super.onSearchRequested();
-	}
+	
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -320,115 +273,17 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
+	public boolean onSearchRequested() {
+		mBackToList = true;
+		return super.onSearchRequested();
+	}
+
+	@Override
 	public Object onRetainNonConfigurationInstance() {
 		mOpenBikeManager.detach();
 		return (mOpenBikeManager);
 	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-	}
-
-	@Override
-	public void showGetAllStationsOnProgress() {
-		// Log.i("OpenBike", "showGetAllStationsOnProgress");
-		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
-	}
-
-	@Override
-	public void updateGetAllStationsOnProgress(int progress) {
-		// Log.i("OpenBike", "updateGetAllStationsOnProgress");
-		mPdialog.setMessage(getString(R.string.saving_db_summary));
-	}
-
-	@Override
-	public void finishGetAllStationsOnProgress() {
-		// onListUpdated();
-		dismissDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
-	}
-
-	public void setEmptyList() {
-		findViewById(R.id.loading).setVisibility(View.GONE);
-		getListView().setEmptyView(findViewById(R.id.empty));
-	}
-
-	public void setLoadingList() {
-		findViewById(R.id.empty).setVisibility(View.GONE);
-		getListView().setEmptyView(findViewById(R.id.loading));
-	}
-
-	@Override
-	public void showUpdateAllStationsOnProgress(boolean animate) {
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
-		loading.setVisibility(View.VISIBLE);
-		if (animate) {
-			AnimationSet set = new AnimationSet(true);
-			Animation animation = new AlphaAnimation(0.0f, 1.0f);
-			animation.setDuration(500);
-			set.addAnimation(animation);
-			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
-					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
-					Animation.RELATIVE_TO_SELF, -1.0f,
-					Animation.RELATIVE_TO_SELF, 0.0f);
-			animation.setDuration(500);
-			set.addAnimation(animation);
-			LayoutAnimationController controller = new LayoutAnimationController(
-					set, 0.5f);
-			loading.setLayoutAnimation(controller);
-		}
-	}
-
-	@Override
-	public void finishUpdateAllStationsOnProgress(boolean animate) {
-		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
-		loading.setVisibility(View.INVISIBLE);
-		if (animate) {
-			AnimationSet set = new AnimationSet(true);
-			Animation animation = new AlphaAnimation(1.0f, 0.0f);
-			animation.setDuration(500);
-			set.addAnimation(animation);
-			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
-					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
-					Animation.RELATIVE_TO_SELF, 0.0f,
-					Animation.RELATIVE_TO_SELF, -1.0f);
-			animation.setDuration(500);
-			set.addAnimation(animation);
-			loading.startAnimation(set);
-			loading.setVisibility(View.INVISIBLE);
-		}
-	}
-
-	@Override
-	public void onLocationChanged(Location l) {
-		onListUpdated();
-		if (l == null)
-			return;
-		Toast.makeText(this, getString(R.string.position_updated),
-				Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	public void onListUpdated() {
-		// Log.i("OpenBike", "notifyDataSetChanged");
-		if (mAdapter == null) // OnCreate
-			return;
-		mAdapter.notifyDataSetChanged();
-	}
-
-	/**
-	 * Searches the dictionary and displays results for the given query.
-	 * 
-	 * @param query
-	 *            The search query
-	 */
-	private void showResults(String query) {
-
-		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
-				R.layout.station_list_entry, mOpenBikeManager
-						.getSearchResults(query));
-		getListView().setAdapter(adapter);
-	}
+	
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -544,7 +399,104 @@ public class OpenBikeListActivity extends ListActivity implements
 		}
 		return super.onCreateDialog(id);
 	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if ((keyCode == KeyEvent.KEYCODE_BACK)
+				&& Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
+			if (goBack())
+				return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+	
 
+	@Override
+	public void showGetAllStationsOnProgress() {
+		// Log.i("OpenBike", "showGetAllStationsOnProgress");
+		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
+	}
+
+	@Override
+	public void updateGetAllStationsOnProgress(int progress) {
+		// Log.i("OpenBike", "updateGetAllStationsOnProgress");
+		mPdialog.setMessage(getString(R.string.saving_db_summary));
+	}
+
+	@Override
+	public void finishGetAllStationsOnProgress() {
+		// onListUpdated();
+		dismissDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
+	}
+
+	public void setEmptyList() {
+		findViewById(R.id.loading).setVisibility(View.GONE);
+		getListView().setEmptyView(findViewById(R.id.empty));
+	}
+
+	public void setLoadingList() {
+		findViewById(R.id.empty).setVisibility(View.GONE);
+		getListView().setEmptyView(findViewById(R.id.loading));
+	}
+
+	@Override
+	public void showUpdateAllStationsOnProgress(boolean animate) {
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		loading.setVisibility(View.VISIBLE);
+		if (animate) {
+			AnimationSet set = new AnimationSet(true);
+			Animation animation = new AlphaAnimation(0.0f, 1.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, -1.0f,
+					Animation.RELATIVE_TO_SELF, 0.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			LayoutAnimationController controller = new LayoutAnimationController(
+					set, 0.5f);
+			loading.setLayoutAnimation(controller);
+		}
+	}
+
+	@Override
+	public void finishUpdateAllStationsOnProgress(boolean animate) {
+		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		loading.setVisibility(View.INVISIBLE);
+		if (animate) {
+			AnimationSet set = new AnimationSet(true);
+			Animation animation = new AlphaAnimation(1.0f, 0.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+					0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, 0.0f,
+					Animation.RELATIVE_TO_SELF, -1.0f);
+			animation.setDuration(500);
+			set.addAnimation(animation);
+			loading.startAnimation(set);
+			loading.setVisibility(View.INVISIBLE);
+		}
+	}
+
+	@Override
+	public void onLocationChanged(Location l) {
+		onListUpdated();
+		if (l == null)
+			return;
+		Toast.makeText(this, getString(R.string.position_updated),
+				Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onListUpdated() {
+		// Log.i("OpenBike", "notifyDataSetChanged");
+		if (mAdapter == null) // OnCreate
+			return;
+		mAdapter.notifyDataSetChanged();
+	}
+	
 	public void setFavorite(int id, boolean isChecked) {
 		mSelected = String.valueOf(id);
 		if (isChecked) {
@@ -553,5 +505,52 @@ public class OpenBikeListActivity extends ListActivity implements
 		} else {
 			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);
 		}
+	}
+
+	private void showStationDetails(Uri uri) {
+		Intent intent = new Intent(this, StationDetails.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(uri);
+		startActivity(intent);
+	}
+
+	private void showStationDetails(String id) {
+		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
+				id));
+	}
+
+	private void showOnMap(Uri uri) {
+		Intent intent = new Intent(this, OpenBikeMapActivity.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(OpenBikeMapActivity.ACTION_DETAIL);
+		intent.setData(uri);
+		startActivity(intent);
+	}
+
+	private void showOnMap(String id) {
+		showOnMap(Uri.withAppendedPath(StationsProvider.CONTENT_URI, id));
+	}
+	
+
+	private boolean goBack() {
+		if (mBackToList) {
+			mBackToList = false;
+			startActivity(new Intent(this, OpenBikeListActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setClass(this,
+							OpenBikeListActivity.class));
+			return true;
+		} else {
+			finish();
+		}
+		return false;
+	}
+
+	private void showResults(String query) {
+
+		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
+				R.layout.station_list_entry, mOpenBikeManager
+						.getSearchResults(query));
+		getListView().setAdapter(adapter);
 	}
 }

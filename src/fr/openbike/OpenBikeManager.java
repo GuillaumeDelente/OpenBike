@@ -200,12 +200,6 @@ public class OpenBikeManager {
 	private void initializeFilter() {
 		mOpenBikeFilter = new BikeFilter((Context) mActivity);
 	}
-
-	public void clearDB() {
-		mOpenBikeDBAdapter.reset();
-		mOpenBikeDBAdapter.close();
-		mOpenBikeDBAdapter.open();
-	}
 	
 	public void setFavorite(int id, boolean isChecked) {
 		mOpenBikeDBAdapter.updateFavorite(id, isChecked);
@@ -359,10 +353,6 @@ public class OpenBikeManager {
 	public void stopLocation() {
 		if (mLocationProvider != null)
 			mLocationProvider.disableMyLocation();
-	}
-	
-	public void resetDb() {
-		mOpenBikeDBAdapter.reset();
 	}
 	
 	private boolean isFirstRun() {
@@ -561,8 +551,7 @@ public class OpenBikeManager {
 					.getFilteredStationsCursor(Utils.whereClauseFromFilter(mOpenBikeFilter), 
 							mLocationProvider == null 
 								|| mLocationProvider.getMyLocation() == null ?
-										OpenBikeDBAdapter.KEY_NAME + " COLLATE NOCASE"
-										: null);
+										OpenBikeDBAdapter.KEY_NAME : null);
 			StationOverlay stationOverlay;
 			Location stationLocation = null;
 			Location location = null;

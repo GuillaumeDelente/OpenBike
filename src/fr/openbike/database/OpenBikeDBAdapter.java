@@ -17,6 +17,7 @@
  */
 package fr.openbike.database;
 
+import org.acra.ErrorReporter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +39,7 @@ public class OpenBikeDBAdapter {
 	public static final int JSON_ERROR = -2;
 	public static final int DB_ERROR = -3;
 	private static final String DATABASE_NAME = "openbike.db";
-	private static final String DATABASE_TABLE = "openbike";
+	private static final String STATIONS_TABLE = "stations";
 	private static final String STATIONS_VIRTUAL_TABLE = "virtual_stations";
 	private static final int DATABASE_VERSION = 2;
 	public static final int ID_COLUMN = 0;
@@ -68,14 +69,15 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_PAYMENT = "hasPayment";
 	public static final String KEY_SPECIAL = "isSpecial";
 
-	private static final String DATABASE_CREATE = "create table "
-			+ DATABASE_TABLE + " (" + BaseColumns._ID
-			+ " integer primary key, " + KEY_NAME + " text not null, "
-			+ KEY_OPEN + " integer not null, " + KEY_BIKES
-			+ " integer not null, " + KEY_SLOTS + " integer not null, "
-			+ KEY_ADDRESS + " text not null, " + KEY_LATITUDE
+	private static final String CREATE_STATIONS_TABLE = "create table "
+			+ STATIONS_TABLE + " (" + BaseColumns._ID
+			+ " integer primary key, " + KEY_NAME
+			+ " text not null COLLATE NOCASE, " + KEY_OPEN
+			+ " integer not null, " + KEY_BIKES + " integer not null, "
+			+ KEY_SLOTS + " integer not null, " + KEY_ADDRESS
+			+ " text not null COLLATE NOCASE, " + KEY_LATITUDE
 			+ " integer not null, " + KEY_LONGITUDE + " integer not null, "
-			+ KEY_NETWORK + " text not null, " + KEY_FAVORITE
+			+ KEY_NETWORK + " text not null COLLATE NOCASE, " + KEY_FAVORITE
 			+ " integer not null, " + KEY_PAYMENT + " integer not null, "
 			+ KEY_SPECIAL + " integer not null );";
 
@@ -83,8 +85,9 @@ public class OpenBikeDBAdapter {
 			+ STATIONS_VIRTUAL_TABLE
 			+ " USING fts3 ("
 			+ BaseColumns._ID
-			+ ", "
-			+ KEY_NAME + ");";
+			+ " integer primary key, "
+			+ KEY_NAME
+			+ " text not null COLLATE NOCASE);";
 
 	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
@@ -104,17 +107,9 @@ public class OpenBikeDBAdapter {
 		}
 	}
 
-	public void reset() throws SQLException {
-		try {
-			mDb.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
-			mDb.execSQL(DATABASE_CREATE);
-		} catch (SQLException e) {
-		}
-	}
-
 	public int insertStations(String json) {
 		int success = 1;
-		String sql = "INSERT INTO " + DATABASE_TABLE + " (" + BaseColumns._ID
+		String sql = "INSERT INTO " + STATIONS_TABLE + " (" + BaseColumns._ID
 				+ "," + KEY_ADDRESS + "," + KEY_BIKES + "," + KEY_SLOTS + ","
 				+ KEY_OPEN + "," + KEY_LATITUDE + "," + KEY_LONGITUDE + ","
 				+ KEY_NAME + "," + KEY_NETWORK + "," + KEY_FAVORITE + ","
@@ -169,7 +164,7 @@ public class OpenBikeDBAdapter {
 
 	public int updateStations(String json) {
 		int success = 1;
-		String sql = "UPDATE " + DATABASE_TABLE + " SET " + KEY_BIKES
+		String sql = "UPDATE " + STATIONS_TABLE + " SET " + KEY_BIKES
 				+ " = ?, " + KEY_SLOTS + " = ?, " + KEY_OPEN + " = ? "
 				+ " WHERE " + BaseColumns._ID + " = ?;";
 		try {
@@ -197,7 +192,7 @@ public class OpenBikeDBAdapter {
 	}
 
 	public boolean removeStation(int id) {
-		return mDb.delete(DATABASE_TABLE, BaseColumns._ID + "=" + id, null) > 0;
+		return mDb.delete(STATIONS_TABLE, BaseColumns._ID + "=" + id, null) > 0;
 	}
 
 	/*
@@ -211,7 +206,7 @@ public class OpenBikeDBAdapter {
 	public boolean updateFavorite(int id, boolean isFavorite) {
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
-		return mDb.update(DATABASE_TABLE, newValues,
+		return mDb.update(STATIONS_TABLE, newValues,
 				BaseColumns._ID + "=" + id, null) > 0;
 	}
 
@@ -228,17 +223,10 @@ public class OpenBikeDBAdapter {
 	 */
 
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
-		return mDb.query(DATABASE_TABLE, new String[] { 
-				BaseColumns._ID, 
-				KEY_BIKES, 
-				KEY_SLOTS, 
-				KEY_OPEN, 
-				KEY_LATITUDE,
-				KEY_LONGITUDE, 
-				KEY_NAME,
-				KEY_FAVORITE,
-				KEY_SPECIAL 
-		}, where, null, null, null, orderBy);
+		return mDb.query(STATIONS_TABLE, new String[] { BaseColumns._ID,
+				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
+				KEY_NAME, KEY_FAVORITE, KEY_SPECIAL }, where, null, null, null,
+				orderBy);
 	}
 
 	// Search results
@@ -251,7 +239,7 @@ public class OpenBikeDBAdapter {
 			like += "*";
 		}
 
-		Cursor cursor = mDb.query("openbike ob, virtual_stations vs",
+		Cursor cursor = mDb.query( STATIONS_TABLE + " ob," + STATIONS_VIRTUAL_TABLE + " vs",
 				new String[] { "ob." + BaseColumns._ID, "ob." + KEY_BIKES,
 						"ob." + KEY_SLOTS, "ob." + KEY_OPEN,
 						"ob." + KEY_LATITUDE, "ob." + KEY_LONGITUDE,
@@ -301,30 +289,25 @@ public class OpenBikeDBAdapter {
 		 */
 		return cursor;
 	}
-/*
-	public Station getStation(int id) throws SQLException {
-		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] {
-				BaseColumns._ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN,
-				KEY_LATITUDE, KEY_LONGITUDE, KEY_NAME, KEY_NETWORK,
-				KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL }, BaseColumns._ID
-				+ "=?", new String[] { String.valueOf(id) }, null, null, null,
-				null);
-		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
-			throw new SQLException("No Station found with ID " + id);
-		}
 
-		Station result = new Station(id, cursor.getString(NAME_COLUMN), cursor
-				.getString(ADDRESS_COLUMN), cursor.getInt(LONGITUDE_COLUMN),
-				cursor.getInt(LATITUDE_COLUMN), cursor.getInt(BIKES_COLUMN),
-				cursor.getInt(SLOTS_COLUMN), cursor.getInt(OPEN_COLUMN) != 0,
-				cursor.getInt(FAVORITE_COLUMN) != 0, cursor
-						.getInt(PAYMENT_COLUMN) != 0, cursor
-						.getInt(SPECIAL_COLUMN) != 0);
-		return result;
-	}
-*/
+	/*
+	 * public Station getStation(int id) throws SQLException { Cursor cursor =
+	 * mDb.query(true, DATABASE_TABLE, new String[] { BaseColumns._ID,
+	 * KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
+	 * KEY_NAME, KEY_NETWORK, KEY_FAVORITE, KEY_PAYMENT, KEY_SPECIAL },
+	 * BaseColumns._ID + "=?", new String[] { String.valueOf(id) }, null, null,
+	 * null, null); if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
+	 * throw new SQLException("No Station found with ID " + id); }
+	 * 
+	 * Station result = new Station(id, cursor.getString(NAME_COLUMN), cursor
+	 * .getString(ADDRESS_COLUMN), cursor.getInt(LONGITUDE_COLUMN),
+	 * cursor.getInt(LATITUDE_COLUMN), cursor.getInt(BIKES_COLUMN),
+	 * cursor.getInt(SLOTS_COLUMN), cursor.getInt(OPEN_COLUMN) != 0,
+	 * cursor.getInt(FAVORITE_COLUMN) != 0, cursor .getInt(PAYMENT_COLUMN) != 0,
+	 * cursor .getInt(SPECIAL_COLUMN) != 0); return result; }
+	 */
 	public Cursor getStation(int id, String[] columns) throws SQLException {
-		Cursor cursor = mDb.query(true, DATABASE_TABLE, columns,
+		Cursor cursor = mDb.query(true, STATIONS_TABLE, columns,
 				BaseColumns._ID + "=?", new String[] { String.valueOf(id) },
 				null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
@@ -335,7 +318,7 @@ public class OpenBikeDBAdapter {
 
 	public int getStationCount() throws SQLException {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM "
-				+ DATABASE_TABLE, null);
+				+ STATIONS_TABLE, null);
 		cursor.moveToNext();
 		int count = cursor.getInt(0);
 		cursor.close();
@@ -361,18 +344,69 @@ public class OpenBikeDBAdapter {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			db.execSQL(DATABASE_CREATE);
+			db.execSQL(CREATE_STATIONS_TABLE);
 			db.execSQL(DATABASE_CREATE_VIRTUAL);
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			if (oldVersion == 1) {
-				db.execSQL(DATABASE_CREATE_VIRTUAL);
-				db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE + "("
-						+ BaseColumns._ID + ", " + KEY_NAME + ") SELECT "
-						+ BaseColumns._ID + ", " + KEY_NAME + " FROM "
-						+ DATABASE_TABLE + ";");
+				try {
+					db.beginTransaction();
+					// Create temporary table
+					db.execSQL("CREATE TEMPORARY TABLE stations_backup ("
+							+ BaseColumns._ID + " integer primary key, "
+							+ KEY_NAME + " text not null COLLATE NOCASE, "
+							+ KEY_OPEN + " integer not null, " + KEY_BIKES
+							+ " integer not null, " + KEY_SLOTS
+							+ " integer not null, " + KEY_ADDRESS
+							+ " text not null COLLATE NOCASE, " + KEY_LATITUDE
+							+ " integer not null, " + KEY_LONGITUDE
+							+ " integer not null, " + KEY_NETWORK
+							+ " text not null COLLATE NOCASE, " + KEY_FAVORITE
+							+ " integer not null, " + KEY_PAYMENT
+							+ " integer not null, " + KEY_SPECIAL
+							+ " integer not null );");
+					
+					//Fill backup
+					db.execSQL("INSERT INTO stations_backup SELECT "
+							+ BaseColumns._ID + ", " + KEY_NAME + ", "
+							+ KEY_OPEN + ", " + KEY_BIKES + ", " + KEY_SLOTS
+							+ ", " + KEY_ADDRESS + ", " + KEY_LATITUDE + ", "
+							+ KEY_LONGITUDE + ", " + KEY_NETWORK + ", "
+							+ KEY_FAVORITE + ", " + KEY_PAYMENT + ", "
+							+ KEY_SPECIAL + " FROM openbike;");
+					
+					//Drop old table
+					db.execSQL("DROP TABLE openbike;");
+					
+					//Create new collate nocase table
+					db.execSQL(CREATE_STATIONS_TABLE);
+					
+					//Fill new table from backup
+					db.execSQL("INSERT INTO " + STATIONS_TABLE + " SELECT "
+							+ BaseColumns._ID + ", " + KEY_NAME + ", "
+							+ KEY_OPEN + ", " + KEY_BIKES + ", " + KEY_SLOTS
+							+ ", " + KEY_ADDRESS + ", " + KEY_LATITUDE + ", "
+							+ KEY_LONGITUDE + ", " + KEY_NETWORK + ", "
+							+ KEY_FAVORITE + ", " + KEY_PAYMENT + ", "
+							+ KEY_SPECIAL + " FROM stations_backup;");
+					
+					//Drop old table
+					db.execSQL("DROP TABLE stations_backup;");
+					
+					//Create and fill virtual table
+					db.execSQL(DATABASE_CREATE_VIRTUAL);
+					db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE + "("
+							+ BaseColumns._ID + ", " + KEY_NAME + ") SELECT "
+							+ BaseColumns._ID + ", " + KEY_NAME + " FROM "
+							+ STATIONS_TABLE + ";");
+					db.setTransactionSuccessful();
+				} catch (Exception e) {
+					ErrorReporter.getInstance().handleException(e);
+				} finally {
+					db.endTransaction();
+				}
 			}
 		}
 	}

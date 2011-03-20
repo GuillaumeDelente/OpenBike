@@ -7,9 +7,5 @@
 		        android:title="@string/reporting_title"
 		        android:summary="@string/reporting_summary"
 		        android:defaultValue="true"/>
-		    
-		   <Preference android:key="@string/reset_stations"
-		        android:title="@string/reset_stations_title"
-		        android:summary="@string/reset_stations_summary" />
-		    </PreferenceCategory>
+		        </PreferenceCategory>
 </PreferenceScreen>

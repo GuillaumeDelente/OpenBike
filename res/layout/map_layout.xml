@@ -11,7 +11,7 @@
 		android:id="@+id/map_view" android:layout_width="fill_parent"
 		android:layout_height="fill_parent" android:enabled="true"
 		android:clickable="true" 
-		android:apiKey="0h_KAeN3vGJzmQh2O3WgTG5G90qPAbc6xwQ7KCQ"
+		android:apiKey="0h_KAeN3vGJwkzzFZKZhQxbNW3TF2eB-0hkokNQ"
 		/>
 		<RelativeLayout 
 			  android:layout_above="@id/mainRL"

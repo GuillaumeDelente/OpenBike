@@ -48,8 +48,6 @@
 	<string name="already_uptodate">Les données sont à jour.</string>
 	<string name="crash_toast_text">OpenBike a crashé mais un rapport a été envoyé au développeur pour 
 	réparer le bug au plus vite !</string>
-	<string name="reset_dialog_title">Remize à zéro des stations</string>
-	<string name="reset_dialog_message">Attention ! Cela supprimera vos stations favorites, voulez vous continuer ?</string>
 	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
 	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans Menu->Configuration 
 	et jouez avec les réglages pour activer la géolocalisation et les filtres.</string>
@@ -84,9 +82,6 @@
 	<string name="other_preferences_title">Autre</string>
 	<string name="reporting_title">Rapports de bug</string>
 	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash.</string>
-	<string name="reset_stations">reset_stations</string>
-	<string name="reset_stations_title">RAZ des stations</string>
-	<string name="reset_stations_summary">Efface toutes les stations de la base de donnée.</string>
 	<string name="not_available">Non disponible</string>
 	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
 	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
