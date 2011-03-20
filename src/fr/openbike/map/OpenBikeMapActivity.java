@@ -107,7 +107,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 			if (mMapPreferences.getBoolean(
-					getString(R.string.center_on_location), false)) {
+					getString(R.string.center_on_location), false) && OpenBikeManager.getCurrentLocation() != null) {
 				zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			} else {
 				zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
@@ -182,6 +182,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
+		case R.id.menu_search:
+			onSearchRequested();
+			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this,
 					OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent()
@@ -327,6 +330,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mMapOverlays.add(mMyLocationOverlay);
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
+		// Because when distance fitler enabled, onListUpdated is called
+		if (!mMapPreferences.getBoolean(getString(R.string.distance_filter), false)) {
+			Utils.sortStationsByDistance(mMapOverlays);
+			Collections.reverse(mMapOverlays);
+		}
 		if (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
 			MinimalStation station = ((StationOverlay) mMapOverlays.get(0))
 					.getStation();
@@ -343,6 +351,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			zoomAndCenter(location);
 		}
 		mIsFirstFix = (location == null) ? true : false;
+		mMapView.invalidate();
 	}
 
 	private void zoomAndCenter(Location location) {

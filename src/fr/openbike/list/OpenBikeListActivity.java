@@ -53,7 +53,7 @@ import fr.openbike.R;
 import fr.openbike.RestClient;
 import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.database.SuggestionProvider;
+import fr.openbike.database.StationsProvider;
 import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.map.OpenBikeMapActivity;
 import fr.openbike.utils.Utils;
@@ -103,7 +103,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	private void showStationDetails(String id) {
-		showStationDetails(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI,
+		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
 				id));
 	}
 
@@ -116,7 +116,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	private void showOnMap(String id) {
-		showOnMap(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI, id));
+		showOnMap(Uri.withAppendedPath(StationsProvider.CONTENT_URI, id));
 	}
 
 	@Override
@@ -270,7 +270,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			return true;
 		case R.id.show_on_google_maps:
 			station = managedQuery(Uri.withAppendedPath(
-					SuggestionProvider.CONTENT_URI, mSelected), null, null,
+					StationsProvider.CONTENT_URI, mSelected), null, null,
 					null, null);
 			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
 					+ station.getInt(station
@@ -286,7 +286,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			return true;
 		case R.id.navigate:
 			station = managedQuery(Uri.withAppendedPath(
-					SuggestionProvider.CONTENT_URI, mSelected), null, null,
+					StationsProvider.CONTENT_URI, mSelected), null, null,
 					null, null);
 			startActivity(new Intent(
 					Intent.ACTION_VIEW,

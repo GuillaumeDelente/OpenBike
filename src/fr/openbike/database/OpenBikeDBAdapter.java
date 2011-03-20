@@ -32,7 +32,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.provider.BaseColumns;
-import fr.openbike.object.Station;
 
 public class OpenBikeDBAdapter {
 
@@ -210,7 +209,6 @@ public class OpenBikeDBAdapter {
 	 */
 
 	public boolean updateFavorite(int id, boolean isFavorite) {
-		// Log.e("OpenBike", "updateFavorite " + id + " est " + isFavorite);
 		ContentValues newValues = new ContentValues();
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
 		return mDb.update(DATABASE_TABLE, newValues,
@@ -230,13 +228,20 @@ public class OpenBikeDBAdapter {
 	 */
 
 	public Cursor getFilteredStationsCursor(String where, String orderBy) {
-		// Log.e("OpenBike", "In db : getFilteredStationsCursor");
-		return mDb.query(DATABASE_TABLE, new String[] { BaseColumns._ID,
-				KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE,
-				KEY_LONGITUDE, KEY_NAME, KEY_NETWORK, KEY_FAVORITE,
-				KEY_PAYMENT, KEY_SPECIAL }, where, null, null, null, orderBy);
+		return mDb.query(DATABASE_TABLE, new String[] { 
+				BaseColumns._ID, 
+				KEY_BIKES, 
+				KEY_SLOTS, 
+				KEY_OPEN, 
+				KEY_LATITUDE,
+				KEY_LONGITUDE, 
+				KEY_NAME,
+				KEY_FAVORITE,
+				KEY_SPECIAL 
+		}, where, null, null, null, orderBy);
 	}
 
+	// Search results
 	public Cursor getSearchCursor(String like) {
 		String table = STATIONS_VIRTUAL_TABLE;
 		try {
@@ -269,6 +274,7 @@ public class OpenBikeDBAdapter {
 		return cursor;
 	}
 
+	// Search suggestions
 	public Cursor getStationsMatches(String query, String[] columns) {
 		String table = STATIONS_VIRTUAL_TABLE;
 		try {
@@ -295,7 +301,7 @@ public class OpenBikeDBAdapter {
 		 */
 		return cursor;
 	}
-
+/*
 	public Station getStation(int id) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, new String[] {
 				BaseColumns._ID, KEY_ADDRESS, KEY_BIKES, KEY_SLOTS, KEY_OPEN,
@@ -316,7 +322,7 @@ public class OpenBikeDBAdapter {
 						.getInt(SPECIAL_COLUMN) != 0);
 		return result;
 	}
-
+*/
 	public Cursor getStation(int id, String[] columns) throws SQLException {
 		Cursor cursor = mDb.query(true, DATABASE_TABLE, columns,
 				BaseColumns._ID + "=?", new String[] { String.valueOf(id) },

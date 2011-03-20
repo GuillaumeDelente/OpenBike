@@ -29,7 +29,7 @@ import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
 import fr.openbike.StationDetails;
-import fr.openbike.database.SuggestionProvider;
+import fr.openbike.database.StationsProvider;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
@@ -111,7 +111,7 @@ public class BalloonOverlayView extends FrameLayout {
 	}
 
 	private void showStationDetails(String id) {
-		showStationDetails(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI,
+		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
 				id));
 	}
 

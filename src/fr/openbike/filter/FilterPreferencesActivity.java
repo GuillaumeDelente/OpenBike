@@ -19,7 +19,9 @@ package fr.openbike.filter;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -27,8 +29,12 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
+import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
+import fr.openbike.RestClient;
+import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.list.OpenBikeListActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener {
@@ -37,6 +43,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	protected BikeFilter mModifiedFilter;
 	protected Preference mResetButton;
 	protected Dialog mConfirmDialog;
+	private OpenBikeManager mOpenBikeManager;
+	public static final int RESET_DB_DIALOG = 3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +54,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mActualFilter = OpenBikeManager.getVcuboidManagerInstance()
-				.getVcubFilter();
+		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
+		mActualFilter = mOpenBikeManager.getVcubFilter();
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 		try {
@@ -68,10 +76,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Log.e("OpenBike", "Exiting Preferences : Filter Changed");
 			setResult(RESULT_OK);
 			mModifiedFilter.setNeedDbQuery(mActualFilter);
-			OpenBikeManager.getVcuboidManagerInstance().setVcubFilter(
-					mModifiedFilter);
-			OpenBikeManager.getVcuboidManagerInstance()
-					.executeCreateVisibleStationsTask(false);
+			mOpenBikeManager.setVcubFilter(mModifiedFilter);
+			mOpenBikeManager.executeCreateVisibleStationsTask(false);
 			// Log.e("OpenBike", "Only Favorites ? "
 			// + mModifiedFilter.isShowOnlyFavorites());
 		}
@@ -82,25 +88,71 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
 			Preference preference) {
 		if (preference == mResetButton) {
-			showResetDialog();
+			showDialog(RESET_DB_DIALOG);
 		}
 		return false;
 	}
 
-	private void showResetDialog() {
-		CharSequence msg = getResources()
-				.getText(R.string.reset_dialog_message);
-		mConfirmDialog = new AlertDialog.Builder(this).setMessage(msg)
-				.setTitle(R.string.reset_dialog_title).setIcon(
-						android.R.drawable.ic_dialog_alert).setPositiveButton(
-						android.R.string.yes, this).setNegativeButton(
-						android.R.string.cancel, this).show();
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case MyLocationProvider.ENABLE_GPS:
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.gps_disabled)).setMessage(
+					getString(R.string.should_enable_gps) + "\n"
+							+ getString(R.string.show_location_parameters))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case MyLocationProvider.NO_LOCATION_PROVIDER:
+			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
+					getString(R.string.location_disabled)).setMessage(
+					getString(R.string.should_enable_location) + "\n"
+							+ getString(R.string.show_location_parameters))
+					.setPositiveButton(getString(R.string.yes),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									Intent gpsOptionsIntent = new Intent(
+											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+									startActivity(gpsOptionsIntent);
+								}
+							}).setNegativeButton(getString(R.string.no),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							}).create();
+		case RESET_DB_DIALOG:
+			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
+			return new AlertDialog.Builder(this).setMessage(
+					getResources().getText(R.string.reset_dialog_message))
+					.setTitle(R.string.reset_dialog_title).setIcon(
+							android.R.drawable.ic_dialog_alert)
+					.setPositiveButton(android.R.string.yes, this)
+					.setNegativeButton(android.R.string.cancel, this).create();
+		}
+		return super.onCreateDialog(id);
 	}
 
 	public void onClick(DialogInterface dialog, int button) {
 
 		if (button == DialogInterface.BUTTON_POSITIVE) {
-			OpenBikeManager.getVcuboidManagerInstance().resetDb();
+			mOpenBikeManager.resetDb();
 		} else {
 			// Unknown - should not happen
 			return;
@@ -142,15 +194,13 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 							+ "m");
 		} else if (key.equals(getString(R.string.use_location))) {
 			// Log.i("OpenBike", "Location changed");
-			OpenBikeManager openBikeManager = OpenBikeManager
-					.getVcuboidManagerInstance();
 			if (sharedPreferences.getBoolean(getString(R.string.use_location),
 					false)) {
 				// Log.i("OpenBike", "use Location");
-				openBikeManager.useLocation();
+				mOpenBikeManager.useLocation();
 			} else {
 				// Log.i("OpenBike", "dont Use Location");
-				openBikeManager.dontUseLocation();
+				mOpenBikeManager.dontUseLocation();
 			}
 		}
 	}

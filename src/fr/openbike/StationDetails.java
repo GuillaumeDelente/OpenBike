@@ -20,7 +20,6 @@ package fr.openbike;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -39,7 +38,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.database.SuggestionProvider;
+import fr.openbike.database.StationsProvider;
 import fr.openbike.map.OpenBikeMapActivity;
 import fr.openbike.utils.Utils;
 
@@ -114,7 +113,7 @@ public class StationDetails extends Activity {
 	}
 
 	private void showOnMap(String id) {
-		showOnMap(Uri.withAppendedPath(SuggestionProvider.CONTENT_URI, id));
+		showOnMap(Uri.withAppendedPath(StationsProvider.CONTENT_URI, id));
 	}
 
 	@Override

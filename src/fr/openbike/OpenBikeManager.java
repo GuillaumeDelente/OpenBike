@@ -27,13 +27,14 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.provider.BaseColumns;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.filter.Filtering;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.map.StationOverlay;
@@ -92,12 +93,13 @@ public class OpenBikeManager {
 		}
 		return mThis;
 	}
-
+/*
 	public static synchronized OpenBikeManager getVcuboidManagerInstance() {
 		if (mThis == null)
 			mThis = new OpenBikeManager(null);
 		return mThis;
 	}
+	*/
 	
 	public OpenBikeDBAdapter getDbAdapter() {
 		return mOpenBikeDBAdapter;
@@ -228,7 +230,6 @@ public class OpenBikeManager {
 			mVisibleStations = new ArrayList<StationOverlay>();
 			executeCreateVisibleStationsTask(false);
 		}
-		Log.i("OpenBike", "getVisibleStations");
 		return mVisibleStations;
 	}
 	
@@ -339,12 +340,14 @@ public class OpenBikeManager {
 	*/
 	
 	public void showAskForGps() {
-		if (mActivity != null && mActivity instanceof IOpenBikeActivity)
+		if (mActivity != null && (mActivity instanceof IOpenBikeActivity 
+				|| mActivity instanceof FilterPreferencesActivity))
 			mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
 	}
 	
 	public void showNoLocationProvider() {
-		if (mActivity != null && mActivity instanceof IOpenBikeActivity)
+		if (mActivity != null && (mActivity instanceof IOpenBikeActivity 
+				|| mActivity instanceof FilterPreferencesActivity))
 			mActivity.showDialog(MyLocationProvider.NO_LOCATION_PROVIDER);
 	}
 	
@@ -564,6 +567,14 @@ public class OpenBikeManager {
 			Location stationLocation = null;
 			Location location = null;
 			int distanceToStation = 0;
+			int id_col = cursor.getColumnIndex(BaseColumns._ID);
+			int latitude_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE);
+			int longitude_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE);
+			int name_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_NAME);
+			int bikes_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES);
+			int slots_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS);
+			int open_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_OPEN);
+			int favorite_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_FAVORITE);
 			if (mLocationProvider != null) {
 				location = mLocationProvider.getMyLocation();
 				if (location != null)
@@ -574,24 +585,24 @@ public class OpenBikeManager {
 					return true;
 				if (stationLocation != null) {
 					stationLocation.setLatitude((double) cursor
-							.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN)*1E-6);
+							.getInt(latitude_col)*1E-6);
 					stationLocation.setLongitude((double) cursor
-							.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN)*1E-6);
+							.getInt(longitude_col)*1E-6);
 					distanceToStation = (int) stationLocation.distanceTo(location);
 					if (mOpenBikeFilter.isFilteringByDistance() && 
 							mOpenBikeFilter.getDistanceFilter() < distanceToStation)
 						continue;
 				}
 				stationOverlay = new StationOverlay(
-						new MinimalStation(cursor.getInt(OpenBikeDBAdapter.ID_COLUMN),
-								cursor.getString(OpenBikeDBAdapter.NAME_COLUMN), 
-								cursor.getInt(OpenBikeDBAdapter.LONGITUDE_COLUMN), 
-								cursor.getInt(OpenBikeDBAdapter.LATITUDE_COLUMN),
-								cursor.getInt(OpenBikeDBAdapter.BIKES_COLUMN), 
-								cursor.getInt(OpenBikeDBAdapter.SLOTS_COLUMN), 
-								cursor.getInt(OpenBikeDBAdapter.OPEN_COLUMN) == 0 ?
+						new MinimalStation(cursor.getInt(id_col),
+								cursor.getString(name_col), 
+								cursor.getInt(longitude_col), 
+								cursor.getInt(latitude_col),
+								cursor.getInt(bikes_col), 
+								cursor.getInt(slots_col), 
+								cursor.getInt(open_col) == 0 ?
 										false : true,
-								cursor.getInt(OpenBikeDBAdapter.FAVORITE_COLUMN) == 0 ?
+								cursor.getInt(favorite_col) == 0 ?
 										false : true,
 								stationLocation != null ? distanceToStation : -1));
 				if (useList) {
@@ -628,16 +639,12 @@ public class OpenBikeManager {
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
-			if (mVisibleStations == null) {
-				//Log.e("OpenBike", "mVisibleStations is null in createVisibleStationList");
-				//mVisibleStations = new ArrayList<StationOverlay>();
-				//return false;
-			}
 			// Hack for ArrayAdapter & Background thread
 			if (mActivity instanceof OpenBikeListActivity) {
 				return updateListFromDb(false);
 			} else {
-				mVisibleStations.clear();
+				if (mVisibleStations != null) 
+					mVisibleStations.clear();
 				return updateListFromDb(true);
 			}
 		}

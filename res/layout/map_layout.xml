@@ -10,7 +10,9 @@
 	<com.google.android.maps.MapView
 		android:id="@+id/map_view" android:layout_width="fill_parent"
 		android:layout_height="fill_parent" android:enabled="true"
-		android:clickable="true" android:apiKey="0h_KAeN3vGJzmQh2O3WgTG5G90qPAbc6xwQ7KCQ" />
+		android:clickable="true" 
+		android:apiKey="0h_KAeN3vGJzmQh2O3WgTG5G90qPAbc6xwQ7KCQ"
+		/>
 		<RelativeLayout 
 			  android:layout_above="@id/mainRL"
 			  android:id="@+id/updating"
@@ -46,3 +48,6 @@
  				</RelativeLayout> 
  		</RelativeLayout> 
 </LinearLayout>
+		<!--  
+			android:apiKey="0h_KAeN3vGJwkzzFZKZhQxbNW3TF2eB-0hkokNQ"  
+		-->

@@ -54,6 +54,21 @@ public class StationOverlay extends Overlay {
 	static private String SLOTS;
 	static private String SLOT;
 	static MapController mMc;
+	static private Paint paint = new Paint();
+	static private Point point1 = new Point();
+	static private Point point2 = new Point();
+	
+	static private int latCenter;
+	static private int longCenter;
+	static private int latSpan;
+	static private int longSpan;
+	static private int latMax;
+	static private int longMax;
+	static private int longMin;
+	static private int latMin;
+	static private int stationLon;
+	static private int stationLat;
+	
 	private MinimalStation mStation;
 	private boolean mIsCurrent = false;
 	
@@ -78,56 +93,51 @@ public class StationOverlay extends Overlay {
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		if (!shadow) {
 			GeoPoint mapCenter = mapView.getMapCenter();
-			int latCenter = mapCenter.getLatitudeE6();
-			int longCenter = mapCenter.getLongitudeE6();
-			int latSpan = mapView.getLatitudeSpan();
-			int longSpan = mapView.getLongitudeSpan();
-			int latMax = latCenter + (latSpan / 2);
-			int longMax = longCenter + (longSpan / 2);
+			latCenter = mapCenter.getLatitudeE6();
+			longCenter = mapCenter.getLongitudeE6();
+			latSpan = mapView.getLatitudeSpan();
+			longSpan = mapView.getLongitudeSpan();
+			latMax = latCenter + (latSpan / 2);
+			longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			int longMin = projection.fromPixels(-mMarkerWidth, 0)
+			longMin = projection.fromPixels(-mMarkerWidth, 0)
 					.getLongitudeE6();
-			int latMin = projection.fromPixels(0,
+			latMin = projection.fromPixels(0,
 					mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
-			int stationLon = mStation.getGeoPoint().getLongitudeE6();
-			int stationLat = mStation.getGeoPoint().getLatitudeE6();
+			stationLon = mStation.getGeoPoint().getLongitudeE6();
+			stationLat = mStation.getGeoPoint().getLatitudeE6();
 			if (stationLat < latMin || stationLat > latMax
 					|| stationLon < longMin || stationLon > longMax) {
 				return;
 			}
-			Point out = new Point();
-			projection.toPixels(mStation.getGeoPoint(), out);
-			Paint p1 = new Paint();
-			p1.setAntiAlias(true);
-			p1.setTextSize(15);
-			p1.setTextAlign(Align.RIGHT);
-			p1.setColor(Color.WHITE);
-			p1.setTypeface(Typeface.DEFAULT_BOLD);
-			out.y -= mMarkerHeight;
-			canvas.drawBitmap(mMarker, out.x, out.y, null);
-			canvas.drawText(String.valueOf(mStation.getBikes()), out.x + 20,
-					out.y + 20, p1);
-			canvas.drawText(String.valueOf(mStation.getSlots()), out.x + 20,
-					out.y + 35, p1);
-			p1.setTextAlign(Align.LEFT);
-			p1.setTextSize(12);
-			canvas.drawText(mStation.getBikes() > 1 ? BIKES : BIKE, out.x + 25, out.y + 20, p1);
-			canvas.drawText(mStation.getBikes() > 1 ? SLOTS : SLOT, out.x + 25, out.y + 35, p1);
+			projection.toPixels(mStation.getGeoPoint(), point1);
+			paint.setAntiAlias(true);
+			paint.setTextSize(15);
+			paint.setTextAlign(Align.RIGHT);
+			paint.setColor(Color.WHITE);
+			paint.setTypeface(Typeface.DEFAULT_BOLD);
+			point1.y -= mMarkerHeight;
+			canvas.drawBitmap(mMarker, point1.x, point1.y, null);
+			canvas.drawText(String.valueOf(mStation.getBikes()), point1.x + 20,
+					point1.y + 20, paint);
+			canvas.drawText(String.valueOf(mStation.getSlots()), point1.x + 20,
+					point1.y + 35, paint);
+			paint.setTextAlign(Align.LEFT);
+			paint.setTextSize(12);
+			canvas.drawText(mStation.getBikes() > 1 ? BIKES : BIKE, point1.x + 25, point1.y + 20, paint);
+			canvas.drawText(mStation.getBikes() > 1 ? SLOTS : SLOT, point1.x + 25, point1.y + 35, paint);
 		}
 		super.draw(canvas, mapView, shadow);
 	}
 
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
-		Point touched = new Point();
-		Point marker = new Point();
 		Projection projection = mapView.getProjection();
-		projection.toPixels(p, touched);
-		projection.toPixels(mStation.getGeoPoint(), marker);
-		if (touched.x >= marker.x && touched.x <= marker.x + mMarkerWidth
-				&& touched.y <= marker.y
-				&& touched.y >= marker.y - mMarkerHeight) {
-			//Log.d("OpenBike", "station");
+		projection.toPixels(p, point1);
+		projection.toPixels(mStation.getGeoPoint(), point2);
+		if (point1.x >= point2.x && point1.x <= point2.x + mMarkerWidth
+				&& point1.y <= point2.y
+				&& point1.y >= point2.y - mMarkerHeight) {
 			boolean isRecycled;
 			if (mBalloonView == null) {
 				mBalloonView = new BalloonOverlayView(mapView.getContext(),

@@ -16,7 +16,6 @@
 
 package fr.openbike.database;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -25,14 +24,13 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import fr.openbike.OpenBikeManager;
 
 /**
  * Provides access to the dictionary database.
  */
-public class SuggestionProvider extends ContentProvider {
+public class StationsProvider extends ContentProvider {
 
-	public static String AUTHORITY = "fr.openbike.SuggestionProvider";
+	public static String AUTHORITY = "fr.openbike.StationsProvider";
 	public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
 			+ "/station");
 

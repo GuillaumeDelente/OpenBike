@@ -2,8 +2,8 @@
 <searchable xmlns:android="http://schemas.android.com/apk/res/android"
     android:label="@string/search"
     android:hint="@string/search" 
-    android:searchSuggestAuthority="fr.openbike.SuggestionProvider"
-    android:searchSuggestIntentData="content://fr.openbike.SuggestionProvider/station"
+    android:searchSuggestAuthority="fr.openbike.StationsProvider"
+    android:searchSuggestIntentData="content://fr.openbike.StationsProvider/station"
     android:searchSuggestIntentAction="android.intent.action.VIEW"
     android:searchSuggestSelection=" ?" >
 </searchable>
