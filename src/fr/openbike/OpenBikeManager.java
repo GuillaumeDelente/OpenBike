@@ -43,7 +43,7 @@ import fr.openbike.utils.Utils;
 
 public class OpenBikeManager {
 	
-	public static final String SERVER_URL = "http://openbikeserver.appspot.com/stations";
+	public static final String SERVER_URL = "http://10.0.2.2:8888/stations"; //"http://openbikeserver.appspot.com/stations";
 	public static final int RETRIEVE_ALL_STATIONS = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
 	public static final long MIN_UPDATE_TIME = 1 * 1000 * 60;
