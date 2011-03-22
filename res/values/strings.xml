@@ -85,6 +85,10 @@
 	<string name="not_available">Non disponible</string>
 	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
 	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
+	<string name="network_preferences_title">Ville</string>
+	<string name="network">network</string>
+	<string name="network_title">Ville</string>
+	<string name="network_summary">Changez de ville</string>
 	
 	<!--  Autre -->	
     <plurals name="bike">

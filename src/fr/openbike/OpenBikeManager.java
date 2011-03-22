@@ -69,13 +69,15 @@ public class OpenBikeManager {
 	private OpenBikeManager(Activity activity) {
 		//Log.i("OpenBike", "New Manager created");
 		mActivity = activity;
-		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity);
-		mOpenBikeDBAdapter.open();
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.filter_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.map_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.other_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
+		PreferenceManager.setDefaultValues((Context) activity, R.xml.network_preferences, false);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
+		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity, 
+				mFilterPreferences.getInt(((Context) activity).getString(R.string.network), 0));
+		mOpenBikeDBAdapter.open();
 		if (mFilterPreferences.getBoolean(
 				((Context) activity).getString(R.string.use_location), false))
 			useLocation();
@@ -544,7 +546,7 @@ public class OpenBikeManager {
 			ArrayList<StationOverlay> stationsList = null;
 			if (!useList)
 				stationsList = new ArrayList<StationOverlay>(mVisibleStations.size());
-			if (mOpenBikeDBAdapter.getStationCount() == 0) {
+			if (mOpenBikeDBAdapter.getStationCount(mOpenBikeFilter.getNetwork()) == 0) {
 				return false;
 			}
 			Cursor cursor = mOpenBikeDBAdapter

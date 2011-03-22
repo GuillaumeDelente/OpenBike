@@ -29,6 +29,7 @@ public class BikeFilter implements Cloneable {
 	private boolean mShowOnlyWithBikes = false;
 	private boolean mNeedDbQuery = true;
 	private int mDistanceFilter = 0;
+	private int mNetwork = 0;
 
 	public BikeFilter(Context context) {
 		SharedPreferences preferences = PreferenceManager
@@ -44,6 +45,7 @@ public class BikeFilter implements Cloneable {
 						preferences.getInt(
 								context.getString(R.string.distance_filter), 1000)
 				: 0;
+		mNetwork = preferences.getInt(context.getString(R.string.network), 0);
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
@@ -80,6 +82,14 @@ public class BikeFilter implements Cloneable {
 
 	void setDistanceFilter(int distance) {
 		mDistanceFilter = distance;
+	}
+	
+	public int getNetwork() {
+		return mNetwork;
+	}
+
+	void setNetwork(int network) {
+		mNetwork = network;
 	}
 
 	public void setNeedDbQuery(BikeFilter actualFilter) {
@@ -142,6 +152,7 @@ public class BikeFilter implements Cloneable {
 		return mShowOnlyFavorites == that.mShowOnlyFavorites
 				&& mShowOnlyWithBikes == that.mShowOnlyWithBikes
 				&& mShowOnlyWithSlots == that.mShowOnlyWithSlots
-				&& mDistanceFilter == that.mDistanceFilter;
+				&& mDistanceFilter == that.mDistanceFilter
+				&& mNetwork == that.mNetwork;
 	}
 }

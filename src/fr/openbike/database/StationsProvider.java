@@ -20,10 +20,13 @@ import android.app.SearchManager;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import fr.openbike.R;
 
 /**
  * Provides access to the dictionary database.
@@ -47,7 +50,10 @@ public class StationsProvider extends ContentProvider {
 
 	@Override
 	public boolean onCreate() {
-		mDb = new OpenBikeDBAdapter(getContext());
+		Context context = getContext();
+		mDb = new OpenBikeDBAdapter(context, PreferenceManager
+				.getDefaultSharedPreferences(context).getInt(
+						context.getString(R.string.network), 0));
 		mDb.open();
 		return true;
 	}

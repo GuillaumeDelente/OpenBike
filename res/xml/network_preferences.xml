@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+   <PreferenceCategory
+            android:title="@string/network_preferences_title">
+		<CheckBoxPreference 
+				android:key="@string/network"
+		        android:title="@string/network_title"
+		        android:summary="@string/network_summary"
+		        android:defaultValue="true"/>
+		        </PreferenceCategory>
+</PreferenceScreen>
