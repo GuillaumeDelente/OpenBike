@@ -4,7 +4,7 @@
    <PreferenceCategory
             android:title="@string/network_preferences_title">
 		<CheckBoxPreference 
-				android:key="@string/network"
+				android:key="network"
 		        android:title="@string/network_title"
 		        android:summary="@string/network_summary"
 		        android:defaultValue="true"/>

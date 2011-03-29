@@ -23,6 +23,7 @@
 	<!--  Dialogs -->
 	<string name="yes">Oui</string>
 	<string name="no">Non</string>
+	<string name="cancel">Annuler</string>
 	<string name="gps_disabled">GPS désactivé</string>
 	<string name="location_disabled">Localisation désactivée</string>
 	<string name="updating">Rafraichissement...</string>
@@ -51,31 +52,27 @@
 	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
 	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans Menu->Configuration 
 	et jouez avec les réglages pour activer la géolocalisation et les filtres.</string>
-	
+	<string name="choose_network_title">Choisissez votre ville</string>
+	<string name="choose_network">Veuillez choisir votre ville parmis la liste suivante. 
+	Si elle n\'y figure pas, demandez son ajout ici.</string>
+
 	<!--  Preferences -->
 	<string name="menu_settings_title">Configuration</string>
 	<string name="filter_preferences_title">Configuration des filtres</string>
 	<string name="map_preferences_title">Configuration de la carte</string>
-	<string name="favorite_filter">favorite_filter</string>
 	<string name="favorite_filter_title">Favoris seulement</string>
 	<string name="favorite_filter_summary">Affiche seulement vos stations favorites.</string>
-	<string name="bikes_filter">bikes_filter</string>
 	<string name="bikes_filter_title">Vélos seulement</string>
 	<string name="bikes_filter_summary">Affiche seulement les stations avec au moins un Vcub.</string>
-	<string name="slots_filter">slots_filter</string>
 	<string name="slots_filter_title">Emplacements seulement</string>
 	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un emplacement.</string>
-	<string name="enable_distance_filter">enable_distance_filter</string>
 	<string name="enable_distance_filter_title">Filtrer par distance</string>
 	<string name="enable_distance_filter_summary">N\'afficher que les stations les plus proches.</string>
-	<string name="distance_filter">distance_filter</string>
 	<string name="distance_filter_title">Distance</string>
 	<string name="distance_filter_summary">Dans un rayon de</string>
 	<string name="location">Paramètres de localisation</string>
-	<string name="use_location">use_location</string>
 	<string name="use_location_title">Activer la géolocalisation</string>
 	<string name="use_location_summary">Utilise votre position</string>
-	<string name="center_on_location">center_on_location</string>
 	<string name="center_on_location_title">Centrer sur ma position</string>
 	<string name="center_on_location_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
@@ -86,7 +83,6 @@
 	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
 	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
 	<string name="network_preferences_title">Ville</string>
-	<string name="network">network</string>
 	<string name="network_title">Ville</string>
 	<string name="network_summary">Changez de ville</string>
 	

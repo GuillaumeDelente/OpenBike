@@ -33,6 +33,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.provider.BaseColumns;
+import fr.openbike.object.Network;
 
 public class OpenBikeDBAdapter {
 
@@ -59,7 +60,7 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_SPECIAL = "isSpecial";
 	public static final String KEY_CITY = "city";
 
-	private int mCurrentNetwork;
+	private static int mCurrentNetwork;
 
 	private static final String CREATE_STATIONS_TABLE = "create table "
 			+ STATIONS_TABLE + " (" + BaseColumns._ID + " integer not null, "
@@ -153,11 +154,24 @@ public class OpenBikeDBAdapter {
 		return success;
 	}
 
-	public boolean insertNetwork(int id, String city, String name) {
+	public boolean insertNetwork(Network network) {
 		try {
-			mDb.execSQL("INSERT OR IGNORE INTO " + NETWORKS_TABLE
-					+ " VALUES (?,?,?)", new Object[] { id, city, name });
+			/*
+			mDb.execSQL("INSERT OR IGNORE INTO " + NETWORKS_TABLE +
+					" VALUES (?,?,?);", new String[] { String.valueOf(network.getId()),
+					network.getCity(), network.getName() });
+					*/
+			//mDb.execSQL("INSERT INTO networks(_id, name, city) VALUES (1,'Vcub','Bordeaux');");
+			mCurrentNetwork = network.getId();
+			if (getStationCount() != 0)
+				return false;
+			ContentValues newValues = new ContentValues();
+			newValues.put(BaseColumns._ID, network.getId());
+			newValues.put(KEY_NAME, network.getName());
+			newValues.put(KEY_CITY, network.getCity());
+			mDb.insert(NETWORKS_TABLE, null, newValues);
 		} catch (Exception e) {
+			ErrorReporter.getInstance().handleException(e);
 			return false;
 		}
 		return true;
@@ -230,8 +244,9 @@ public class OpenBikeDBAdapter {
 			nWhere = where + " AND " + KEY_NETWORK + " = ?";
 		return mDb.query(STATIONS_TABLE, new String[] { BaseColumns._ID,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_FAVORITE, KEY_SPECIAL }, nWhere, 
-				new String[] { String.valueOf(mCurrentNetwork) }, null, null, orderBy);
+				KEY_NAME, KEY_FAVORITE, KEY_SPECIAL }, nWhere,
+				new String[] { String.valueOf(mCurrentNetwork) }, null, null,
+				orderBy);
 	}
 
 	// Search results
@@ -244,13 +259,13 @@ public class OpenBikeDBAdapter {
 		}
 		query += "*";
 		/*
-		  Cursor cursor = mDb.query(STATIONS_TABLE + " ob, " +
-		  STATIONS_VIRTUAL_TABLE + " vs", new String[] { "ob." +
-		  BaseColumns._ID, "ob." + KEY_BIKES, "ob." + KEY_SLOTS, "ob." +
-		  KEY_OPEN, "ob." + KEY_LATITUDE, "ob." + KEY_LONGITUDE, "ob." +
-		  KEY_NAME, "ob." + KEY_FAVORITE }, table +
-		  " MATCH ? AND ob._id = vs._id AND ob.network = ?", new String[] { like, String.valueOf(mCurrentNetwork)  }, null,
-		  null, null);
+		 * Cursor cursor = mDb.query(STATIONS_TABLE + " ob, " +
+		 * STATIONS_VIRTUAL_TABLE + " vs", new String[] { "ob." +
+		 * BaseColumns._ID, "ob." + KEY_BIKES, "ob." + KEY_SLOTS, "ob." +
+		 * KEY_OPEN, "ob." + KEY_LATITUDE, "ob." + KEY_LONGITUDE, "ob." +
+		 * KEY_NAME, "ob." + KEY_FAVORITE }, table +
+		 * " MATCH ? AND ob._id = vs._id AND ob.network = ?", new String[] {
+		 * like, String.valueOf(mCurrentNetwork) }, null, null, null);
 		 */
 
 		Cursor cursor = mDb
@@ -280,37 +295,32 @@ public class OpenBikeDBAdapter {
 		} catch (NumberFormatException ex) {
 		}
 		query += "*";
-		//Network is not in argument list because when I do so, it doesn't work !
-		Cursor cursor = mDb
-		.rawQuery(
-				"SELECT vs._id, vs._id as " + SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID 
-				+ ", 'n° ' || vs._id as " + SearchManager.SUGGEST_COLUMN_TEXT_2 
-				+ ", vs.name as " + SearchManager.SUGGEST_COLUMN_TEXT_1 + " FROM"
-						+ " virtual_stations vs WHERE "
-						+ table + " MATCH ? AND vs.network = " + mCurrentNetwork + ";",
+		// Network is not in argument list because when I do so, it doesn't work
+		// !
+		Cursor cursor = mDb.rawQuery("SELECT vs._id, vs._id as "
+				+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
+				+ ", 'n° ' || vs._id as " + SearchManager.SUGGEST_COLUMN_TEXT_2
+				+ ", vs.name as " + SearchManager.SUGGEST_COLUMN_TEXT_1
+				+ " FROM" + " virtual_stations vs WHERE " + table
+				+ " MATCH ? AND vs.network = " + mCurrentNetwork + ";",
 				new String[] { query });
-			/*
-		Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
-				BaseColumns._ID,
-				"'n° ' || " + BaseColumns._ID + " as "
-						+ SearchManager.SUGGEST_COLUMN_TEXT_2,
-				BaseColumns._ID + " as "
-						+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID,
-				KEY_NAME + " as " + SearchManager.SUGGEST_COLUMN_TEXT_1 },
-				table + " MATCH ? AND " + KEY_NETWORK + " = ?", new String[] {
-						query, String.valueOf(mCurrentNetwork) }, null, null,
-				null);
-				*/
 		/*
-		Cursor cursor = mDb.rawQuery(
-				"SELECT _id " + SearchManager.SUGGEST_COLUMN_TEXT_2 
-						+ ", _id " + SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
-						+ ", name " + SearchManager.SUGGEST_COLUMN_TEXT_1
-						+ " FROM virtual_stations;"
-						"WHERE "
-						+ table
-						+ " MATCH ?;", null
-				new String[] { query, String.valueOf(mCurrentNetwork) });*/
+		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
+		 * BaseColumns._ID, "'n° ' || " + BaseColumns._ID + " as " +
+		 * SearchManager.SUGGEST_COLUMN_TEXT_2, BaseColumns._ID + " as " +
+		 * SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, KEY_NAME + " as " +
+		 * SearchManager.SUGGEST_COLUMN_TEXT_1 }, table + " MATCH ? AND " +
+		 * KEY_NETWORK + " = ?", new String[] { query,
+		 * String.valueOf(mCurrentNetwork) }, null, null, null);
+		 */
+		/*
+		 * Cursor cursor = mDb.rawQuery( "SELECT _id " +
+		 * SearchManager.SUGGEST_COLUMN_TEXT_2 + ", _id " +
+		 * SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID + ", name " +
+		 * SearchManager.SUGGEST_COLUMN_TEXT_1 + " FROM virtual_stations;"
+		 * "WHERE " + table + " MATCH ?;", null new String[] { query,
+		 * String.valueOf(mCurrentNetwork) });
+		 */
 		if (cursor == null) {
 			return null;
 		} /*
@@ -349,7 +359,7 @@ public class OpenBikeDBAdapter {
 		return cursor;
 	}
 
-	public int getStationCount(int network) throws SQLException {
+	public int getStationCount() throws SQLException {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM "
 				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
 				new String[] { String.valueOf(mCurrentNetwork) });
@@ -486,8 +496,8 @@ public class OpenBikeDBAdapter {
 							+ BaseColumns._ID + ", " + KEY_NAME + ", "
 							+ KEY_OPEN + ", " + KEY_BIKES + ", " + KEY_SLOTS
 							+ ", " + KEY_ADDRESS + ", " + KEY_LATITUDE + ", "
-							+ KEY_LONGITUDE + ", " + KEY_FAVORITE
-							+ ", " + KEY_PAYMENT + ", " + KEY_SPECIAL
+							+ KEY_LONGITUDE + ", " + KEY_FAVORITE + ", "
+							+ KEY_PAYMENT + ", " + KEY_SPECIAL
 							+ " FROM stations;");
 
 					// Drop old table
@@ -507,9 +517,9 @@ public class OpenBikeDBAdapter {
 
 					// Drop temporary table
 					db.execSQL("DROP TABLE stations_backup;");
-					
+
 					// Drop virtual table without backup because
-					//we fill it with stations_table
+					// we fill it with stations_table
 					db.execSQL("DROP TABLE virtual_stations;");
 
 					// Re create virtual table whith _id not longer
@@ -517,10 +527,11 @@ public class OpenBikeDBAdapter {
 					db.execSQL(CREATE_VIRTUAL_TABLE);
 
 					// Fill it
-					db.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE
-							+ " SELECT " + BaseColumns._ID + ", " + KEY_NETWORK
-							+ ", " + KEY_NAME + " FROM "
-							+ STATIONS_TABLE + ";");
+					db
+							.execSQL("INSERT INTO " + STATIONS_VIRTUAL_TABLE
+									+ " SELECT " + BaseColumns._ID + ", "
+									+ KEY_NETWORK + ", " + KEY_NAME + " FROM "
+									+ STATIONS_TABLE + ";");
 
 					oldVersion++;
 					db.setTransactionSuccessful();

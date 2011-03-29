@@ -39,14 +39,18 @@ import fr.openbike.filter.Filtering;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
+import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeManager {
 	
-	public static final String SERVER_URL = "http://10.0.2.2:8888/stations"; //"http://openbikeserver.appspot.com/stations";
+	public static String BASE_STATIONS = "http://10.0.2.2:8888/stations/"; //"http://openbikeserver.appspot.com/stations";
+	public static String SERVER_STATIONS = null; 
+	public static final String SERVER_NETWORKS = "http://10.0.2.2:8888/networks";
 	public static final int RETRIEVE_ALL_STATIONS = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
 	public static final long MIN_UPDATE_TIME = 1 * 1000 * 60;
+	
 	protected static OpenBikeDBAdapter mOpenBikeDBAdapter = null;
 	protected static Activity mActivity = null;
 	protected static MyLocationProvider mLocationProvider = null;
@@ -75,11 +79,15 @@ public class OpenBikeManager {
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.network_preferences, false);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
-		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity, 
-				mFilterPreferences.getInt(((Context) activity).getString(R.string.network), 0));
+		mFilterPreferences.edit().putInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0).commit();
+		int network = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
+		if (network != 0) {
+			SERVER_STATIONS = BASE_STATIONS + String.valueOf(network);
+		}
+		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity, network);
 		mOpenBikeDBAdapter.open();
 		if (mFilterPreferences.getBoolean(
-				((Context) activity).getString(R.string.use_location), false))
+				FilterPreferencesActivity.LOCATION_PREFERENCE, false))
 			useLocation();
 		initializeFilter();
 		//StationOverlay.initialize((Context) activity);
@@ -219,6 +227,18 @@ public class OpenBikeManager {
 				return;
 			}
 		}
+	}
+	
+	public boolean updateNetworkTable(ArrayList<Network> networks) {
+		Network network = null;
+		for (Network n : networks) {
+			if (n.getId() == mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) {
+				network = n;
+				break;
+			}
+		}
+		SERVER_STATIONS = BASE_STATIONS + String.valueOf(network.getId());
+		return mOpenBikeDBAdapter.insertNetwork(network);
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
@@ -427,8 +447,24 @@ public class OpenBikeManager {
 		@Override
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
+			if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
+				String json = RestClient.connect(SERVER_NETWORKS);
+				if (json == null) {
+					publishProgress(RestClient.NETWORK_ERROR);
+					return false;
+				}				
+				ArrayList<Network> networks = RestClient.getNetworkList(json);
+				if (json == null) {
+					publishProgress(RestClient.NETWORK_ERROR);
+					return false;
+				}
+				((IOpenBikeActivity) mActivity).setNetworks(networks);
+				publishProgress(10);
+				return false;
+				
+			}
 			String json = RestClient
-					.connect(SERVER_URL);
+					.connect(SERVER_STATIONS);
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
@@ -447,9 +483,14 @@ public class OpenBikeManager {
 		protected void onProgressUpdate(Integer... progress) {
 			if (mActivity != null && mActivity instanceof IOpenBikeActivity) {
 				
-				if (progress[0] < 0) {
+				if (progress[0] < 0) { // Error
 					((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
 					mActivity.showDialog(progress[0]);
+				} else if (progress[0] == 10) {  // Ask for Network
+					((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
+					((IOpenBikeActivity) mActivity).showNetworks();
+				} else if (progress[0] == 20) {  // Retrieve Station List
+					((IOpenBikeActivity) mActivity).showGetAllStationsOnProgress();
 				} else if (progress[0] == 50){
 					((IOpenBikeActivity) mActivity).updateGetAllStationsOnProgress(50);
 				}
@@ -458,8 +499,10 @@ public class OpenBikeManager {
 
 		@Override
 		protected void onPostExecute(Boolean isListRetrieved) {
-			if (!isListRetrieved)
+			if (!isListRetrieved) {
+				mGetAllStationsTask = null;
 				return;
+			}
 			mFilterPreferences.edit()
 				.putLong("last_update", System.currentTimeMillis()).commit();
 			executeCreateVisibleStationsTask(true);
@@ -487,22 +530,23 @@ public class OpenBikeManager {
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
 			String json = RestClient
-			.connect(SERVER_URL);
+			.connect(SERVER_STATIONS);
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
-			}
+			}/*
 			if (!RestClient.updateListFromJson(json,
 					mVisibleStations)) {
 				publishProgress(OpenBikeDBAdapter.JSON_ERROR);
 				return false;
-			}
-			publishProgress(50);
+			}*/
+			//publishProgress(50);
 			result = mOpenBikeDBAdapter.updateStations(json);
 			if (result != 1) {
 				publishProgress(result);
 				return false;
 			}
+			publishProgress(50);
 			return true;
 		}
 		
@@ -513,7 +557,8 @@ public class OpenBikeManager {
 				if (progress[0] < 0) { // Error
 					((IOpenBikeActivity) mActivity).showDialog(progress[0]);
 				} else {
-					((IOpenBikeActivity) mActivity).onListUpdated();
+					//((IOpenBikeActivity) mActivity).onListUpdated();
+					executeCreateVisibleStationsTask(true);
 				}
 				// Error or not, dismiss loading dialog
 				((IOpenBikeActivity) mActivity).finishUpdateAllStationsOnProgress(true);
@@ -546,7 +591,7 @@ public class OpenBikeManager {
 			ArrayList<StationOverlay> stationsList = null;
 			if (!useList)
 				stationsList = new ArrayList<StationOverlay>(mVisibleStations.size());
-			if (mOpenBikeDBAdapter.getStationCount(mOpenBikeFilter.getNetwork()) == 0) {
+			if (mOpenBikeDBAdapter.getStationCount() == 0) {
 				return false;
 			}
 			Cursor cursor = mOpenBikeDBAdapter
@@ -643,9 +688,9 @@ public class OpenBikeManager {
 		@Override
 		protected void onPostExecute(Boolean isListCreated) {
 			if (mActivity != null && mActivity instanceof IOpenBikeActivity) {
-				if (!isListCreated)
+				if (!isListCreated) {
 					executeGetAllStationsTask();
-				else {
+				} else {
 					((IOpenBikeActivity) mActivity).onListUpdated();
 					// FIXME : Don't use System.currentTimeMillis()
  					if (System.currentTimeMillis() - 

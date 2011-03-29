@@ -20,7 +20,6 @@ package fr.openbike.filter;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import fr.openbike.R;
 
 public class BikeFilter implements Cloneable {
 
@@ -29,23 +28,17 @@ public class BikeFilter implements Cloneable {
 	private boolean mShowOnlyWithBikes = false;
 	private boolean mNeedDbQuery = true;
 	private int mDistanceFilter = 0;
-	private int mNetwork = 0;
 
 	public BikeFilter(Context context) {
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(context);
-		mShowOnlyFavorites = preferences.getBoolean(context
-				.getString(R.string.favorite_filter), false);
-		mShowOnlyWithBikes = preferences.getBoolean(context
-				.getString(R.string.bikes_filter), false);
-		mShowOnlyWithSlots = preferences.getBoolean(context
-				.getString(R.string.slots_filter), false);
-		mDistanceFilter = preferences.getBoolean(context
-				.getString(R.string.enable_distance_filter), false) ? 
+		mShowOnlyFavorites = preferences.getBoolean(FilterPreferencesActivity.FAVORITE_FILTER, false);
+		mShowOnlyWithBikes = preferences.getBoolean(FilterPreferencesActivity.BIKES_FILTER, false);
+		mShowOnlyWithSlots = preferences.getBoolean(FilterPreferencesActivity.SLOTS_FILTER, false);
+		mDistanceFilter = preferences.getBoolean(FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false) ? 
 						preferences.getInt(
-								context.getString(R.string.distance_filter), 1000)
+								FilterPreferencesActivity.DISTANCE_FILTER, 1000)
 				: 0;
-		mNetwork = preferences.getInt(context.getString(R.string.network), 0);
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
@@ -82,14 +75,6 @@ public class BikeFilter implements Cloneable {
 
 	void setDistanceFilter(int distance) {
 		mDistanceFilter = distance;
-	}
-	
-	public int getNetwork() {
-		return mNetwork;
-	}
-
-	void setNetwork(int network) {
-		mNetwork = network;
 	}
 
 	public void setNeedDbQuery(BikeFilter actualFilter) {
@@ -152,7 +137,6 @@ public class BikeFilter implements Cloneable {
 		return mShowOnlyFavorites == that.mShowOnlyFavorites
 				&& mShowOnlyWithBikes == that.mShowOnlyWithBikes
 				&& mShowOnlyWithSlots == that.mShowOnlyWithSlots
-				&& mDistanceFilter == that.mDistanceFilter
-				&& mNetwork == that.mNetwork;
+				&& mDistanceFilter == that.mDistanceFilter;
 	}
 }

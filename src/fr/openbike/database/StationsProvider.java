@@ -26,7 +26,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import fr.openbike.R;
+import fr.openbike.filter.FilterPreferencesActivity;
 
 /**
  * Provides access to the dictionary database.
@@ -52,8 +52,7 @@ public class StationsProvider extends ContentProvider {
 	public boolean onCreate() {
 		Context context = getContext();
 		mDb = new OpenBikeDBAdapter(context, PreferenceManager
-				.getDefaultSharedPreferences(context).getInt(
-						context.getString(R.string.network), 0));
+				.getDefaultSharedPreferences(context).getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
 		mDb.open();
 		return true;
 	}

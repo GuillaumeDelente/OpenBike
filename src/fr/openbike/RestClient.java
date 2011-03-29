@@ -35,6 +35,7 @@ import org.json.JSONObject;
 
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
+import fr.openbike.object.Network;
 
 public class RestClient {
 	
@@ -164,6 +165,26 @@ public class RestClient {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public static ArrayList<Network> getNetworkList(String json) {
+		//Log.i("OpenBike", "updateDbFromJson");
+		ArrayList<Network> networks;
+		try {
+			JSONArray jsonArray = new JSONArray(json);
+			JSONObject jsonNetwork;
+			networks = new ArrayList<Network>();
+			for (int i = 0; i < jsonArray.length(); i++) {
+				jsonNetwork = jsonArray.getJSONObject(i);
+				networks.add(new Network(jsonNetwork.getInt("id"), 
+						jsonNetwork.getString("name"), jsonNetwork.getString("city"),
+						jsonNetwork.getDouble("longitude"), jsonNetwork.getDouble("longitude")));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return networks;
 	}
 
 	/*

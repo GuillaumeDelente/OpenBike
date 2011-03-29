@@ -17,6 +17,7 @@
  */
 package fr.openbike.map;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -57,8 +58,10 @@ import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
 import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.object.MinimalStation;
+import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeMapActivity extends MapActivity implements
@@ -107,7 +110,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 			if (mMapPreferences.getBoolean(
-					getString(R.string.center_on_location), false) && OpenBikeManager.getCurrentLocation() != null) {
+					FilterPreferencesActivity.CENTER_PREFERENCE, false) && OpenBikeManager.getCurrentLocation() != null) {
 				zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			} else {
 				zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
@@ -131,7 +134,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			if (ACTION_DETAIL.equals(intent.getAction())) {
 				setStation(intent.getData());
 				if (mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false)) {
+						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
 					zoomAndCenter(OpenBikeManager.getCurrentLocation());
 				} else {
 					zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
@@ -140,12 +143,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 			} else {
 				setStationList();
 				if (mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false))
+						FilterPreferencesActivity.CENTER_PREFERENCE, false))
 					zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			}
 		}
 		mRetrieveList = true;
-		if (mMapPreferences.getBoolean(getString(R.string.use_location), false)) {
+		if (mMapPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			if (mMyLocationOverlay == null) {
 				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 			}
@@ -321,7 +324,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 											false);
 									if (mMapPreferences
 											.getBoolean(
-													getString(R.string.favorite_filter),
+													FilterPreferencesActivity.FAVORITE_FILTER,
 													false)) {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()
@@ -436,7 +439,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
-		if (!mMapPreferences.getBoolean(getString(R.string.distance_filter), false)) {
+		if (!mMapPreferences.getBoolean(FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false)) {
 			Utils.sortStationsByDistance(mMapOverlays);
 			Collections.reverse(mMapOverlays);
 		}
@@ -452,7 +455,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if ((mIsFirstFix && location != null && !OpenBikeMapActivity.ACTION_DETAIL
 				.equals(getIntent().getAction()))
 				|| mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false)) {
+						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
 			zoomAndCenter(location);
 		}
 		mIsFirstFix = (location == null) ? true : false;
@@ -597,5 +600,20 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (i < 0)
 			return null;
 		return ((StationOverlay) mMapOverlays.get(i));
+	}
+	
+	@Override
+	public void showChooseNetwork() {
+		return;
+	}
+	
+	@Override
+	public void showNetworks() {
+		return;
+	}
+	
+	@Override
+	public void setNetworks(ArrayList<Network> networks) {
+		return;
 	}
 }

@@ -4,33 +4,33 @@
    <PreferenceCategory
             android:title="@string/filter_preferences_title">
         <CheckBoxPreference
-                android:key="@string/favorite_filter"
+                android:key="favorite_filter"
                 android:title="@string/favorite_filter_title"
                 android:summary="@string/favorite_filter_summary" 
                 android:defaultValue="false"
                 />
         <CheckBoxPreference
-				android:key="@string/bikes_filter"
+				android:key="bikes_filter"
 				android:title="@string/bikes_filter_title"
 				android:summary="@string/bikes_filter_summary"
 				android:defaultValue="false"
 				/>
         <CheckBoxPreference
-				android:key="@string/slots_filter"
+				android:key="slots_filter"
 				android:title="@string/slots_filter_title"
 				android:summary="@string/slots_filter_summary"
 				android:defaultValue="false"
 				/>
 		<CheckBoxPreference
-			android:dependency="@string/use_location"
-            android:key="@string/enable_distance_filter"
+			android:dependency="use_location"
+            android:key="enable_distance_filter"
 			android:title="@string/enable_distance_filter_title" 
             android:summary="@string/enable_distance_filter_summary"
             android:defaultValue="false"
         />
 		<fr.openbike.filter.SeekBarPreference
-                android:dependency="@string/enable_distance_filter"
-                android:key="@string/distance_filter"
+                android:dependency="enable_distance_filter"
+                android:key="distance_filter"
                 android:defaultValue="1000"
                 android:title="@string/distance_filter_title" 
                 />

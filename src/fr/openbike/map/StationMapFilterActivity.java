@@ -35,11 +35,11 @@ public class StationMapFilterActivity extends FilterPreferencesActivity {
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(getString(R.string.use_location))) {
-			if (!sharedPreferences.getBoolean(getString(R.string.use_location),
+		if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
+			if (!sharedPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE,
 					false)) {
 				sharedPreferences.edit().putBoolean(
-						getString(R.string.enable_distance_filter), false).commit();
+						FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false).commit();
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);

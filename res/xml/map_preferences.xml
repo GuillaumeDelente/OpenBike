@@ -5,8 +5,8 @@
             android:title="@string/map_preferences_title">
             
         <CheckBoxPreference
-                android:dependency="@string/use_location"
-                android:key = "@string/center_on_location"
+                android:dependency="use_location"
+                android:key = "center_on_location"
                 android:title = "@string/center_on_location_title"
                 android:summary = "@string/center_on_location_summary"
                 android:defaultValue="false"

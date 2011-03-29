@@ -34,14 +34,12 @@ public class SeekBarPreference extends DialogPreference implements
 	private SeekBar mBar;
 	private TextView mDistanceTextView;
 	private static SharedPreferences mSharedPreferences;
-	private static String DISTANCE_FILTER;
 	private static final int DEFAULT_DISTANCE = 1000;
 
 	public SeekBarPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(context);
-		DISTANCE_FILTER = context.getString(R.string.distance_filter);
 		setDialogLayoutResource(R.layout.distance_preference_layout);
 	}
 
@@ -85,11 +83,11 @@ public class SeekBarPreference extends DialogPreference implements
 
 	private void setValue(int value) {
 		Editor ed = mSharedPreferences.edit();
-		ed.putInt(DISTANCE_FILTER, value);
+		ed.putInt(FilterPreferencesActivity.DISTANCE_FILTER, value);
 		ed.commit();
 	}
 
 	private int getValue() {
-		return mSharedPreferences.getInt(DISTANCE_FILTER, DEFAULT_DISTANCE);
+		return mSharedPreferences.getInt(FilterPreferencesActivity.DISTANCE_FILTER, DEFAULT_DISTANCE);
 	}
 }
