@@ -436,7 +436,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
-		if (!mMapPreferences.getBoolean(getString(R.string.distance_filter), false)) {
+		if (!mMapPreferences.getBoolean(getString(R.string.enable_distance_filter), false)) {
 			Utils.sortStationsByDistance(mMapOverlays);
 			Collections.reverse(mMapOverlays);
 		}
