@@ -29,18 +29,20 @@ public class Network {
 	private int mId;
 	private String mName;
 	private String mCity;
+	private String mServerUrl;
 	private int mLongitude;
 	private int mLatitude;
 	
-	public Network(int id, String name, String city,
+	public Network(int id, String name, String city, String serverUrl,
 			double longitude, double latitude) {
-		this(id, name, city, (int) (longitude*1E6), (int) (latitude*1E6));
+		this(id, name, city, serverUrl, (int) (longitude*1E6), (int) (latitude*1E6));
 	}
 	
-	public Network(int id, String name, String city,
+	public Network(int id, String name, String city, String serverUrl,
 			int longitude, int latitude) {
 		mId = id;
 		mName = name;
+		mServerUrl = serverUrl;
 		mLongitude = longitude;
 		mLatitude = latitude;
 		mCity = city;
@@ -84,5 +86,13 @@ public class Network {
 
 	public int getLatitude() {
 		return mLatitude;
+	}
+
+	public void setServerUrl(String serverUrl) {
+		mServerUrl = serverUrl;
+	}
+
+	public String getServerUrl() {
+		return mServerUrl;
 	}
 }

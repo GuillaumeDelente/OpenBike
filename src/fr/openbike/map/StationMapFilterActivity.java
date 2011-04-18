@@ -17,6 +17,7 @@
  */
 package fr.openbike.map;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import fr.openbike.R;
@@ -43,5 +44,14 @@ public class StationMapFilterActivity extends FilterPreferencesActivity {
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);
+	}
+
+	/* (non-Javadoc)
+	 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+	 */
+	@Override
+	public void onClick(DialogInterface dialog, int which) {
+		// TODO Auto-generated method stub
+		
 	}
 }

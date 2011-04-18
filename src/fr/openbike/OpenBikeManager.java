@@ -28,6 +28,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -44,10 +45,15 @@ import fr.openbike.utils.Utils;
 
 public class OpenBikeManager {
 	
-	public static String BASE_STATIONS = "http://10.0.2.2:8888/stations/"; //"http://openbikeserver.appspot.com/stations";
-	public static String SERVER_STATIONS = null; 
-	public static final String SERVER_NETWORKS = "http://10.0.2.2:8888/networks";
+	public static String UPDATE_SERVER_URL = ""; //"http://openbikeserver.appspot.com/stations";
+	public static final String SERVER_NETWORKS = "http://openbikeserver-2.appspot.com/networks";
+	public static int NETWORK_LATITUDE = 0;
+	public static int NETWORK_LONGITUDE = 0;
+	public static String NETWORK_NAME = "";
+	public static String NETWORK_CITY = "";
+	public static final String LAST_UPDATE = "last_update";
 	public static final int RETRIEVE_ALL_STATIONS = 0;
+	public static final int RETRIEVE_NETWORKS = 4;
 	public static final int REMOVE_FROM_FAVORITE = 1;
 	public static final long MIN_UPDATE_TIME = 1 * 1000 * 60;
 	
@@ -61,6 +67,7 @@ public class OpenBikeManager {
 	private GetAllStationsTask mGetAllStationsTask = null;
 	private UpdateAllStationsTask mUpdateAllStationsTask = null;
 	private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
+	private ShowNetworksTask mShowNetworksTask = null;
 	
 	public BikeFilter getVcubFilter() {
 		return mOpenBikeFilter;
@@ -77,19 +84,14 @@ public class OpenBikeManager {
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.map_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.other_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
-		PreferenceManager.setDefaultValues((Context) activity, R.xml.network_preferences, false);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
-		mFilterPreferences.edit().putInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0).commit();
-		int network = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
-		if (network != 0) {
-			SERVER_STATIONS = BASE_STATIONS + String.valueOf(network);
-		}
-		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity, network);
+		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity);
 		mOpenBikeDBAdapter.open();
 		if (mFilterPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false))
 			useLocation();
 		initializeFilter();
+		initializeNetwork();		
 		//StationOverlay.initialize((Context) activity);
 	}
 	
@@ -114,25 +116,22 @@ public class OpenBikeManager {
 	public OpenBikeDBAdapter getDbAdapter() {
 		return mOpenBikeDBAdapter;
 	}
-
-	public void setCurrentActivity(Activity activity) {
-		setCurrentActivity(activity, false);
-	}
 	
-	public void setCurrentActivity(Activity activity, boolean isShowStationMode) {
+	public void setCurrentActivity(Activity activity) {
 		mActivity = activity;
-		if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50 && activity instanceof IOpenBikeActivity)
+		if (activity instanceof IOpenBikeActivity) {
+			if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 50)
+			//UpdateTask in progress
 			((IOpenBikeActivity) activity).showUpdateAllStationsOnProgress(false);
-	}
-
-	public void attach(OpenBikeListActivity activity) {
-		mActivity = activity;
-		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
-		if (mGetAllStationsTask != null) {
-			mThis.retrieveGetAllStationTask();
-		} else if (mUpdateAllStationsTask != null) {
-			if (mUpdateAllStationsTask.getProgress() < 50)
-				mThis.retrieveUpdateAllStationTask();
+		} else if (mUpdateAllStationsTask != null && mUpdateAllStationsTask.getProgress() < 100) {
+			//GetAllStationsTask in progress
+			/*
+			int progress = mUpdateAllStationsTask.getProgress();
+			if (progress < 50)
+				((IOpenBikeActivity) activity).showUpdateAllStationsOnProgress(false);
+			else 
+				((IOpenBikeActivity) activity).updateGetAllStationsOnProgress(50);
+				*/
 		}
 	}
 
@@ -152,6 +151,7 @@ public class OpenBikeManager {
 	
 	public boolean executeCreateVisibleStationsTask(boolean forceDbQuery) {
 		if (mCreateVisibleStationsTask == null) {
+			Log.d("OpenBike", "getVisibleStations");
 			if (mOpenBikeFilter.isNeedDbQuery() || forceDbQuery) {
 				mCreateVisibleStationsTask = 
 					(CreateVisibleStationsTask) new CreateVisibleStationsTask()
@@ -172,7 +172,7 @@ public class OpenBikeManager {
 		if (mActivity == null)
 			return false;
 		if (mUpdateAllStationsTask == null && (System.currentTimeMillis() 
-				- mFilterPreferences.getLong("last_update", 0) > MIN_UPDATE_TIME)) {
+				- mFilterPreferences.getLong(LAST_UPDATE, 0) > MIN_UPDATE_TIME)) {
 			mUpdateAllStationsTask = (UpdateAllStationsTask) new UpdateAllStationsTask()
 					.execute();
 			return true;
@@ -183,28 +183,16 @@ public class OpenBikeManager {
 		}
 		return false;
 	}
-
-	private void retrieveGetAllStationTask() {
-		int progress = mGetAllStationsTask.getProgress();
-		if (progress < 100) {
-			/*
-			((IVcuboidActivity) mActivity).showGetAllStationsOnProgress();
-			((IVcuboidActivity) mActivity).updateGetAllStationsOnProgress(mGetAllStationsTask
-					.getProgress());
-					*/
-		} else {
-			((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
-			mGetAllStationsTask = null;
+	
+	public boolean executeShowNetworksTask() {
+		if (mActivity == null)
+			return false;
+		if (mShowNetworksTask == null) {
+			mShowNetworksTask = (ShowNetworksTask) new ShowNetworksTask()
+					.execute();
+			return true;
 		}
-	}
-
-	private void retrieveUpdateAllStationTask() {
-		int progress = mUpdateAllStationsTask.getProgress();
-		if (progress >= 50) {
-			mUpdateAllStationsTask = null;
-		} else {
-			((IOpenBikeActivity) mActivity).showUpdateAllStationsOnProgress(false);
-		}
+		return false;
 	}
 	
 	private void initializeFilter() {
@@ -229,24 +217,48 @@ public class OpenBikeManager {
 		}
 	}
 	
+	private void initializeNetwork () {
+		int networkId = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
+		if (networkId != 0 ) {
+			Cursor network = mOpenBikeDBAdapter.getNetwork(networkId, new String[] {OpenBikeDBAdapter.KEY_NAME, OpenBikeDBAdapter.KEY_CITY, OpenBikeDBAdapter.KEY_SERVER, OpenBikeDBAdapter.KEY_LONGITUDE, OpenBikeDBAdapter.KEY_LATITUDE});
+			initializeNetwork(new Network(networkId, network.getString(0), network.getString(1), network.getString(2), network.getInt(3), network.getInt(4)));
+		}
+	}
+	
+	private void initializeNetwork (Network network) {
+		UPDATE_SERVER_URL = network.getServerUrl();
+		NETWORK_LATITUDE = network.getLatitude();
+		NETWORK_LONGITUDE = network.getLongitude();
+		NETWORK_NAME = network.getName();
+		NETWORK_CITY = network.getCity();
+	}
+	
 	public boolean updateNetworkTable(ArrayList<Network> networks) {
 		Network network = null;
+		int choosenNetwork = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
 		for (Network n : networks) {
-			if (n.getId() == mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) {
+			if (n.getId() == choosenNetwork) {
 				network = n;
 				break;
 			}
 		}
-		SERVER_STATIONS = BASE_STATIONS + String.valueOf(network.getId());
+		SharedPreferences.Editor editor = mFilterPreferences.edit();
+		editor.putLong(LAST_UPDATE, 0).commit();
+		initializeNetwork(network);
 		return mOpenBikeDBAdapter.insertNetwork(network);
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
-		if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
+		Log.d("OpenBike", "getVisibleStations");
+		if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
+			Log.d("OpenBike", "executeShowNetworksTask");
 			mVisibleStations = new ArrayList<StationOverlay>();
-			executeCreateVisibleStationsTask(false);
+			executeShowNetworksTask();
+		} else if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
+			mVisibleStations = new ArrayList<StationOverlay>();
+			executeCreateVisibleStationsTask(true);
 		}
-		return mVisibleStations;
+	return mVisibleStations;
 	}
 	
 	private void updateDistance(Location location) {
@@ -425,6 +437,11 @@ public class OpenBikeManager {
 		return results;
 	}
 	
+	public boolean isStationListRetrieved() {
+		return mOpenBikeDBAdapter.getStationCount() != 0;
+	}
+	
+	
 	/************************************/
 	/************************************/
 	/*******					*********/
@@ -434,9 +451,7 @@ public class OpenBikeManager {
 	/************************************/
 	
 	private class GetAllStationsTask extends AsyncTask<Void, Integer, Boolean> {
-
-		private int progress = 0;
-
+		
 		@Override
 		protected void onPreExecute() {
 			if (mActivity != null) {
@@ -447,24 +462,8 @@ public class OpenBikeManager {
 		@Override
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
-			if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
-				String json = RestClient.connect(SERVER_NETWORKS);
-				if (json == null) {
-					publishProgress(RestClient.NETWORK_ERROR);
-					return false;
-				}				
-				ArrayList<Network> networks = RestClient.getNetworkList(json);
-				if (json == null) {
-					publishProgress(RestClient.NETWORK_ERROR);
-					return false;
-				}
-				((IOpenBikeActivity) mActivity).setNetworks(networks);
-				publishProgress(10);
-				return false;
-				
-			}
 			String json = RestClient
-					.connect(SERVER_STATIONS);
+					.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
@@ -486,11 +485,6 @@ public class OpenBikeManager {
 				if (progress[0] < 0) { // Error
 					((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
 					mActivity.showDialog(progress[0]);
-				} else if (progress[0] == 10) {  // Ask for Network
-					((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
-					((IOpenBikeActivity) mActivity).showNetworks();
-				} else if (progress[0] == 20) {  // Retrieve Station List
-					((IOpenBikeActivity) mActivity).showGetAllStationsOnProgress();
 				} else if (progress[0] == 50){
 					((IOpenBikeActivity) mActivity).updateGetAllStationsOnProgress(50);
 				}
@@ -500,21 +494,19 @@ public class OpenBikeManager {
 		@Override
 		protected void onPostExecute(Boolean isListRetrieved) {
 			if (!isListRetrieved) {
+				Log.d("OpenBike", "List not retrieved, nulling visibleStations");
+				mVisibleStations = null;
 				mGetAllStationsTask = null;
 				return;
 			}
 			mFilterPreferences.edit()
-				.putLong("last_update", System.currentTimeMillis()).commit();
+				.putLong(LAST_UPDATE, System.currentTimeMillis()).commit();
 			executeCreateVisibleStationsTask(true);
 			if (mActivity != null) {
 				((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
 				mGetAllStationsTask = null;
 				//showLocationDialogs();
 			}
-		}
-
-		int getProgress() {
-			return progress;
 		}
 	}
 
@@ -530,7 +522,7 @@ public class OpenBikeManager {
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
 			String json = RestClient
-			.connect(SERVER_STATIONS);
+			.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
@@ -540,13 +532,12 @@ public class OpenBikeManager {
 				publishProgress(OpenBikeDBAdapter.JSON_ERROR);
 				return false;
 			}*/
-			//publishProgress(50);
+			publishProgress(50);
 			result = mOpenBikeDBAdapter.updateStations(json);
 			if (result != 1) {
 				publishProgress(result);
 				return false;
 			}
-			publishProgress(50);
 			return true;
 		}
 		
@@ -570,7 +561,7 @@ public class OpenBikeManager {
 			mProgress = 100;
 			if (isSuccess) {
 				mFilterPreferences.edit()
-					.putLong("last_update", System.currentTimeMillis()).commit();
+					.putLong(LAST_UPDATE, System.currentTimeMillis()).commit();
 			}
 			mUpdateAllStationsTask = null;
 		}
@@ -694,7 +685,7 @@ public class OpenBikeManager {
 					((IOpenBikeActivity) mActivity).onListUpdated();
 					// FIXME : Don't use System.currentTimeMillis()
  					if (System.currentTimeMillis() - 
-							mFilterPreferences.getLong("last_update", 0)
+							mFilterPreferences.getLong(LAST_UPDATE, 0)
 							> MIN_UPDATE_TIME) {
 						executeUpdateAllStationsTask(false);
 					}
@@ -706,6 +697,57 @@ public class OpenBikeManager {
 				}
 				mCreateVisibleStationsTask = null;
 			}
+		}
+	}
+	
+	private class ShowNetworksTask extends AsyncTask<Void, Integer, Boolean> {
+		ArrayList<Network> networks;
+		private boolean success = true;
+		
+		@Override
+		protected void onPreExecute() {
+			if (mActivity != null) {
+				((IOpenBikeActivity) mActivity).showDialog(RETRIEVE_NETWORKS);
+			}
+		}
+
+		@Override
+		protected Boolean doInBackground(Void... unused) {
+				String json = RestClient.connect(SERVER_NETWORKS);
+				if (json == null) {
+					publishProgress(RestClient.NETWORK_ERROR);
+					return false;
+				}
+				networks = new ArrayList<Network>();
+				networks.addAll(RestClient.getNetworkList(json));
+				if (networks.size() == 0) {
+					publishProgress(OpenBikeDBAdapter.JSON_ERROR);
+					return false;
+				}
+				publishProgress(100);
+				return true;
+			
+		}
+
+		@Override
+		protected void onProgressUpdate(Integer... progress) {
+			if (mActivity != null && mActivity instanceof IOpenBikeActivity) {
+				if (progress[0] < 0) { // Error
+					((IOpenBikeActivity) mActivity).showDialog(progress[0]);
+					success = false;
+				}
+			}
+		}
+
+		@Override
+		protected void onPostExecute(Boolean isListRetrieved) {
+			if (mActivity != null) {
+				((IOpenBikeActivity) mActivity).dismissDialog(RETRIEVE_NETWORKS);
+				if (success) {
+				((IOpenBikeActivity) mActivity).showChooseNetwork(networks);
+				}
+			}
+			mShowNetworksTask = null;
 		}
 	}
 }

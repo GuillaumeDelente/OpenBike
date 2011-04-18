@@ -51,8 +51,7 @@ public class StationsProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		Context context = getContext();
-		mDb = new OpenBikeDBAdapter(context, PreferenceManager
-				.getDefaultSharedPreferences(context).getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
+		mDb = new OpenBikeDBAdapter(context);
 		mDb.open();
 		return true;
 	}

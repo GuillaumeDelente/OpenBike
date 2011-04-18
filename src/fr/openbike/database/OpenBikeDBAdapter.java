@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,7 +33,9 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.Network;
 
 public class OpenBikeDBAdapter {
@@ -59,8 +62,9 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_PAYMENT = "hasPayment";
 	public static final String KEY_SPECIAL = "isSpecial";
 	public static final String KEY_CITY = "city";
+	public static final String KEY_SERVER = "server";
 
-	private static int mCurrentNetwork;
+	private static SharedPreferences mPreferences;
 
 	private static final String CREATE_STATIONS_TABLE = "create table "
 			+ STATIONS_TABLE + " (" + BaseColumns._ID + " integer not null, "
@@ -81,13 +85,15 @@ public class OpenBikeDBAdapter {
 	private static final String CREATE_NETWORKS_TABLE = "CREATE TABLE "
 			+ NETWORKS_TABLE + " (" + BaseColumns._ID
 			+ " integer primary key, " + KEY_NAME + " text not null, "
-			+ KEY_CITY + " text not null);";
+			+ KEY_CITY + " text not null, " + KEY_LATITUDE
+			+ " integer not null, " + KEY_LONGITUDE + " integer not null, "
+			+ KEY_SERVER + " text not null);";
 
-	public OpenBikeDBAdapter(Context context, int network) {
+	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
 		mDbHelper = new OpenBikeDBOpenHelper(context, DATABASE_NAME, null,
 				DATABASE_VERSION);
-		mCurrentNetwork = network;
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
 	public void close() {
@@ -116,9 +122,11 @@ public class OpenBikeDBAdapter {
 			JSONArray jsonArray = new JSONArray(json);
 			int id;
 			String name;
-			insert.bindLong(9, mCurrentNetwork);
+			int network = mPreferences.getInt(
+					FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
+			insert.bindLong(9, network);
 			insert.bindLong(10, 0); // Favorite
-			insert_virtual.bindLong(2, mCurrentNetwork);
+			insert_virtual.bindLong(2, network);
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
 				id = jsonStation.getInt("id");
@@ -157,18 +165,21 @@ public class OpenBikeDBAdapter {
 	public boolean insertNetwork(Network network) {
 		try {
 			/*
-			mDb.execSQL("INSERT OR IGNORE INTO " + NETWORKS_TABLE +
-					" VALUES (?,?,?);", new String[] { String.valueOf(network.getId()),
-					network.getCity(), network.getName() });
-					*/
-			//mDb.execSQL("INSERT INTO networks(_id, name, city) VALUES (1,'Vcub','Bordeaux');");
-			mCurrentNetwork = network.getId();
+			 * mDb.execSQL("INSERT OR IGNORE INTO " + NETWORKS_TABLE +
+			 * " VALUES (?,?,?);", new String[] {
+			 * String.valueOf(network.getId()), network.getCity(),
+			 * network.getName() });
+			 */
+			// mDb.execSQL("INSERT INTO networks(_id, name, city) VALUES (1,'Vcub','Bordeaux');");
 			if (getStationCount() != 0)
 				return false;
 			ContentValues newValues = new ContentValues();
 			newValues.put(BaseColumns._ID, network.getId());
 			newValues.put(KEY_NAME, network.getName());
 			newValues.put(KEY_CITY, network.getCity());
+			newValues.put(KEY_SERVER, network.getServerUrl());
+			newValues.put(KEY_LONGITUDE, network.getLongitude());
+			newValues.put(KEY_LATITUDE, network.getLatitude());
 			mDb.insert(NETWORKS_TABLE, null, newValues);
 		} catch (Exception e) {
 			ErrorReporter.getInstance().handleException(e);
@@ -188,7 +199,8 @@ public class OpenBikeDBAdapter {
 			JSONObject jsonStation;
 			mDb.beginTransaction();
 			SQLiteStatement update = mDb.compileStatement(sql);
-			update.bindLong(5, mCurrentNetwork);
+			update.bindLong(5, mPreferences.getInt(
+					FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
 			for (int i = 0; i < jsonArray.length(); i++) {
 				jsonStation = jsonArray.getJSONObject(i);
 				update.bindLong(1, jsonStation.getInt("availableBikes"));
@@ -221,7 +233,9 @@ public class OpenBikeDBAdapter {
 		newValues.put(KEY_FAVORITE, isFavorite ? 1 : 0);
 		return mDb.update(STATIONS_TABLE, newValues, BaseColumns._ID
 				+ " = ? AND " + KEY_NETWORK + " = ?;", new String[] {
-				String.valueOf(id), String.valueOf(mCurrentNetwork) }) > 0;
+				String.valueOf(id),
+				String.valueOf(mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) }) > 0;
 	}
 
 	/*
@@ -245,8 +259,9 @@ public class OpenBikeDBAdapter {
 		return mDb.query(STATIONS_TABLE, new String[] { BaseColumns._ID,
 				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
 				KEY_NAME, KEY_FAVORITE, KEY_SPECIAL }, nWhere,
-				new String[] { String.valueOf(mCurrentNetwork) }, null, null,
-				orderBy);
+				new String[] { String.valueOf(mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) },
+				null, null, orderBy);
 	}
 
 	// Search results
@@ -275,7 +290,13 @@ public class OpenBikeDBAdapter {
 								+ " virtual_stations vs WHERE "
 								+ table
 								+ " MATCH ? AND ob._id = vs._id AND ob.network = ?;",
-						new String[] { query, String.valueOf(mCurrentNetwork) });
+						new String[] {
+								query,
+								String
+										.valueOf(mPreferences
+												.getInt(
+														FilterPreferencesActivity.NETWORK_PREFERENCE,
+														0)) });
 
 		/*
 		 * if (cursor == null) { return null; } /* else if
@@ -299,10 +320,16 @@ public class OpenBikeDBAdapter {
 		// !
 		Cursor cursor = mDb.rawQuery("SELECT vs._id, vs._id as "
 				+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
-				+ ", 'n° ' || vs._id as " + SearchManager.SUGGEST_COLUMN_TEXT_2
-				+ ", vs.name as " + SearchManager.SUGGEST_COLUMN_TEXT_1
-				+ " FROM" + " virtual_stations vs WHERE " + table
-				+ " MATCH ? AND vs.network = " + mCurrentNetwork + ";",
+				+ ", 'n° ' || vs._id as "
+				+ SearchManager.SUGGEST_COLUMN_TEXT_2
+				+ ", vs.name as "
+				+ SearchManager.SUGGEST_COLUMN_TEXT_1
+				+ " FROM"
+				+ " virtual_stations vs WHERE "
+				+ table
+				+ " MATCH ? AND vs.network = "
+				+ mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";",
 				new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
@@ -348,13 +375,32 @@ public class OpenBikeDBAdapter {
 	 * cursor .getInt(SPECIAL_COLUMN) != 0); return result; }
 	 */
 	public Cursor getStation(int id, String[] columns) throws SQLException {
-		Cursor cursor = mDb.query(true, STATIONS_TABLE, columns,
-				BaseColumns._ID + " = ? AND " + KEY_NETWORK + " = ?",
-				new String[] { String.valueOf(id),
-						String.valueOf(mCurrentNetwork) }, null, null, null,
-				null);
+		Cursor cursor = mDb
+				.query(
+						true,
+						STATIONS_TABLE,
+						columns,
+						BaseColumns._ID + " = ? AND " + KEY_NETWORK + " = ?",
+						new String[] {
+								String.valueOf(id),
+								String
+										.valueOf(mPreferences
+												.getInt(
+														FilterPreferencesActivity.NETWORK_PREFERENCE,
+														0)) }, null, null,
+						null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
+		}
+		return cursor;
+	}
+
+	public Cursor getNetwork(int id, String[] columns) throws SQLException {
+		Cursor cursor = mDb.query(true, NETWORKS_TABLE, columns,
+				BaseColumns._ID + " = ?", new String[] { String.valueOf(id), },
+				null, null, null, null);
+		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
+			throw new SQLException("No Network found with ID " + id);
 		}
 		return cursor;
 	}
@@ -362,7 +408,8 @@ public class OpenBikeDBAdapter {
 	public int getStationCount() throws SQLException {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM "
 				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
-				new String[] { String.valueOf(mCurrentNetwork) });
+				new String[] { String.valueOf(mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
 		cursor.moveToNext();
 		int count = cursor.getInt(0);
 		cursor.close();

@@ -41,6 +41,7 @@
 	<string name="json_error_summary">Une erreur est survenue lors de la lecture de
 	la réponse du serveur.</string>	
 	<string name="retrieve_all">Initialisation</string>
+	<string name="retrieve_networks">Récupération de la liste des villes</string>
 	<string name="querying_server_summary">Contact du serveur en cours.</string>
 	<string name="saving_db_summary">Données reçues, sauvegarde dans la base de donnée en cours.</string>
 	<string name="remove_favorite">Supprimer le favoris</string>
@@ -82,9 +83,7 @@
 	<string name="not_available">Non disponible</string>
 	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
 	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
-	<string name="network_preferences_title">Ville</string>
-	<string name="network_title">Ville</string>
-	<string name="network_summary">Changez de ville</string>
+	<string name="network_title">Changer de ville</string>
 	
 	<!--  Autre -->	
     <plurals name="bike">

@@ -49,5 +49,6 @@
  		</RelativeLayout> 
 </LinearLayout>
 		<!--  
-			android:apiKey="0h_KAeN3vGJwkzzFZKZhQxbNW3TF2eB-0hkokNQ"  
+			debug : android:apiKey="0h_KAeN3vGJwkzzFZKZhQxbNW3TF2eB-0hkokNQ"
+			release : android:apiKey="0h_KAeN3vGJzmQh2O3WgTG5G90qPAbc6xwQ7KCQ"
 		-->

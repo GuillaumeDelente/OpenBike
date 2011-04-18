@@ -25,19 +25,25 @@ import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
+import fr.openbike.list.OpenBikeListActivity;
+import fr.openbike.map.MapFilterActivity;
+import fr.openbike.map.StationMapFilterActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener {
 
 	protected BikeFilter mActualFilter;
 	protected BikeFilter mModifiedFilter;
+	protected Preference mNetworkPreference;
 	protected Dialog mConfirmDialog;
 	private OpenBikeManager mOpenBikeManager;
-	
+
 	public static final String NETWORK_PREFERENCE = "network";
 	public static final String FAVORITE_FILTER = "favorite_filter";
 	public static final String BIKES_FILTER = "bikes_filter";
@@ -57,6 +63,9 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 		super.onResume();
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		mActualFilter = mOpenBikeManager.getVcubFilter();
+		mNetworkPreference = getPreferenceScreen().findPreference(
+				"change_network");
+		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : " + OpenBikeManager.NETWORK_CITY);
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 		try {
@@ -134,8 +143,14 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	}
 
 	@Override
-	public void onClick(DialogInterface dialog, int button) {
-		return;
+	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+			Preference preference) {
+		if (preference == mNetworkPreference) {
+			startActivity(new Intent(this, OpenBikeListActivity.class)
+					.setAction(OpenBikeListActivity.ACTION_CHOOSE_NETWORK)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		}
+		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}
 
 	@Override
@@ -157,8 +172,9 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Log.i("OpenBike", "Enable / disable filter changed");
 			mModifiedFilter
 					.setDistanceFilter(sharedPreferences.getBoolean(
-							FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false) ? sharedPreferences
-							.getInt(FilterPreferencesActivity.DISTANCE_FILTER, 1000)
+							FilterPreferencesActivity.ENABLE_DISTANCE_FILTER,
+							false) ? sharedPreferences.getInt(
+							FilterPreferencesActivity.DISTANCE_FILTER, 1000)
 							: 0);
 		} else if (key.equals(FilterPreferencesActivity.DISTANCE_FILTER)) {
 			// Log.i("OpenBike", "Distance filter changed");
@@ -168,12 +184,13 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 					FilterPreferencesActivity.DISTANCE_FILTER).setSummary(
 					getString(R.string.distance_filter_summary)
 							+ " "
-							+ sharedPreferences.getInt(FilterPreferencesActivity.DISTANCE_FILTER, 1000)
-							+ "m");
+							+ sharedPreferences.getInt(
+									FilterPreferencesActivity.DISTANCE_FILTER,
+									1000) + "m");
 		} else if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
 			// Log.i("OpenBike", "Location changed");
-			if (sharedPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE,
-					false)) {
+			if (sharedPreferences.getBoolean(
+					FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 				// Log.i("OpenBike", "use Location");
 				mOpenBikeManager.useLocation();
 			} else {

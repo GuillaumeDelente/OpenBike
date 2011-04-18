@@ -24,6 +24,7 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,6 +33,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -45,6 +47,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -73,20 +76,16 @@ public class OpenBikeListActivity extends ListActivity implements
 	private OpenBikeManager mOpenBikeManager = null;
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
+	private AlertDialog mNetworkDialog = null;
 	private String mSelected = null;
 	private boolean mBackToList = false;
-	private ArrayList<Network> mNetworks = null;
+	private static ArrayList<Network> mNetworks;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_list);
-		mOpenBikeManager = (OpenBikeManager) getLastNonConfigurationInstance();
-		if (mOpenBikeManager == null) { // No AsyncTask running
-			mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
-		} else {
-			mOpenBikeManager.attach(this);
-		}
+		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
@@ -99,16 +98,21 @@ public class OpenBikeListActivity extends ListActivity implements
 			}
 		});
 		registerForContextMenu(listView);
-		handleIntent(getIntent());
 	}
 
 	@Override
 	protected void onNewIntent(Intent intent) {
+		Log.i("OpenBike", "Netw intent : " + intent.getAction());
 		setIntent(intent);
-		handleIntent(intent);
+		// handleIntent(intent);
 	}
 
-	private void handleIntent(Intent intent) {
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mOpenBikeManager.setCurrentActivity(this);
+		mOpenBikeManager.startLocation();
+		Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			findViewById(R.id.search_results).setVisibility(View.VISIBLE);
 			// handles a search query
@@ -117,28 +121,17 @@ public class OpenBikeListActivity extends ListActivity implements
 		} else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			showStationDetails(intent.getData());
 		} else if (ACTION_CHOOSE_NETWORK.equals(intent.getAction())) {
-			// TODO: Change Network
+			mOpenBikeManager.executeShowNetworksTask();
 		} else {
 			findViewById(R.id.search_results).setVisibility(View.GONE);
-			mAdapter = new OpenBikeArrayAdaptor(this,
-					R.layout.station_list_entry, mOpenBikeManager
-							.getVisibleStations());
+			if (mAdapter == null) {
+				mAdapter = new OpenBikeArrayAdaptor(this,
+						R.layout.station_list_entry, mOpenBikeManager
+								.getVisibleStations());
+			}
 			this.setListAdapter(mAdapter);
-			// Maybe mAdapter was null when calling onListUpdated
-			// so do it now
 			onListUpdated();
 		}
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		mOpenBikeManager.setCurrentActivity(this);
-		mOpenBikeManager.startLocation();
-		// Cannot remove update even
-		// if it's sometime useless
-		onListUpdated();
-		// Log.i("OpenBike", "onResume " + this);
 	}
 
 	@Override
@@ -146,6 +139,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		super.onPause();
 		finishUpdateAllStationsOnProgress(false);
 		mOpenBikeManager.stopLocation();
+		mOpenBikeManager.detach();
 		// Log.i("OpenBike", "onPause");
 	}
 
@@ -287,13 +281,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
-	public Object onRetainNonConfigurationInstance() {
-		mOpenBikeManager.detach();
-		return (mOpenBikeManager);
-	}
-
-	@Override
 	protected Dialog onCreateDialog(int id) {
+		final Context context = this;
 		switch (id) {
 		case RestClient.NETWORK_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
@@ -303,7 +292,18 @@ public class OpenBikeListActivity extends ListActivity implements
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
-									dialog.cancel();
+									if (PreferenceManager
+											.getDefaultSharedPreferences(
+													context)
+											.getInt(
+													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													0) == 0 || !mOpenBikeManager.isStationListRetrieved()) {
+										Log.d("OpenBike", "Nulling mAdapter");
+										mAdapter = null;
+										finish();
+									} else {
+										dialog.cancel();
+									}
 								}
 							}).create();
 		case OpenBikeDBAdapter.JSON_ERROR:
@@ -314,7 +314,17 @@ public class OpenBikeListActivity extends ListActivity implements
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
-									dialog.cancel();
+									if (PreferenceManager
+											.getDefaultSharedPreferences(
+													context)
+											.getInt(
+													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													0) == 0 || !mOpenBikeManager.isStationListRetrieved()) {
+										mAdapter = null;
+										finish();
+									} else {
+										dialog.cancel();
+									}
 								}
 							}).create();
 		case OpenBikeDBAdapter.DB_ERROR:
@@ -323,7 +333,17 @@ public class OpenBikeListActivity extends ListActivity implements
 					(getString(R.string.db_error_summary))).setPositiveButton(
 					"Ok", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
+							if (PreferenceManager
+									.getDefaultSharedPreferences(
+											context)
+									.getInt(
+											FilterPreferencesActivity.NETWORK_PREFERENCE,
+											0) == 0 || !mOpenBikeManager.isStationListRetrieved()) {
+								mAdapter = null;
+								finish();
+							} else {
+								dialog.cancel();
+							}
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
@@ -404,52 +424,87 @@ public class OpenBikeListActivity extends ListActivity implements
 						}
 					}).create();
 		case CHOOSE_NETWORK:
-			final SharedPreferences.Editor editor = PreferenceManager
-					.getDefaultSharedPreferences(this).edit();
-			int size = mNetworks.size();
-			final CharSequence[] items = new CharSequence[size];
-			for (int i = 0; i < size; i++) {
-				items[i] = mNetworks.get(i).getCity();
-			}
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.choose_network_title))
+			Log.i("OpenBike", "Choose Network : " + mNetworks);
+			final SharedPreferences preferences = PreferenceManager
+					.getDefaultSharedPreferences(this);
+			final SharedPreferences.Editor editor = preferences.edit();
+			final CharSequence[] items = { "" };
+			mNetworkDialog = new AlertDialog.Builder(this).setCancelable(false)
+					.setTitle(getString(R.string.choose_network_title))
 					.setSingleChoiceItems(items, -1,
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int item) {
-									editor.putInt(FilterPreferencesActivity.NETWORK_PREFERENCE,
-											mNetworks.get(item).getId());
+									editor
+											.putInt(
+													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													mNetworks.get(item).getId());
 								}
 							}).setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
 									editor.commit();
-									if (!mOpenBikeManager
-											.updateNetworkTable(mNetworks)) {
-										// We already have data for this city
-										mNetworks = null;
-										mOpenBikeManager.executeCreateVisibleStationsTask(true);
-									} else {
-										mNetworks = null;
-										mOpenBikeManager
-												.executeGetAllStationsTask();
-									}
+									mOpenBikeManager
+											.updateNetworkTable(mNetworks);
+									mOpenBikeManager
+											.executeCreateVisibleStationsTask(true);
+									/*
+									startActivity(new Intent(context,
+											OpenBikeListActivity.class)
+											.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+											*/
 								}
 							}).setNegativeButton(getString(R.string.cancel),
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
-									if (ACTION_CHOOSE_NETWORK
-											.equals(getIntent().getAction())) {
-										dialog.cancel();
-									} else {
+									if (preferences
+											.getInt(
+													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													0) == 0) {
 										finish();
+									} else {
+										dismissDialog(CHOOSE_NETWORK);
+										startActivity(new Intent(context,
+												OpenBikeListActivity.class)
+												.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 									}
 								}
 							}).create();
+			return mNetworkDialog;
+		case OpenBikeManager.RETRIEVE_NETWORKS:
+			ProgressDialog networks = new ProgressDialog(
+					OpenBikeListActivity.this);
+			networks.setCancelable(false);
+			networks.setTitle(getString(R.string.retrieve_networks));
+			networks.setMessage((getString(R.string.querying_server_summary)));
+			return networks;
 		}
 		return super.onCreateDialog(id);
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		switch (id) {
+		case CHOOSE_NETWORK:
+			int size = 0;
+			if (mNetworks != null)
+				size = mNetworks.size();
+			String[] items = new String[size];
+			for (int i = 0; i < size; i++) {
+				items[i] = mNetworks.get(i).getName() + " - "
+						+ mNetworks.get(i).getCity();
+			}
+			((AlertDialog) dialog)
+					.getListView()
+					.setAdapter(
+							new ArrayAdapter<String>(
+									this,
+									android.R.layout.select_dialog_singlechoice,
+									items));
+		}
+		super.onPrepareDialog(id, dialog);
 	}
 
 	@Override
@@ -597,7 +652,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	private void showResults(String query) {
-
 		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
 				R.layout.station_list_entry, mOpenBikeManager
 						.getSearchResults(query));
@@ -605,17 +659,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
-	public void showChooseNetwork() {
-
-	}
-
-	@Override
-	public void setNetworks(ArrayList<Network> networks) {
+	public void showChooseNetwork(ArrayList<Network> networks) {
+		Log.i("OpenBike", "showNetworks()");
 		mNetworks = networks;
-	}
-
-	@Override
-	public void showNetworks() {
 		showDialog(CHOOSE_NETWORK);
 	}
 }

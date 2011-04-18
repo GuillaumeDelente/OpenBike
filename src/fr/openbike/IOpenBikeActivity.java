@@ -30,9 +30,7 @@ public interface IOpenBikeActivity {
 	public void finishUpdateAllStationsOnProgress(boolean animate);
 	public void onLocationChanged(Location location);
 	public void onListUpdated();
-	public void showChooseNetwork();
-	public void setNetworks(ArrayList<Network> networks);
-	public void showNetworks();
+	public void showChooseNetwork(ArrayList<Network> networks);
 	public void showDialog(int id);
-	public void removeDialog(int id);
+	public void dismissDialog(int id);
 }
