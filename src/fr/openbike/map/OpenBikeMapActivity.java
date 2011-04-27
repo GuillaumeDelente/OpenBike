@@ -179,7 +179,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 			station.hideBalloon();
 			mOpenBikeManager.sortStations();
 		}
-		finishUpdateAllStationsOnProgress(false);
 		mOpenBikeManager.stopLocation();
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);

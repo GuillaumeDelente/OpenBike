@@ -110,7 +110,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.i("OpenBike", "OnResume");
 		mOpenBikeManager.setCurrentActivity(this);
+		Log.i("OpenBike", "--------");
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
@@ -121,6 +123,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		} else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			showStationDetails(intent.getData());
 		} else if (ACTION_CHOOSE_NETWORK.equals(intent.getAction())) {
+			Log.i("OpenBike", "Intent choose network");
 			mOpenBikeManager.executeShowNetworksTask();
 		} else {
 			findViewById(R.id.search_results).setVisibility(View.GONE);
@@ -137,10 +140,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
-		finishUpdateAllStationsOnProgress(false);
 		mOpenBikeManager.stopLocation();
 		mOpenBikeManager.detach();
-		// Log.i("OpenBike", "onPause");
+		Log.i("OpenBike", "onPause");
 	}
 
 	@Override
@@ -447,13 +449,15 @@ public class OpenBikeListActivity extends ListActivity implements
 									editor.commit();
 									mOpenBikeManager
 											.updateNetworkTable(mNetworks);
+									
 									mOpenBikeManager
 											.executeCreateVisibleStationsTask(true);
-									/*
+											
+									
 									startActivity(new Intent(context,
 											OpenBikeListActivity.class)
 											.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-											*/
+											
 								}
 							}).setNegativeButton(getString(R.string.cancel),
 							new DialogInterface.OnClickListener() {
