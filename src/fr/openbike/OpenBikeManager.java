@@ -52,8 +52,7 @@ public class OpenBikeManager {
 	public static String NETWORK_NAME = "";
 	public static String NETWORK_CITY = "";
 	public static final String LAST_UPDATE = "last_update";
-	public static final int RETRIEVE_ALL_STATIONS = 0;
-	public static final int RETRIEVE_NETWORKS = 4;
+	public static final int PROGRESS_DIALOG = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
 	public static final long MIN_UPDATE_TIME = 1 * 1000 * 60;
 	
@@ -461,6 +460,11 @@ public class OpenBikeManager {
 	/************************************/
 	/************************************/
 	
+	
+	/******************************************************************/
+	/******* GetAllStationsTask
+	/******************************************************************/
+	
 	private class GetAllStationsTask extends AsyncTask<Void, Integer, Boolean> {
 		
 		private int mProgress = 0;
@@ -468,7 +472,8 @@ public class OpenBikeManager {
 		@Override
 		protected void onPreExecute() {
 			if (mActivity != null) {
-				((IOpenBikeActivity) mActivity).showGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).showProgressDialog(mActivity.getString(R.string.retrieve_all), 
+						mActivity.getString(R.string.querying_server_summary));
 			}
 		}
 
@@ -496,10 +501,11 @@ public class OpenBikeManager {
 			mProgress = progress[0];
 			if (mActivity != null && mActivity instanceof IOpenBikeActivity) {
 				if (progress[0] < 0) { // Error
-					((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
+					((IOpenBikeActivity) mActivity).dismissProgressDialog();
 					mActivity.showDialog(progress[0]);
 				} else if (progress[0] == 50){
-					((IOpenBikeActivity) mActivity).updateGetAllStationsOnProgress(50);
+					((IOpenBikeActivity) mActivity).showProgressDialog(mActivity.getString(R.string.retrieve_all), 
+							mActivity.getString(R.string.saving_db_summary));
 				}
 			}
 		}
@@ -518,7 +524,7 @@ public class OpenBikeManager {
 			if (mActivity != null) {
 				Log.d("OpenBike", "retrieve getAllStations executeCreateVisibleStationsTask");
 				executeCreateVisibleStationsTask(true);
-				((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).dismissProgressDialog();
 				mGetAllStationsTask = null;
 				//showLocationDialogs();
 			}
@@ -527,17 +533,27 @@ public class OpenBikeManager {
 		protected void retrieveTask() {
 			Log.d("OpenBike", "retrieveTask, progress " + mProgress);
 			if (mProgress < 0) {
-				((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).dismissProgressDialog();
 				mActivity.showDialog(mProgress);
+			} else if (mProgress < 50) {
+				((IOpenBikeActivity) mActivity).showProgressDialog(mActivity.getString(R.string.retrieve_all), 
+						mActivity.getString(R.string.querying_server_summary));
+			} else if (mProgress < 100) {
+				((IOpenBikeActivity) mActivity).showProgressDialog(mActivity.getString(R.string.retrieve_all), 
+						mActivity.getString(R.string.saving_db_summary));
 			} else if (mProgress == 100) {
 				Log.d("OpenBike", "onLocationChanged executeCreateVisibleStationsTask");
 				executeCreateVisibleStationsTask(true);
-				((IOpenBikeActivity) mActivity).finishGetAllStationsOnProgress();
+				((IOpenBikeActivity) mActivity).dismissProgressDialog();
 			}
 			mGetAllStationsTask = null;
 		}
 	}
 
+	/******************************************************************/
+	/*******   UpdateAllStationsTask
+	/******************************************************************/
+	
 	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Boolean> {
 		private int mProgress = 0;
 
@@ -580,8 +596,10 @@ public class OpenBikeManager {
 				} else if (progress[0] == 50) {
 					Log.d("OpenBike", "update received");
 					mFilterPreferences.edit().putLong(LAST_UPDATE, System.currentTimeMillis()).commit();
-					executeCreateVisibleStationsTask(true);
 					((IOpenBikeActivity) mActivity).finishUpdateAllStationsOnProgress(true);
+				} else if (progress[0] == 100) {
+					Log.d("OpenBike", "update saved in DB");
+					executeCreateVisibleStationsTask(true);
 				}
 			}
 		}
@@ -616,6 +634,11 @@ public class OpenBikeManager {
 	public static boolean isLocationAvailable() {
 		return (mLocationProvider != null && mLocationProvider.getMyLocation() != null);
 	}
+	
+	
+	/******************************************************************/
+	/*******   CreateVisibleStationsTask
+	/******************************************************************/
 	
 	//FIXME : We can avoid some useless list creation when we haven't yet the location
 	private class CreateVisibleStationsTask extends AsyncTask<Void, Void, Boolean> {
@@ -745,7 +768,9 @@ public class OpenBikeManager {
 		}
 	}
 	
-	
+	/******************************************************************/
+	/*******   ShowNetworksTask
+	/******************************************************************/
 	
 	private class ShowNetworksTask extends AsyncTask<Void, Integer, Boolean> {
 		ArrayList<Network> networks;
@@ -754,7 +779,9 @@ public class OpenBikeManager {
 		@Override
 		protected void onPreExecute() {
 			if (mActivity != null) {
-				((IOpenBikeActivity) mActivity).showDialog(RETRIEVE_NETWORKS);
+				((IOpenBikeActivity) mActivity)
+					.showProgressDialog(mActivity.getString(R.string.retrieve_networks),
+						mActivity.getString(R.string.querying_server_summary));
 			}
 		}
 
@@ -789,8 +816,8 @@ public class OpenBikeManager {
 		@Override
 		protected void onPostExecute(Boolean isListRetrieved) {
 			if (mActivity != null) {
-				((IOpenBikeActivity) mActivity).dismissDialog(RETRIEVE_NETWORKS);
 				if (mProgress == 100) {
+					((IOpenBikeActivity) mActivity).dismissProgressDialog();
 					((IOpenBikeActivity) mActivity).showChooseNetwork(networks);
 				}
 				mShowNetworksTask = null;
@@ -799,8 +826,12 @@ public class OpenBikeManager {
 		
 		protected void retrieveTask() {
 			Log.d("OpenBike", "retrieveTask, progress " + mProgress);
-			((IOpenBikeActivity) mActivity).dismissDialog(RETRIEVE_NETWORKS);
-			if (mProgress == 100) {
+			((IOpenBikeActivity) mActivity).dismissProgressDialog();
+			if (mProgress < 100) {
+				((IOpenBikeActivity) mActivity)
+					.showProgressDialog(mActivity.getString(R.string.retrieve_networks),
+						mActivity.getString(R.string.querying_server_summary));
+			} else if (mProgress == 100) {
 				((IOpenBikeActivity) mActivity).showChooseNetwork(networks);
 				mShowNetworksTask = null;
 			} else if (mProgress < 0) { // Error

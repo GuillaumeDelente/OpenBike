@@ -35,9 +35,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -72,6 +74,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
 	private boolean mIsFirstFix = true;
+
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private OpenBikeManager mOpenBikeManager = null;
@@ -126,7 +129,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	protected void onResume() {
-		mOpenBikeManager.setCurrentActivity(this);
+		OpenBikeManager.setCurrentActivity(this);
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
 		if (mRetrieveList) {
@@ -148,19 +151,18 @@ public class OpenBikeMapActivity extends MapActivity implements
 			}
 		}
 		mRetrieveList = true;
+
+		if (mMyLocationOverlay == null) {
+			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
+		}
+		mMapOverlays.add(mMyLocationOverlay);
 		if (mMapPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
-			if (mMyLocationOverlay == null) {
-				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
-			}
-			mMapOverlays.add(mMyLocationOverlay);
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
 				mMyLocationOverlay.setCurrentLocation(OpenBikeManager
 						.getCurrentLocation());
 				// mMapView.invalidate();
 			}
-		} else {
-			mMyLocationOverlay = null;
 		}
 		super.onResume();
 	}
@@ -328,19 +330,16 @@ public class OpenBikeMapActivity extends MapActivity implements
 													false)) {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2)))
+														- 2))
 												.hideBalloon();
 										mMapOverlays
 												.remove(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2));
+														- 2);
 										// mMapView.invalidate();
 									} else {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2)))
+														- 2))
 												.getStation()
 												.setFavorite(false);
 									}
@@ -353,8 +352,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 								public void onCancel(DialogInterface arg0) {
 									((StationOverlay) mMapOverlays
 											.get(mMapOverlays.size()
-													- (mMyLocationOverlay == null ? 1
-															: 2)))
+													- 2))
 											.refreshBalloon();
 
 								}
@@ -372,26 +370,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	@Override
-	public void showGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void updateGetAllStationsOnProgress(int progress) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void finishGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void showUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.VISIBLE)
+			return;
 		loading.setVisibility(View.VISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -413,6 +395,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public void finishUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.INVISIBLE)
+			return;
 		loading.setVisibility(View.INVISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -433,10 +417,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onLocationChanged(Location location) {
+		/*
 		if (mMyLocationOverlay == null) {
 			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 			mMapOverlays.add(mMyLocationOverlay);
 		}
+		*/
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
 		if (!mMapPreferences.getBoolean(
@@ -553,8 +539,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	public void hideOverlayBalloon() {
-		int position = mMapOverlays.size()
-				- (mMyLocationOverlay == null ? 1 : 2);
+		int position = mMapOverlays.size() - 2;
 		if (position >= 0) {
 			Overlay overlay = mMapOverlays.get(position);
 			if (overlay instanceof StationOverlay) {
@@ -599,15 +584,43 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	private StationOverlay getLastStationOverlay() {
-		int i = mMapOverlays.size() - (mMyLocationOverlay == null ? 1 : 2);
+		int i = mMapOverlays.size() - 2;
 		if (i < 0)
 			return null;
 		return ((StationOverlay) mMapOverlays.get(i));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#dismissProgressDialog()
+	 */
+	@Override
+	public void dismissProgressDialog() {
+		// TODO Auto-generated method stub
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#showChooseNetwork(java.util.ArrayList)
+	 */
 	@Override
 	public void showChooseNetwork(ArrayList<Network> networks) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#showProgressDialog(java.lang.String,
+	 * java.lang.String)
+	 */
+	@Override
+	public void showProgressDialog(String title, String message) {
+		// TODO Auto-generated method stub
+
 	}
 }

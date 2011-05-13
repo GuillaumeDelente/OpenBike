@@ -85,6 +85,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_list);
+		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 
 		final ListView listView = getListView();
@@ -111,7 +112,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	protected void onResume() {
 		super.onResume();
 		Log.i("OpenBike", "OnResume");
-		mOpenBikeManager.setCurrentActivity(this);
+		OpenBikeManager.setCurrentActivity(this);
 		Log.i("OpenBike", "--------");
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
@@ -389,11 +390,8 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case OpenBikeManager.RETRIEVE_ALL_STATIONS:
-			mPdialog = new ProgressDialog(OpenBikeListActivity.this);
+		case OpenBikeManager.PROGRESS_DIALOG:
 			mPdialog.setCancelable(false);
-			mPdialog.setTitle(getString(R.string.retrieve_all));
-			mPdialog.setMessage((getString(R.string.querying_server_summary)));
 			return mPdialog;
 		case OpenBikeManager.REMOVE_FROM_FAVORITE:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
@@ -477,13 +475,6 @@ public class OpenBikeListActivity extends ListActivity implements
 								}
 							}).create();
 			return mNetworkDialog;
-		case OpenBikeManager.RETRIEVE_NETWORKS:
-			ProgressDialog networks = new ProgressDialog(
-					OpenBikeListActivity.this);
-			networks.setCancelable(false);
-			networks.setTitle(getString(R.string.retrieve_networks));
-			networks.setMessage((getString(R.string.querying_server_summary)));
-			return networks;
 		}
 		return super.onCreateDialog(id);
 	}
@@ -522,21 +513,18 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
-	public void showGetAllStationsOnProgress() {
-		// Log.i("OpenBike", "showGetAllStationsOnProgress");
-		showDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
+	public void showProgressDialog(String title, String message) {
+		mPdialog.setTitle(title);
+		mPdialog.setMessage(message);
+		if (!mPdialog.isShowing())
+			showDialog(OpenBikeManager.PROGRESS_DIALOG);
 	}
 
 	@Override
-	public void updateGetAllStationsOnProgress(int progress) {
-		// Log.i("OpenBike", "updateGetAllStationsOnProgress");
-		mPdialog.setMessage(getString(R.string.saving_db_summary));
-	}
-
-	@Override
-	public void finishGetAllStationsOnProgress() {
+	public void dismissProgressDialog() {
 		// onListUpdated();
-		dismissDialog(OpenBikeManager.RETRIEVE_ALL_STATIONS);
+		if (mPdialog.isShowing())
+			dismissDialog(OpenBikeManager.PROGRESS_DIALOG);
 	}
 
 	public void setEmptyList() {
@@ -552,6 +540,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void showUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.VISIBLE)
+			return;
 		loading.setVisibility(View.VISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -573,6 +563,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void finishUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.INVISIBLE)
+			return;
 		loading.setVisibility(View.INVISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
