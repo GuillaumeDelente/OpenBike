@@ -51,6 +51,7 @@ public class OpenBikeManager {
 	public static int NETWORK_LONGITUDE = 0;
 	public static String NETWORK_NAME = "";
 	public static String NETWORK_CITY = "";
+	public static String SPECIAL_STATION = "";
 	public static final String LAST_UPDATE = "last_update";
 	public static final int PROGRESS_DIALOG = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
@@ -226,8 +227,10 @@ public class OpenBikeManager {
 	private void initializeNetwork () {
 		int networkId = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
 		if (networkId != 0 ) {
-			Cursor network = mOpenBikeDBAdapter.getNetwork(networkId, new String[] {OpenBikeDBAdapter.KEY_NAME, OpenBikeDBAdapter.KEY_CITY, OpenBikeDBAdapter.KEY_SERVER, OpenBikeDBAdapter.KEY_LONGITUDE, OpenBikeDBAdapter.KEY_LATITUDE});
-			initializeNetwork(new Network(networkId, network.getString(0), network.getString(1), network.getString(2), network.getInt(3), network.getInt(4)));
+			Cursor network = mOpenBikeDBAdapter.getNetwork(networkId, 
+								new String[] {OpenBikeDBAdapter.KEY_NAME, OpenBikeDBAdapter.KEY_CITY, OpenBikeDBAdapter.KEY_SERVER, 
+															OpenBikeDBAdapter.KEY_LONGITUDE, OpenBikeDBAdapter.KEY_LATITUDE, OpenBikeDBAdapter.KEY_SPECIAL_NAME});
+			initializeNetwork(new Network(networkId, network.getString(0), network.getString(1), network.getString(2), network.getString(5), network.getInt(3), network.getInt(4)));
 		}
 	}
 	
@@ -237,6 +240,7 @@ public class OpenBikeManager {
 		NETWORK_LONGITUDE = network.getLongitude();
 		NETWORK_NAME = network.getName();
 		NETWORK_CITY = network.getCity();
+		SPECIAL_STATION = network.getSpecialName();
 	}
 	
 	public boolean updateNetworkTable(ArrayList<Network> networks) {
@@ -535,6 +539,7 @@ public class OpenBikeManager {
 			if (mProgress < 0) {
 				((IOpenBikeActivity) mActivity).dismissProgressDialog();
 				mActivity.showDialog(mProgress);
+				mGetAllStationsTask = null;
 			} else if (mProgress < 50) {
 				((IOpenBikeActivity) mActivity).showProgressDialog(mActivity.getString(R.string.retrieve_all), 
 						mActivity.getString(R.string.querying_server_summary));
@@ -545,8 +550,8 @@ public class OpenBikeManager {
 				Log.d("OpenBike", "onLocationChanged executeCreateVisibleStationsTask");
 				executeCreateVisibleStationsTask(true);
 				((IOpenBikeActivity) mActivity).dismissProgressDialog();
+				mGetAllStationsTask = null;
 			}
-			mGetAllStationsTask = null;
 		}
 	}
 

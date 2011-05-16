@@ -165,7 +165,7 @@ public class RestClient {
 				jsonNetwork = jsonArray.getJSONObject(i);
 				networks.add(new Network(jsonNetwork.getInt("id"), jsonNetwork
 						.getString("name"), jsonNetwork.getString("city"),
-						jsonNetwork.getString("server"), jsonNetwork
+						jsonNetwork.getString("server"), jsonNetwork.getString("specialName"), jsonNetwork
 								.getDouble("longitude"), jsonNetwork
 								.getDouble("latitude")));
 			}

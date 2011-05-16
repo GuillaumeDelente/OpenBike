@@ -238,6 +238,7 @@ public class StationDetails extends Activity {
 						.getColumnIndex(BaseColumns._ID)), isChecked);
 			}
 		});
+		
 	}
 
 	private void handleIntent() {
@@ -265,7 +266,7 @@ public class StationDetails extends Activity {
 								.getColumnIndex(OpenBikeDBAdapter.KEY_PAYMENT)) == 1 ? R.string.yes
 								: R.string.no));
 		mSpecial
-				.setText(getString(R.string.special)
+				.setText(OpenBikeManager.SPECIAL_STATION
 						+ " : "
 						+ getString(mStation.getInt(mStation
 								.getColumnIndex(OpenBikeDBAdapter.KEY_SPECIAL)) == 1 ? R.string.yes

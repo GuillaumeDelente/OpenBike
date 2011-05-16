@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.Network;
 
@@ -61,6 +62,7 @@ public class OpenBikeDBAdapter {
 	public static final String KEY_FAVORITE = "isFavorite";
 	public static final String KEY_PAYMENT = "hasPayment";
 	public static final String KEY_SPECIAL = "isSpecial";
+	public static final String KEY_SPECIAL_NAME = "specialName";
 	public static final String KEY_CITY = "city";
 	public static final String KEY_SERVER = "server";
 
@@ -87,7 +89,8 @@ public class OpenBikeDBAdapter {
 			+ " integer primary key, " + KEY_NAME + " text not null, "
 			+ KEY_CITY + " text not null, " + KEY_LATITUDE
 			+ " integer not null, " + KEY_LONGITUDE + " integer not null, "
-			+ KEY_SERVER + " text not null);";
+			+ KEY_SERVER + " text not null, "
+			+ KEY_SPECIAL_NAME + " text not null);";
 
 	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
@@ -180,6 +183,7 @@ public class OpenBikeDBAdapter {
 			newValues.put(KEY_SERVER, network.getServerUrl());
 			newValues.put(KEY_LONGITUDE, network.getLongitude());
 			newValues.put(KEY_LATITUDE, network.getLatitude());
+			newValues.put(KEY_SPECIAL_NAME, network.getSpecialName());
 			mDb.insert(NETWORKS_TABLE, null, newValues);
 		} catch (Exception e) {
 			ErrorReporter.getInstance().handleException(e);
@@ -273,30 +277,23 @@ public class OpenBikeDBAdapter {
 		} catch (NumberFormatException ex) {
 		}
 		query += "*";
-		/*
-		 * Cursor cursor = mDb.query(STATIONS_TABLE + " ob, " +
-		 * STATIONS_VIRTUAL_TABLE + " vs", new String[] { "ob." +
-		 * BaseColumns._ID, "ob." + KEY_BIKES, "ob." + KEY_SLOTS, "ob." +
-		 * KEY_OPEN, "ob." + KEY_LATITUDE, "ob." + KEY_LONGITUDE, "ob." +
-		 * KEY_NAME, "ob." + KEY_FAVORITE }, table +
-		 * " MATCH ? AND ob._id = vs._id AND ob.network = ?", new String[] {
-		 * like, String.valueOf(mCurrentNetwork) }, null, null, null);
-		 */
-
+		
+		//FIXME: Put network id as argument in rawQuery(), doesn't work
+		String s = "SELECT vs._id, ob.availableBikes, ob.freeSlots, ob.isOpen, " +
+						"ob.latitude, ob.longitude, ob.name, ob.isFavorite " +
+				"FROM virtual_stations vs " +
+				"INNER JOIN stations ob " +
+				"ON (ob._id = vs._id AND vs.network = ob.network) " +
+				"WHERE virtual_stations match ? AND vs.network = " + 
+				String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
+		
+		
 		Cursor cursor = mDb
-				.rawQuery(
-						"SELECT ob._id, ob.availableBikes, ob.freeSlots, ob.isOpen,"
-								+ " ob.latitude, ob.longitude, ob.name, ob.isFavorite FROM stations ob,"
-								+ " virtual_stations vs WHERE "
-								+ table
-								+ " MATCH ? AND ob._id = vs._id AND ob.network = ?;",
+				.rawQuery(s,
 						new String[] {
-								query,
-								String
-										.valueOf(mPreferences
-												.getInt(
-														FilterPreferencesActivity.NETWORK_PREFERENCE,
-														0)) });
+								query
+								//, String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0))
+								});
 
 		/*
 		 * if (cursor == null) { return null; } /* else if
@@ -304,6 +301,8 @@ public class OpenBikeDBAdapter {
 		 * 
 		 * }
 		 */
+
+		Log.d("OpenBike", "search cursor : " + cursor.getCount() + " match ");
 		return cursor;
 	}
 
@@ -318,18 +317,20 @@ public class OpenBikeDBAdapter {
 		query += "*";
 		// Network is not in argument list because when I do so, it doesn't work
 		// !
-		Cursor cursor = mDb.rawQuery("SELECT vs._id, vs._id as "
-				+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
-				+ ", 'n° ' || vs._id as "
-				+ SearchManager.SUGGEST_COLUMN_TEXT_2
-				+ ", vs.name as "
-				+ SearchManager.SUGGEST_COLUMN_TEXT_1
-				+ " FROM"
-				+ " virtual_stations vs WHERE "
-				+ table
-				+ " MATCH ? AND vs.network = "
-				+ mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";",
+		String s = "SELECT vs._id, vs._id as "
+			+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
+			+ ", 'n° ' || vs._id as "
+			+ SearchManager.SUGGEST_COLUMN_TEXT_2
+			+ ", vs.name as "
+			+ SearchManager.SUGGEST_COLUMN_TEXT_1
+			+ " FROM"
+			+ " virtual_stations vs WHERE "
+			+ table
+			+ " MATCH ? AND vs.network = "
+			+ mPreferences.getInt(
+					FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
+		Cursor cursor = mDb.rawQuery(
+				s,
 				new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
@@ -355,6 +356,7 @@ public class OpenBikeDBAdapter {
 		 * 
 		 * }
 		 */
+		Log.d("OpenBike", "suggestions : " + s);
 		return cursor;
 	}
 
