@@ -48,6 +48,7 @@ import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -450,6 +451,8 @@ public class OpenBikeListActivity extends ListActivity implements
 											.putInt(
 													FilterPreferencesActivity.NETWORK_PREFERENCE,
 													mNetworks.get(item).getId());
+									Button okButton = mNetworkDialog.getButton(Dialog.BUTTON_POSITIVE);
+									okButton.setEnabled(true);
 								}
 							}).setPositiveButton("Ok",
 							new DialogInterface.OnClickListener() {
@@ -458,7 +461,6 @@ public class OpenBikeListActivity extends ListActivity implements
 									editor.commit();
 									mOpenBikeManager
 											.updateNetworkTable(mNetworks);
-
 									mOpenBikeManager
 											.executeCreateVisibleStationsTask(true);
 
@@ -669,5 +671,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		Log.i("OpenBike", "showNetworks()");
 		mNetworks = networks;
 		showDialog(CHOOSE_NETWORK);
+		Button okButton = mNetworkDialog.getButton(Dialog.BUTTON_POSITIVE);
+		okButton.setEnabled(false);
 	}
 }

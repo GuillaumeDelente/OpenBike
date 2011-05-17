@@ -24,9 +24,7 @@ import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import fr.openbike.filter.FilterPreferencesActivity;
 
 /**
  * Provides access to the dictionary database.

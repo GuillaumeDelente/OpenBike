@@ -284,7 +284,7 @@ public class OpenBikeDBAdapter {
 				"FROM virtual_stations vs " +
 				"INNER JOIN stations ob " +
 				"ON (ob._id = vs._id AND vs.network = ob.network) " +
-				"WHERE virtual_stations match ? AND vs.network = " + 
+				"WHERE " + table + " match ? AND vs.network = " + 
 				String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
 		
 		
@@ -525,6 +525,11 @@ public class OpenBikeDBAdapter {
 					db.beginTransaction();
 					// Create temporary table
 					db.execSQL(CREATE_NETWORKS_TABLE);
+					
+					// Fill Network table with BORDEAUX
+					db.execSQL("INSERT INTO networks " +
+							"VALUES (1, 'VCub', 'Bordeaux', 44837368, -576144, " +
+							"'http://openbikeserver-2.appspot.com/stations/','VCub +');");
 
 					// Create temporary table
 					db.execSQL("CREATE TEMPORARY TABLE stations_backup ("
@@ -560,7 +565,7 @@ public class OpenBikeDBAdapter {
 							+ BaseColumns._ID + ", " + KEY_NAME + ", "
 							+ KEY_OPEN + ", " + KEY_BIKES + ", " + KEY_SLOTS
 							+ ", " + KEY_ADDRESS + ", " + KEY_LATITUDE + ", "
-							+ KEY_LONGITUDE + ", 0, " + KEY_FAVORITE + ", "
+							+ KEY_LONGITUDE + ", 1, " + KEY_FAVORITE + ", "
 							+ KEY_PAYMENT + ", " + KEY_SPECIAL
 							+ " FROM stations_backup;");
 

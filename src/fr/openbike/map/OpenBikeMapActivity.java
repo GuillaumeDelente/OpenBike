@@ -35,11 +35,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -163,6 +161,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 						.getCurrentLocation());
 				// mMapView.invalidate();
 			}
+		} else {
+			mMyLocationOverlay.setCurrentLocation(null);
 		}
 		super.onResume();
 	}

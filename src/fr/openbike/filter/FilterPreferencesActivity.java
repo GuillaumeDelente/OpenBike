@@ -32,8 +32,6 @@ import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.list.OpenBikeListActivity;
-import fr.openbike.map.MapFilterActivity;
-import fr.openbike.map.StationMapFilterActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener {
@@ -64,7 +62,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		mActualFilter = mOpenBikeManager.getVcubFilter();
 		mNetworkPreference = getPreferenceScreen().findPreference(
-				"change_network");
+				FilterPreferencesActivity.NETWORK_PREFERENCE);
 		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : " + OpenBikeManager.NETWORK_CITY);
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);

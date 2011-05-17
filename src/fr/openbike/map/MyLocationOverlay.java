@@ -43,7 +43,6 @@ public class MyLocationOverlay extends Overlay {
 	private GeoPoint mGeoPoint = null;
 	private float mAccuracy = 0;
 	private Paint paint = new Paint();
-	private long mTouchTime = 0;
 	private GestureDetector mGestureDetector;
 
 	public MyLocationOverlay(Context context, MapView mapView) {

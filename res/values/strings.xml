@@ -64,7 +64,7 @@
 	<string name="favorite_filter_title">Favoris seulement</string>
 	<string name="favorite_filter_summary">Affiche seulement vos stations favorites.</string>
 	<string name="bikes_filter_title">Vélos seulement</string>
-	<string name="bikes_filter_summary">Affiche seulement les stations avec au moins un Vcub.</string>
+	<string name="bikes_filter_summary">Affiche seulement les stations avec au moins un vélo.</string>
 	<string name="slots_filter_title">Emplacements seulement</string>
 	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un emplacement.</string>
 	<string name="enable_distance_filter_title">Filtrer par distance</string>

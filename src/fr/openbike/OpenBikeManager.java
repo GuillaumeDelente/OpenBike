@@ -45,8 +45,8 @@ import fr.openbike.utils.Utils;
 
 public class OpenBikeManager {
 	
-	public static String UPDATE_SERVER_URL = ""; //"http://openbikeserver.appspot.com/stations";
-	public static final String SERVER_NETWORKS = "http://openbikeserver-2.appspot.com/networks";
+	public static String UPDATE_SERVER_URL = "";
+	public static final String SERVER_NETWORKS = "http://openbikeserver.appspot.com/networks";
 	public static int NETWORK_LATITUDE = 0;
 	public static int NETWORK_LONGITUDE = 0;
 	public static String NETWORK_NAME = "";
@@ -261,7 +261,7 @@ public class OpenBikeManager {
 	public ArrayList<StationOverlay> getVisibleStations() {
 		Log.d("OpenBike", "getVisibleStations");
 		if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
-			Log.d("OpenBike", "executeShowNetworksTask");
+			Log.d("OpenBike", "network = 0");
 			mVisibleStations = new ArrayList<StationOverlay>();
 			executeShowNetworksTask();
 		} else if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
@@ -404,11 +404,7 @@ public class OpenBikeManager {
 	}
 	
 	private boolean isFirstRun() {
-		if (mFilterPreferences.getBoolean("firstRun", true)) {
-			mFilterPreferences.edit().putBoolean("firstRun", false).commit();
-			return true;
-		}
-		return false;
+		return mFilterPreferences.getBoolean("firstRun", true);
 	}
 	
 	public ArrayList<StationOverlay> getSearchResults (String query) {
@@ -615,10 +611,6 @@ public class OpenBikeManager {
 				mUpdateAllStationsTask = null;
 			}
 		}
-
-		public int getProgress() {
-			return mProgress;
-		}
 		
 		protected void retrieveTask() {
 			Log.d("OpenBike", "retrieveTask, progress " + mProgress);
@@ -763,8 +755,10 @@ public class OpenBikeManager {
 					}
 					if (mActivity instanceof OpenBikeListActivity) {
 						((OpenBikeListActivity) mActivity).setEmptyList();
-						if (isFirstRun())
+						if (isFirstRun()) {
 							mActivity.showDialog(OpenBikeListActivity.WELCOME_MESSAGE);
+							mFilterPreferences.edit().putBoolean("firstRun", false).commit();
+						}
 					}
 				}
 				mCreateVisibleStationsTask = null;
