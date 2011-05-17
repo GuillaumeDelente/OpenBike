@@ -37,7 +37,6 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
-import fr.openbike.R;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
@@ -49,29 +48,23 @@ public class StationOverlay extends Overlay {
 	static private MapView mMapView;
 	static private List<Overlay> mMapOverlays;
 	static private BalloonOverlayView mBalloonView;
-	static private String BIKES;
-	static private String BIKE;	
-	static private String SLOTS;
-	static private String SLOT;
 	static MapController mMc;
 	static private Paint paint = new Paint();
 	static private Point point1 = new Point();
 	static private Point point2 = new Point();
-	
+
 	static private int latCenter;
-	static private int longCenter;
 	static private int latSpan;
-	static private int longSpan;
 	static private int latMax;
 	static private int longMax;
 	static private int longMin;
 	static private int latMin;
 	static private int stationLon;
 	static private int stationLat;
-	
+
 	private MinimalStation mStation;
 	private boolean mIsCurrent = false;
-	
+
 	public MinimalStation getStation() {
 		return mStation;
 	}
@@ -79,7 +72,7 @@ public class StationOverlay extends Overlay {
 	public StationOverlay(MinimalStation station) {
 		mStation = station;
 	}
-	
+
 	public StationOverlay(MinimalStation station, boolean isCurrent) {
 		mStation = station;
 		mIsCurrent = isCurrent;
@@ -88,20 +81,24 @@ public class StationOverlay extends Overlay {
 	public boolean isCurrent() {
 		return mIsCurrent;
 	}
-	
+
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		if (!shadow) {
 			GeoPoint mapCenter = mapView.getMapCenter();
 			latCenter = mapCenter.getLatitudeE6();
-			longCenter = mapCenter.getLongitudeE6();
 			latSpan = mapView.getLatitudeSpan();
-			longSpan = mapView.getLongitudeSpan();
+			// Top
 			latMax = latCenter + (latSpan / 2);
-			longMax = longCenter + (longSpan / 2);
+			// longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			longMin = projection.fromPixels(-mMarkerWidth, 0)
+			// Left
+			longMin = projection.fromPixels(-mMarkerWidth / 2, 0)
 					.getLongitudeE6();
+			// right
+			longMax = projection.fromPixels(
+					mMapView.getWidth() + mMarkerWidth / 2, 0).getLongitudeE6();
+			// Down
 			latMin = projection.fromPixels(0,
 					mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
 			stationLon = mStation.getGeoPoint().getLongitudeE6();
@@ -111,23 +108,15 @@ public class StationOverlay extends Overlay {
 				return;
 			}
 			projection.toPixels(mStation.getGeoPoint(), point1);
-			paint.setAntiAlias(true);
-			paint.setTextSize(15);
-			paint.setTextAlign(Align.RIGHT);
-			paint.setColor(Color.WHITE);
-			paint.setTypeface(Typeface.DEFAULT_BOLD);
+			point1.x -= mMarkerWidth / 2;
 			point1.y -= mMarkerHeight;
 			canvas.drawBitmap(mMarker, point1.x, point1.y, null);
 			canvas.drawText(String.valueOf(mStation.getBikes()), point1.x + 20,
-					point1.y + 20, paint);
+					point1.y + 17, paint);
 			canvas.drawText(String.valueOf(mStation.getSlots()), point1.x + 20,
-					point1.y + 35, paint);
-			paint.setTextAlign(Align.LEFT);
-			paint.setTextSize(12);
-			canvas.drawText(mStation.getBikes() > 1 ? BIKES : BIKE, point1.x + 25, point1.y + 20, paint);
-			canvas.drawText(mStation.getBikes() > 1 ? SLOTS : SLOT, point1.x + 25, point1.y + 35, paint);
+					point1.y + 32, paint);
+			super.draw(canvas, mapView, shadow);
 		}
-		super.draw(canvas, mapView, shadow);
 	}
 
 	@Override
@@ -135,13 +124,15 @@ public class StationOverlay extends Overlay {
 		Projection projection = mapView.getProjection();
 		projection.toPixels(p, point1);
 		projection.toPixels(mStation.getGeoPoint(), point2);
-		if (point1.x >= point2.x && point1.x <= point2.x + mMarkerWidth
-				&& point1.y <= point2.y
-				&& point1.y >= point2.y - mMarkerHeight) {
+		// point1 : touched
+		// point2 : station
+		if (point1.x >= point2.x - mMarkerWidth / 2
+				&& point1.x <= point2.x + mMarkerWidth / 2
+				&& point1.y <= point2.y && point1.y >= point2.y - mMarkerHeight) {
 			boolean isRecycled;
 			if (mBalloonView == null) {
 				mBalloonView = new BalloonOverlayView(mapView.getContext(),
-						mMarkerHeight, mMarkerWidth);
+						mMarkerHeight, 0);
 				isRecycled = false;
 			} else {
 				isRecycled = true;
@@ -183,27 +174,27 @@ public class StationOverlay extends Overlay {
 	}
 
 	public void hideBalloon() {
-		//Log.i("OpenBike", "hideBalloon " + mStation.getId());
+		// Log.i("OpenBike", "hideBalloon " + mStation.getId());
 		if (mIsCurrent) {
 			mIsCurrent = false;
-			if (mBalloonView != null) {				
+			if (mBalloonView != null) {
 				mBalloonView.disableListeners();
 				mBalloonView.setVisibility(View.GONE);
 			}
 		} else {
 		}
 	}
-	
+
 	public static void hideBalloonWithNoStation() {
-		//Log.i("OpenBike", "Hide balloon without Station");
-		if (mBalloonView != null) {				
+		// Log.i("OpenBike", "Hide balloon without Station");
+		if (mBalloonView != null) {
 			mBalloonView.disableListeners();
 			mBalloonView.setVisibility(View.GONE);
 		}
 	}
 
 	public void refreshBalloon() {
-		//Log.i("OpenBike", "Refreshing Balloon");
+		// Log.i("OpenBike", "Refreshing Balloon");
 		if (mIsCurrent) {
 			if (mBalloonView != null) {
 				mBalloonView.disableListeners();
@@ -216,54 +207,26 @@ public class StationOverlay extends Overlay {
 	private void hideOtherBalloons() {
 		int size = mMapOverlays.size();
 		int baloonPosition = size
-				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2 : 1);
+				- (mMapOverlays.get(size - 1) instanceof MyLocationOverlay ? 2
+						: 1);
 		Overlay overlay = mMapOverlays.get(baloonPosition);
 		if (overlay instanceof StationOverlay) {
 			((StationOverlay) overlay).hideBalloon();
 		} else {
 		}
 	}
-	
+
 	public BalloonOverlayView getBallonView() {
 		return mBalloonView;
 	}
-	
+
 	static public void setBalloonView(BalloonOverlayView balloon) {
 		mBalloonView = balloon;
 	}
-	
+
 	public void setCurrent() {
 		mIsCurrent = true;
 	}
-
-	/*
-	 * private void setBalloonTouchListener(final int thisIndex) {
-	 * 
-	 * try {
-	 * 
-	 * @SuppressWarnings("unused") Method m =
-	 * this.getClass().getDeclaredMethod("onBalloonTap", int.class);
-	 * 
-	 * mClickRegion.setOnTouchListener(new OnTouchListener() { public boolean
-	 * onTouch(View v, MotionEvent event) {
-	 * 
-	 * View l = ((View) v.getParent()) .findViewById(R.id.balloon_main_layout);
-	 * Drawable d = l.getBackground();
-	 * 
-	 * if (event.getAction() == MotionEvent.ACTION_DOWN) { int[] states = {
-	 * android.R.attr.state_pressed }; if (d.setState(states)) {
-	 * d.invalidateSelf(); } return true; } else if (event.getAction() ==
-	 * MotionEvent.ACTION_UP) { int newStates[] = {}; if (d.setState(newStates))
-	 * { d.invalidateSelf(); } // call overridden method
-	 * onBalloonTap(thisIndex); return true; } else { return false; }
-	 * 
-	 * } });
-	 * 
-	 * } catch (SecurityException e) { //Log.e("BalloonItemizedOverlay",
-	 * "setBalloonTouchListener reflection SecurityException"); return; } catch
-	 * (NoSuchMethodException e) { // method not overridden - do nothing return;
-	 * } }
-	 */
 
 	public static void init(Bitmap marker, MapView mapview, Context context) {
 		mMarker = marker;
@@ -272,9 +235,10 @@ public class StationOverlay extends Overlay {
 		mMapView = mapview;
 		mMc = mapview.getController();
 		mMapOverlays = mapview.getOverlays();
-		BIKES = context.getString(R.string.bikes_);
-		BIKE = context.getString(R.string.bike_);
-		SLOT = context.getString(R.string.slot_);
-		SLOTS = context.getString(R.string.slots_);
+		paint.setAntiAlias(true);
+		paint.setTextSize(15);
+		paint.setTextAlign(Align.RIGHT);
+		paint.setColor(Color.WHITE);
+		paint.setTypeface(Typeface.DEFAULT_BOLD);
 	}
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="fr.openbike"
-      android:versionCode="5"
-      android:versionName="Beta 1">
+      android:versionCode="6"
+      android:versionName="Beta 2">
       <supports-screens 
       	android:smallScreens="true"
       	android:normalScreens="true"
@@ -15,6 +15,8 @@
                   android:launchMode = "singleTop"
                   android:theme="@android:style/Theme.NoTitleBar"
                   >
+                   <meta-data android:name="android.app.searchable"
+                   		android:resource="@xml/searchable"/>
                 <intent-filter>
                 	<action android:name="android.intent.action.MAIN" />
                 	<category android:name="android.intent.category.LAUNCHER" />
@@ -24,10 +26,6 @@
                 <action android:name="android.intent.action.SEARCH" />
                 <!-- No category needed, because the Intent will specify this class component-->
             </intent-filter>
-            	
-        	<meta-data android:name="android.app.searchable"
-                   android:resource="@xml/searchable"/>
-
         </activity>
          <activity android:name=".map.OpenBikeMapActivity" 
          		android:launchMode = "singleTop" 
@@ -42,6 +40,11 @@
 		<activity android:name=".StationDetails"         		
 					android:launchMode = "singleTop" 
         			android:theme="@android:style/Theme.NoTitleBar">
+        	<intent-filter priority="100">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/vnd.openbike.station" />
+            </intent-filter>
         </activity>
         			
         <meta-data android:name="android.app.default_searchable"

@@ -3,6 +3,9 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
    <PreferenceCategory
             android:title="@string/other_preferences_title">
+       <Preference 
+				android:key="change_network"
+		        android:title="@string/network_title" />
 		<CheckBoxPreference android:key="acra.enable"
 		        android:title="@string/reporting_title"
 		        android:summary="@string/reporting_summary"

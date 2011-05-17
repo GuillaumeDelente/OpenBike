@@ -17,6 +17,7 @@
  */
 package fr.openbike.list;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -38,13 +39,13 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 	@Override
 	protected void onResume() {
 		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(getString(R.string.enable_distance_filter));
+				.findPreference(FilterPreferencesActivity.ENABLE_DISTANCE_FILTER);
 		getPreferenceScreen().findPreference(
-				getString(R.string.distance_filter)).setSummary(
+				FilterPreferencesActivity.DISTANCE_FILTER).setSummary(
 				getString(R.string.distance_filter_summary)
 						+ " "
 						+ getPreferenceScreen().getSharedPreferences().getInt(
-								getString(R.string.distance_filter), 1000)
+								FilterPreferencesActivity.DISTANCE_FILTER, 1000)
 						+ "m");
 		super.onResume();
 	}
@@ -52,12 +53,21 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(getString(R.string.use_location))) {
-			if (!sharedPreferences.getBoolean(getString(R.string.use_location),
+		if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
+			if (!sharedPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE,
 					false)) {
 				mDistanceFilterCb.setChecked(false);
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);
+	}
+
+	/* (non-Javadoc)
+	 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
+	 */
+	@Override
+	public void onClick(DialogInterface arg0, int arg1) {
+		// TODO Auto-generated method stub
+		
 	}
 }

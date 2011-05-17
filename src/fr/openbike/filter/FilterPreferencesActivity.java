@@ -25,18 +25,33 @@ import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
 import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
+import fr.openbike.list.OpenBikeListActivity;
+import fr.openbike.map.MapFilterActivity;
+import fr.openbike.map.StationMapFilterActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener {
 
 	protected BikeFilter mActualFilter;
 	protected BikeFilter mModifiedFilter;
+	protected Preference mNetworkPreference;
 	protected Dialog mConfirmDialog;
 	private OpenBikeManager mOpenBikeManager;
+
+	public static final String NETWORK_PREFERENCE = "network";
+	public static final String FAVORITE_FILTER = "favorite_filter";
+	public static final String BIKES_FILTER = "bikes_filter";
+	public static final String SLOTS_FILTER = "slots_filter";
+	public static final String ENABLE_DISTANCE_FILTER = "enable_distance_filter";
+	public static final String DISTANCE_FILTER = "distance_filter";
+	public static final String LOCATION_PREFERENCE = "use_location";
+	public static final String CENTER_PREFERENCE = "center_on_location";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +63,9 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 		super.onResume();
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		mActualFilter = mOpenBikeManager.getVcubFilter();
+		mNetworkPreference = getPreferenceScreen().findPreference(
+				"change_network");
+		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : " + OpenBikeManager.NETWORK_CITY);
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 		try {
@@ -125,47 +143,54 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	}
 
 	@Override
-	public void onClick(DialogInterface dialog, int button) {
-		return;
+	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+			Preference preference) {
+		if (preference == mNetworkPreference) {
+			startActivity(new Intent(this, OpenBikeListActivity.class)
+					.setAction(OpenBikeListActivity.ACTION_CHOOSE_NETWORK)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		}
+		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(getString(R.string.favorite_filter))) {
+		if (key.equals(FilterPreferencesActivity.FAVORITE_FILTER)) {
 			// Log.i("OpenBike", "Favorites changed");
 			mModifiedFilter.setShowOnlyFavorites(sharedPreferences.getBoolean(
-					getString(R.string.favorite_filter), false));
-		} else if (key.equals(getString(R.string.bikes_filter))) {
+					FilterPreferencesActivity.FAVORITE_FILTER, false));
+		} else if (key.equals(FilterPreferencesActivity.BIKES_FILTER)) {
 			// Log.i("OpenBike", "Bikes changed");
 			mModifiedFilter.setShowOnlyWithBikes(sharedPreferences.getBoolean(
-					getString(R.string.bikes_filter), false));
-		} else if (key.equals(getString(R.string.slots_filter))) {
+					FilterPreferencesActivity.BIKES_FILTER, false));
+		} else if (key.equals(FilterPreferencesActivity.SLOTS_FILTER)) {
 			// Log.i("OpenBike", "Slots changed");
 			mModifiedFilter.setShowOnlyWithSlots(sharedPreferences.getBoolean(
-					getString(R.string.slots_filter), false));
-		} else if (key.equals(getString(R.string.enable_distance_filter))) {
+					FilterPreferencesActivity.SLOTS_FILTER, false));
+		} else if (key.equals(FilterPreferencesActivity.ENABLE_DISTANCE_FILTER)) {
 			// Log.i("OpenBike", "Enable / disable filter changed");
 			mModifiedFilter
 					.setDistanceFilter(sharedPreferences.getBoolean(
-							getString(R.string.enable_distance_filter), false) ? sharedPreferences
-							.getInt(getString(R.string.distance_filter), 1000)
+							FilterPreferencesActivity.ENABLE_DISTANCE_FILTER,
+							false) ? sharedPreferences.getInt(
+							FilterPreferencesActivity.DISTANCE_FILTER, 1000)
 							: 0);
-		} else if (key.equals(getString(R.string.distance_filter))) {
+		} else if (key.equals(FilterPreferencesActivity.DISTANCE_FILTER)) {
 			// Log.i("OpenBike", "Distance filter changed");
 			mModifiedFilter.setDistanceFilter(sharedPreferences.getInt(
-					getString(R.string.distance_filter), 1000));
+					FilterPreferencesActivity.DISTANCE_FILTER, 1000));
 			getPreferenceScreen().findPreference(
-					getString(R.string.distance_filter)).setSummary(
+					FilterPreferencesActivity.DISTANCE_FILTER).setSummary(
 					getString(R.string.distance_filter_summary)
 							+ " "
 							+ sharedPreferences.getInt(
-									getString(R.string.distance_filter), 1000)
-							+ "m");
-		} else if (key.equals(getString(R.string.use_location))) {
+									FilterPreferencesActivity.DISTANCE_FILTER,
+									1000) + "m");
+		} else if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
 			// Log.i("OpenBike", "Location changed");
-			if (sharedPreferences.getBoolean(getString(R.string.use_location),
-					false)) {
+			if (sharedPreferences.getBoolean(
+					FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 				// Log.i("OpenBike", "use Location");
 				mOpenBikeManager.useLocation();
 			} else {

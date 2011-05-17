@@ -25,6 +25,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.location.Location;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.GestureDetector.SimpleOnGestureListener;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -40,20 +43,24 @@ public class MyLocationOverlay extends Overlay {
 	private GeoPoint mGeoPoint = null;
 	private float mAccuracy = 0;
 	private Paint paint = new Paint();
+	private long mTouchTime = 0;
+	private GestureDetector mGestureDetector;
 
 	public MyLocationOverlay(Context context, MapView mapView) {
-		//Log.e("OpenBike", "MyLocationOverlay");
-		mMarker = BitmapFactory.decodeResource(context.getResources(), 
+		// Log.e("OpenBike", "MyLocationOverlay");
+		mMarker = BitmapFactory.decodeResource(context.getResources(),
 				R.drawable.ic_maps_indicator_current_position);
 		mShiftX = mMarker.getWidth() / 2;
 		mShiftY = mMarker.getHeight() / 2;
+		mGestureDetector = new GestureDetector(context,
+				new ZoomOnGestureListener(mapView));
 		paint.setAntiAlias(true);
 	}
 
 	public boolean isMyLocationDrawn() {
 		return mGeoPoint != null;
 	}
-	
+
 	public void setCurrentLocation(Location location) {
 		if (location == null) {
 			mGeoPoint = null;
@@ -82,5 +89,32 @@ public class MyLocationOverlay extends Overlay {
 			canvas.drawBitmap(mMarker, loc.x - mShiftX, loc.y - mShiftY, paint);
 		}
 		return false;
+	}
+
+	public boolean onTouchEvent(MotionEvent motionEvent, MapView mapView) {
+	  return mGestureDetector.onTouchEvent(motionEvent);
+	}
+
+	public class ZoomOnGestureListener extends SimpleOnGestureListener {
+		private MapView mapView = null;
+
+		/**
+		 * Constructor.
+		 * 
+		 * @param mapView
+		 *            reference to the map view.
+		 */
+		public ZoomOnGestureListener(MapView mapView) {
+			this.mapView = mapView;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public boolean onDoubleTap(MotionEvent e) {
+			// Zoom in.
+			mapView.getController().zoomIn();
+			return true;
+		}
 	}
 }

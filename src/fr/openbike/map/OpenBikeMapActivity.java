@@ -17,6 +17,7 @@
  */
 package fr.openbike.map;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -34,9 +35,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -57,8 +60,10 @@ import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
 import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.object.MinimalStation;
+import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeMapActivity extends MapActivity implements
@@ -69,6 +74,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
 	private boolean mIsFirstFix = true;
+
 	private SharedPreferences mMapPreferences = null;
 	private MapView mMapView = null;
 	private OpenBikeManager mOpenBikeManager = null;
@@ -89,7 +95,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mMapOverlays = mMapView.getOverlays();
 		Bitmap marker = BitmapFactory.decodeResource(getResources(),
-				R.drawable.v3);
+				R.drawable.pin);
 		StationOverlay.init(marker, mMapView, this);
 		handleIntent(getIntent());
 	}
@@ -107,7 +113,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 			if (mMapPreferences.getBoolean(
-					getString(R.string.center_on_location), false) && OpenBikeManager.getCurrentLocation() != null) {
+					FilterPreferencesActivity.CENTER_PREFERENCE, false)
+					&& OpenBikeManager.getCurrentLocation() != null) {
 				zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			} else {
 				zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
@@ -119,11 +126,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mMapView.invalidate();
 	}
-	
 
 	@Override
 	protected void onResume() {
-		mOpenBikeManager.setCurrentActivity(this);
+		OpenBikeManager.setCurrentActivity(this);
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
 		if (mRetrieveList) {
@@ -131,7 +137,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			if (ACTION_DETAIL.equals(intent.getAction())) {
 				setStation(intent.getData());
 				if (mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false)) {
+						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
 					zoomAndCenter(OpenBikeManager.getCurrentLocation());
 				} else {
 					zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
@@ -140,31 +146,31 @@ public class OpenBikeMapActivity extends MapActivity implements
 			} else {
 				setStationList();
 				if (mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false))
+						FilterPreferencesActivity.CENTER_PREFERENCE, false))
 					zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			}
 		}
 		mRetrieveList = true;
-		if (mMapPreferences.getBoolean(getString(R.string.use_location), false)) {
-			if (mMyLocationOverlay == null) {
-				mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
-			}
-			mMapOverlays.add(mMyLocationOverlay);
+
+		if (mMyLocationOverlay == null) {
+			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
+		}
+		mMapOverlays.add(mMyLocationOverlay);
+		if (mMapPreferences.getBoolean(
+				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
 				mMyLocationOverlay.setCurrentLocation(OpenBikeManager
 						.getCurrentLocation());
 				// mMapView.invalidate();
 			}
-		} else {
-			mMyLocationOverlay = null;
 		}
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		//FIXME: Hack to avoid current station first in the list
-		// This appends only when localisation without filtering, 
+		// FIXME: Hack to avoid current station first in the list
+		// This appends only when localisation without filtering,
 		// we should find why instead of doing fix !
 		// Because we don't want any current station in listActivity,
 		// and because such an element is placed in first position by
@@ -175,7 +181,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 			station.hideBalloon();
 			mOpenBikeManager.sortStations();
 		}
-		finishUpdateAllStationsOnProgress(false);
 		mOpenBikeManager.stopLocation();
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);
@@ -186,14 +191,14 @@ public class OpenBikeMapActivity extends MapActivity implements
 	public void onDestroy() {
 		super.onDestroy();
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.map_menu, menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		if (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
@@ -203,7 +208,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
@@ -234,7 +239,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
+
 	@Override
 	public Dialog onCreateDialog(int id) {
 		switch (id) {
@@ -321,23 +326,20 @@ public class OpenBikeMapActivity extends MapActivity implements
 											false);
 									if (mMapPreferences
 											.getBoolean(
-													getString(R.string.favorite_filter),
+													FilterPreferencesActivity.FAVORITE_FILTER,
 													false)) {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2)))
+														- 2))
 												.hideBalloon();
 										mMapOverlays
 												.remove(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2));
+														- 2);
 										// mMapView.invalidate();
 									} else {
 										((StationOverlay) mMapOverlays
 												.get(mMapOverlays.size()
-														- (mMyLocationOverlay == null ? 1
-																: 2)))
+														- 2))
 												.getStation()
 												.setFavorite(false);
 									}
@@ -350,8 +352,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 								public void onCancel(DialogInterface arg0) {
 									((StationOverlay) mMapOverlays
 											.get(mMapOverlays.size()
-													- (mMyLocationOverlay == null ? 1
-															: 2)))
+													- 2))
 											.refreshBalloon();
 
 								}
@@ -367,28 +368,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		return super.onCreateDialog(id);
 	}
-	
-	@Override
-	public void showGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
 
-	}
-	
-	@Override
-	public void updateGetAllStationsOnProgress(int progress) {
-		// TODO Auto-generated method stub
-
-	}
-	
-	@Override
-	public void finishGetAllStationsOnProgress() {
-		// TODO Auto-generated method stub
-
-	}
-	
 	@Override
 	public void showUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.VISIBLE)
+			return;
 		loading.setVisibility(View.VISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -410,6 +395,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public void finishUpdateAllStationsOnProgress(boolean animate) {
 		RelativeLayout loading = (RelativeLayout) findViewById(R.id.updating);
+		if (loading.getVisibility() == View.INVISIBLE)
+			return;
 		loading.setVisibility(View.INVISIBLE);
 		if (animate) {
 			AnimationSet set = new AnimationSet(true);
@@ -427,16 +414,19 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		// onListUpdated();
 	}
-	
+
 	@Override
 	public void onLocationChanged(Location location) {
+		/*
 		if (mMyLocationOverlay == null) {
 			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 			mMapOverlays.add(mMyLocationOverlay);
 		}
+		*/
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
-		if (!mMapPreferences.getBoolean(getString(R.string.enable_distance_filter), false)) {
+		if (!mMapPreferences.getBoolean(
+				FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false)) {
 			Utils.sortStationsByDistance(mMapOverlays);
 			Collections.reverse(mMapOverlays);
 		}
@@ -452,13 +442,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if ((mIsFirstFix && location != null && !OpenBikeMapActivity.ACTION_DETAIL
 				.equals(getIntent().getAction()))
 				|| mMapPreferences.getBoolean(
-						getString(R.string.center_on_location), false)) {
+						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
 			zoomAndCenter(location);
 		}
 		mIsFirstFix = (location == null) ? true : false;
 		mMapView.invalidate();
 	}
-	
+
 	@Override
 	public void onListUpdated() {
 		int currentId = -1;
@@ -501,7 +491,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mMapView.invalidate();
 	}
-	
+
 	public void setFavorite(int id, boolean isChecked) {
 		mSelected = id;
 		if (isChecked) {
@@ -549,8 +539,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	public void hideOverlayBalloon() {
-		int position = mMapOverlays.size()
-				- (mMyLocationOverlay == null ? 1 : 2);
+		int position = mMapOverlays.size() - 2;
 		if (position >= 0) {
 			Overlay overlay = mMapOverlays.get(position);
 			if (overlay instanceof StationOverlay) {
@@ -585,7 +574,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private void zoomAndCenter(GeoPoint geoPoint) {
 		if (geoPoint == null) {
 			mMapController.setZoom(14);
-			mMapController.animateTo(new GeoPoint(44840290, -572662));
+			mMapController.animateTo(new GeoPoint(
+					OpenBikeManager.NETWORK_LATITUDE,
+					OpenBikeManager.NETWORK_LONGITUDE));
 			return;
 		}
 		mMapController.setZoom(16);
@@ -593,9 +584,43 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	private StationOverlay getLastStationOverlay() {
-		int i = mMapOverlays.size() - (mMyLocationOverlay == null ? 1 : 2);
+		int i = mMapOverlays.size() - 2;
 		if (i < 0)
 			return null;
 		return ((StationOverlay) mMapOverlays.get(i));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#dismissProgressDialog()
+	 */
+	@Override
+	public void dismissProgressDialog() {
+		// TODO Auto-generated method stub
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#showChooseNetwork(java.util.ArrayList)
+	 */
+	@Override
+	public void showChooseNetwork(ArrayList<Network> networks) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.openbike.IOpenBikeActivity#showProgressDialog(java.lang.String,
+	 * java.lang.String)
+	 */
+	@Override
+	public void showProgressDialog(String title, String message) {
+		// TODO Auto-generated method stub
+
 	}
 }

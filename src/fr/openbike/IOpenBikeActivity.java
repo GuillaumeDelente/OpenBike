@@ -17,16 +17,19 @@
  */
 package fr.openbike;
 
+import java.util.ArrayList;
+
 import android.location.Location;
+import fr.openbike.object.Network;
 
 public interface IOpenBikeActivity {
-	public void showGetAllStationsOnProgress();
-	public void updateGetAllStationsOnProgress(int progress);
-	public void finishGetAllStationsOnProgress();
+	public void showProgressDialog(String title, String message);
+	public void dismissProgressDialog();
 	public void showUpdateAllStationsOnProgress(boolean animate);
 	public void finishUpdateAllStationsOnProgress(boolean animate);
 	public void onLocationChanged(Location location);
 	public void onListUpdated();
+	public void showChooseNetwork(ArrayList<Network> networks);
 	public void showDialog(int id);
-	public void removeDialog(int id);
+	public void dismissDialog(int id);
 }
