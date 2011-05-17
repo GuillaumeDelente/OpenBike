@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
+import android.net.Uri;
 
 import com.google.android.maps.Overlay;
 
@@ -132,5 +133,25 @@ public class Utils {
 		l.setLatitude((double) latitude*1E-6);
 		l.setLongitude((double) longitude*1E-6);
 		return (int) location.distanceTo(l);
+	}
+	
+	public static Intent getNavigationIntent(int latitude, int longitude) {
+		return new Intent(
+				Intent.ACTION_VIEW,
+				Uri
+						.parse("google.navigation:q="
+								+ latitude * 1E-6
+								+ ","
+								+ longitude * 1E-6
+								+ "&mode=w"));
+	}
+	
+	public static Intent getMapsIntent(int latitude, int longitude, String label) {
+		return new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" +
+				latitude * 1E-6
+				+ "," +
+				longitude * 1E-6
+				+ " ("
+				+ label + ")"));
 	}
 }

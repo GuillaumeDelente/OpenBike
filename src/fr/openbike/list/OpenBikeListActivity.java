@@ -33,7 +33,6 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -85,7 +84,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.i("OpenBike", "List onCreate");
 		setContentView(R.layout.station_list);
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			showStationDetails(getIntent().getData());
@@ -108,7 +106,6 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	protected void onNewIntent(Intent intent) {
-		Log.i("OpenBike", "Netw intent : " + intent.getAction());
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			showStationDetails(intent.getData());
 	    } else {
@@ -120,9 +117,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.i("OpenBike", "OnResume");
 		OpenBikeManager.setCurrentActivity(this);
-		Log.i("OpenBike", "--------");
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
@@ -131,7 +126,6 @@ public class OpenBikeListActivity extends ListActivity implements
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			showResults(query);
 		} else if (ACTION_CHOOSE_NETWORK.equals(intent.getAction())) {
-			Log.i("OpenBike", "Intent choose network");
 			mOpenBikeManager.executeShowNetworksTask();
 		} else {
 			findViewById(R.id.search_results).setVisibility(View.GONE);
@@ -150,7 +144,6 @@ public class OpenBikeListActivity extends ListActivity implements
 		super.onPause();
 		mOpenBikeManager.stopLocation();
 		mOpenBikeManager.detach();
-		Log.i("OpenBike", "onPause");
 	}
 
 	@Override
@@ -237,35 +230,24 @@ public class OpenBikeListActivity extends ListActivity implements
 			station = managedQuery(Uri.withAppendedPath(
 					StationsProvider.CONTENT_URI, mSelected), null, null, null,
 					null);
-			startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
-					+ station.getInt(station
-							.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
-					* 1E-6
-					+ ","
-					+ station.getInt(station
-							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
-					* 1E-6
-					+ " ("
-					+ station.getString(station
-							.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)) + ")")));
+			startActivity(Utils.getMapsIntent(station
+											.getInt(station
+													.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)),
+													station
+													.getInt(station
+															.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)), 
+															station
+															.getString(station
+																	.getColumnIndex(OpenBikeDBAdapter.KEY_NAME))));
 			return true;
 		case R.id.navigate:
 			station = managedQuery(Uri.withAppendedPath(
 					StationsProvider.CONTENT_URI, mSelected), null, null, null,
 					null);
-			startActivity(new Intent(
-					Intent.ACTION_VIEW,
-					Uri
-							.parse("google.navigation:q="
-									+ station
-											.getInt(station
-													.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
-									* 1E-6
-									+ ","
-									+ station
-											.getInt(station
-													.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
-									* 1E-6)));
+			startActivity(Utils.getNavigationIntent(station.getInt(station
+					.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), 
+					station.getInt(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))));
 			return true;
 		case R.id.add_favorite:
 			mOpenBikeManager.setFavorite(Integer.parseInt(mSelected), true);
@@ -310,7 +292,6 @@ public class OpenBikeListActivity extends ListActivity implements
 													0) == 0
 											|| !mOpenBikeManager
 													.isStationListRetrieved()) {
-										Log.d("OpenBike", "Nulling mAdapter");
 										mAdapter = null;
 										finish();
 									} else {
@@ -436,7 +417,6 @@ public class OpenBikeListActivity extends ListActivity implements
 						}
 					}).create();
 		case CHOOSE_NETWORK:
-			Log.i("OpenBike", "Choose Network : " + mNetworks);
 			final SharedPreferences preferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
 			final SharedPreferences.Editor editor = preferences.edit();
@@ -668,7 +648,6 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void showChooseNetwork(ArrayList<Network> networks) {
-		Log.i("OpenBike", "showNetworks()");
 		mNetworks = networks;
 		showDialog(CHOOSE_NETWORK);
 		Button okButton = mNetworkDialog.getButton(Dialog.BUTTON_POSITIVE);

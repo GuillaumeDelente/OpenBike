@@ -144,17 +144,15 @@ public class StationDetails extends Activity {
 	}
 
 	void startMaps() {
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="
-				+ mStation.getInt(mStation
-						.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
-				* 1E-6
-				+ ","
-				+ mStation.getInt(mStation
-						.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
-				* 1E-6
-				+ " ("
-				+ mStation.getString(mStation
-						.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)) + ")"));
+		Intent intent = Utils.getMapsIntent(mStation
+				.getInt(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)),
+						mStation
+						.getInt(mStation
+								.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)), 
+								mStation
+								.getString(mStation
+										.getColumnIndex(OpenBikeDBAdapter.KEY_NAME)));
 		if (Utils.isIntentAvailable(intent, this))
 			startActivity(intent);
 		else
@@ -162,19 +160,10 @@ public class StationDetails extends Activity {
 	}
 
 	void startNavigation() {
-		Intent intent = new Intent(
-				Intent.ACTION_VIEW,
-				Uri
-						.parse("google.navigation:q="
-								+ mStation
-										.getInt(mStation
-												.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE))
-								* 1E-6
-								+ ","
-								+ mStation
-										.getInt(mStation
-												.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))
-								* 1E-6));
+		Intent intent = Utils.getNavigationIntent(mStation.getInt(mStation
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), 
+						mStation.getInt(mStation
+								.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)));
 		if (Utils.isIntentAvailable(intent, this))
 			startActivity(intent);
 		else

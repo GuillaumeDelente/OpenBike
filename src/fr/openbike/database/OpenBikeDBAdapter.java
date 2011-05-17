@@ -35,7 +35,6 @@ import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.Network;
 
@@ -302,7 +301,6 @@ public class OpenBikeDBAdapter {
 		 * }
 		 */
 
-		Log.d("OpenBike", "search cursor : " + cursor.getCount() + " match ");
 		return cursor;
 	}
 
@@ -356,7 +354,6 @@ public class OpenBikeDBAdapter {
 		 * 
 		 * }
 		 */
-		Log.d("OpenBike", "suggestions : " + s);
 		return cursor;
 	}
 
