@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
 import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Network;
@@ -83,8 +84,8 @@ public class RestClient {
 		try {
 			response = httpclient.execute(httpget);
 			if (response.getStatusLine().getStatusCode() != 200) {
-				// Log.i("OpenBike", "Bad Status code : "
-				// + response.getStatusLine().getStatusCode());
+				Log.i("OpenBike", "Bad Status code : "
+				+ response.getStatusLine().getStatusCode() + " from " + url);
 				return null;
 			}
 			// Examine the response status
