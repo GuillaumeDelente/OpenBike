@@ -21,13 +21,12 @@ import java.util.Collections;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.Typeface;
-import android.graphics.Paint.Align;
+import android.graphics.RectF;
+import android.graphics.Paint.Style;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 
@@ -42,25 +41,13 @@ import fr.openbike.utils.Utils;
 
 public class StationOverlay extends Overlay {
 
-	static private Bitmap mMarker = null;
-	static private int mMarkerHeight = 0;
-	static private int mMarkerWidth = 0;
-	static private MapView mMapView;
 	static private List<Overlay> mMapOverlays;
 	static private BalloonOverlayView mBalloonView;
 	static MapController mMc;
 	static private Paint paint = new Paint();
 	static private Point point1 = new Point();
 	static private Point point2 = new Point();
-
-	static private int latCenter;
-	static private int latSpan;
-	static private int latMax;
-	static private int longMax;
-	static private int longMin;
-	static private int latMin;
-	static private int stationLon;
-	static private int stationLat;
+	static private RectF rectf = new RectF();
 
 	private MinimalStation mStation;
 	private boolean mIsCurrent = false;
@@ -85,37 +72,52 @@ public class StationOverlay extends Overlay {
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		if (!shadow) {
-			GeoPoint mapCenter = mapView.getMapCenter();
-			latCenter = mapCenter.getLatitudeE6();
-			latSpan = mapView.getLatitudeSpan();
-			// Top
-			latMax = latCenter + (latSpan / 2);
-			// longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			// Left
-			longMin = projection.fromPixels(-mMarkerWidth / 2, 0)
-					.getLongitudeE6();
-			// right
-			longMax = projection.fromPixels(
-					mMapView.getWidth() + mMarkerWidth / 2, 0).getLongitudeE6();
-			// Down
-			latMin = projection.fromPixels(0,
-					mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
-			stationLon = mStation.getGeoPoint().getLongitudeE6();
-			stationLat = mStation.getGeoPoint().getLatitudeE6();
-			if (stationLat < latMin || stationLat > latMax
-					|| stationLon < longMin || stationLon > longMax) {
-				return;
-			}
 			projection.toPixels(mStation.getGeoPoint(), point1);
-			point1.x -= mMarkerWidth / 2;
-			point1.y -= mMarkerHeight;
-			canvas.drawBitmap(mMarker, point1.x, point1.y, null);
-			canvas.drawText(String.valueOf(mStation.getBikes()), point1.x + 20,
-					point1.y + 17, paint);
-			canvas.drawText(String.valueOf(mStation.getSlots()), point1.x + 20,
-					point1.y + 32, paint);
-			super.draw(canvas, mapView, shadow);
+			paint.setStyle(Paint.Style.FILL);
+
+			int bikes = mStation.getBikes();
+			int slots = mStation.getSlots();
+
+			if (bikes == 0) {
+				paint.setColor(Color.BLACK);
+			} else if (bikes < 3) {
+				paint.setColor(Color.RED);
+			} else {
+				paint.setColor(Color.GREEN);
+			}
+			paint.setAlpha(150);
+
+			bikes = 5 + bikes; // Half size of a Semi circle size
+			rectf.set(point1.x - bikes, point1.y - bikes, point1.x + bikes,
+					point1.y + bikes);
+			canvas.drawArc(rectf, 90, 180, true, paint);
+			paint.setStyle(Style.STROKE);
+			paint.setColor(Color.WHITE);
+			canvas.drawArc(rectf, 90, 180, true, paint);
+
+			paint.setStyle(Paint.Style.FILL);
+
+			if (slots == 0) {
+				paint.setColor(Color.BLACK);
+			} else if (slots < 4) {
+				paint.setColor(Color.RED);
+			} else {
+				paint.setColor(Color.GREEN);
+			}
+			if (mStation.getSlots() == 0) {
+				paint.setColor(Color.BLACK);
+			}
+			paint.setAlpha(150);
+
+			slots = 5 + slots; // Half size of a Semi circle size
+			rectf.set(point1.x - slots, point1.y - slots, point1.x + slots,
+					point1.y + slots);
+			canvas.drawArc(rectf, 270, 180, true, paint);
+			paint.setStyle(Style.STROKE);
+			paint.setColor(Color.WHITE);
+			canvas.drawArc(rectf, 270, 180, true, paint);
+
 		}
 	}
 
@@ -126,13 +128,13 @@ public class StationOverlay extends Overlay {
 		projection.toPixels(mStation.getGeoPoint(), point2);
 		// point1 : touched
 		// point2 : station
-		if (point1.x >= point2.x - mMarkerWidth / 2
-				&& point1.x <= point2.x + mMarkerWidth / 2
-				&& point1.y <= point2.y && point1.y >= point2.y - mMarkerHeight) {
+		// FIXME replace by true values
+		if (point1.x >= point2.x - 30 / 2 && point1.x <= point2.x + 30 / 2
+				&& point1.y <= point2.y && point1.y >= point2.y - 60) {
 			boolean isRecycled;
 			if (mBalloonView == null) {
-				mBalloonView = new BalloonOverlayView(mapView.getContext(),
-						mMarkerHeight, 0);
+				mBalloonView = new BalloonOverlayView(mapView.getContext(), 0,
+						0);
 				isRecycled = false;
 			} else {
 				isRecycled = true;
@@ -228,17 +230,10 @@ public class StationOverlay extends Overlay {
 		mIsCurrent = true;
 	}
 
-	public static void init(Bitmap marker, MapView mapview, Context context) {
-		mMarker = marker;
-		mMarkerHeight = marker.getHeight();
-		mMarkerWidth = marker.getWidth();
-		mMapView = mapview;
-		mMc = mapview.getController();
-		mMapOverlays = mapview.getOverlays();
+	public static void init(Context context, MapView mapView) {
+		mMc = mapView.getController();
+		mMapOverlays = mapView.getOverlays();
 		paint.setAntiAlias(true);
-		paint.setTextSize(15);
-		paint.setTextAlign(Align.RIGHT);
-		paint.setColor(Color.WHITE);
-		paint.setTypeface(Typeface.DEFAULT_BOLD);
+		paint.setStrokeWidth(1);
 	}
 }

@@ -28,8 +28,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -92,9 +90,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mMapOverlays = mMapView.getOverlays();
-		Bitmap marker = BitmapFactory.decodeResource(getResources(),
-				R.drawable.pin);
-		StationOverlay.init(marker, mMapView, this);
+		StationOverlay.init(this, mMapView);
 		handleIntent(getIntent());
 	}
 

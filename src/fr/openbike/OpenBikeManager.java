@@ -45,7 +45,9 @@ import fr.openbike.utils.Utils;
 public class OpenBikeManager {
 	
 	public static String UPDATE_SERVER_URL = "";
-	public static final String SERVER_NETWORKS = "http://openbikeserver.appspot.com/networks";
+	public static final String SERVER_NETWORKS = "http://openbike.fr/test.xml";
+		//"http://openbikeserver.appspot.com/networks";
+		//"http://192.168.0.1:8888/networks";
 	public static int NETWORK_LATITUDE = 0;
 	public static int NETWORK_LONGITUDE = 0;
 	public static String NETWORK_NAME = "";
