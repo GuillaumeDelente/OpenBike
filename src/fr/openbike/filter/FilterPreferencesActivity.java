@@ -39,10 +39,12 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	protected BikeFilter mActualFilter;
 	protected BikeFilter mModifiedFilter;
 	protected Preference mNetworkPreference;
+	protected Preference mReportBugPreference;
 	protected Dialog mConfirmDialog;
 	private OpenBikeManager mOpenBikeManager;
 
 	public static final String NETWORK_PREFERENCE = "network";
+	public static final String REPORT_BUG_PREFERENCE = "report_bug";
 	public static final String FAVORITE_FILTER = "favorite_filter";
 	public static final String BIKES_FILTER = "bikes_filter";
 	public static final String SLOTS_FILTER = "slots_filter";
@@ -63,7 +65,10 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 		mActualFilter = mOpenBikeManager.getVcubFilter();
 		mNetworkPreference = getPreferenceScreen().findPreference(
 				FilterPreferencesActivity.NETWORK_PREFERENCE);
-		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : " + OpenBikeManager.NETWORK_CITY);
+		mReportBugPreference = getPreferenceScreen().findPreference(
+				FilterPreferencesActivity.REPORT_BUG_PREFERENCE);
+		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : "
+				+ OpenBikeManager.NETWORK_CITY);
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 		try {
@@ -147,6 +152,12 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			startActivity(new Intent(this, OpenBikeListActivity.class)
 					.setAction(OpenBikeListActivity.ACTION_CHOOSE_NETWORK)
 					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+		} else if (preference == mReportBugPreference) {
+			final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+			emailIntent.setType("plain/text");
+			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"contact@openbike.fr"});
+			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Bug OpenBike");
+			startActivity(Intent.createChooser(emailIntent, "Signaler un bug"));
 		}
 		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}

@@ -40,6 +40,7 @@ import fr.openbike.object.Network;
 public class RestClient {
 
 	public static final int NETWORK_ERROR = -1;
+	public static final int URL_ERROR = -6;
 
 	private static String convertStreamToString(InputStream is) {
 		/*

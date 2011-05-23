@@ -45,22 +45,12 @@ public class StationOverlay extends Overlay {
 	static private Bitmap mMarker = null;
 	static private int mMarkerHeight = 0;
 	static private int mMarkerWidth = 0;
-	static private MapView mMapView;
 	static private List<Overlay> mMapOverlays;
 	static private BalloonOverlayView mBalloonView;
 	static MapController mMc;
 	static private Paint paint = new Paint();
 	static private Point point1 = new Point();
 	static private Point point2 = new Point();
-
-	static private int latCenter;
-	static private int latSpan;
-	static private int latMax;
-	static private int longMax;
-	static private int longMin;
-	static private int latMin;
-	static private int stationLon;
-	static private int stationLat;
 
 	private MinimalStation mStation;
 	private boolean mIsCurrent = false;
@@ -85,28 +75,8 @@ public class StationOverlay extends Overlay {
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		if (!shadow) {
-			GeoPoint mapCenter = mapView.getMapCenter();
-			latCenter = mapCenter.getLatitudeE6();
-			latSpan = mapView.getLatitudeSpan();
-			// Top
-			latMax = latCenter + (latSpan / 2);
-			// longMax = longCenter + (longSpan / 2);
 			Projection projection = mapView.getProjection();
-			// Left
-			longMin = projection.fromPixels(-mMarkerWidth / 2, 0)
-					.getLongitudeE6();
-			// right
-			longMax = projection.fromPixels(
-					mMapView.getWidth() + mMarkerWidth / 2, 0).getLongitudeE6();
-			// Down
-			latMin = projection.fromPixels(0,
-					mMapView.getHeight() + mMarkerHeight).getLatitudeE6();
-			stationLon = mStation.getGeoPoint().getLongitudeE6();
-			stationLat = mStation.getGeoPoint().getLatitudeE6();
-			if (stationLat < latMin || stationLat > latMax
-					|| stationLon < longMin || stationLon > longMax) {
-				return;
-			}
+
 			projection.toPixels(mStation.getGeoPoint(), point1);
 			point1.x -= mMarkerWidth / 2;
 			point1.y -= mMarkerHeight;
@@ -232,7 +202,6 @@ public class StationOverlay extends Overlay {
 		mMarker = marker;
 		mMarkerHeight = marker.getHeight();
 		mMarkerWidth = marker.getWidth();
-		mMapView = mapview;
 		mMc = mapview.getController();
 		mMapOverlays = mapview.getOverlays();
 		paint.setAntiAlias(true);

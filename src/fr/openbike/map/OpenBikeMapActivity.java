@@ -35,6 +35,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -100,6 +101,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onNewIntent(Intent intent) {
+		Log.d("OpenBike", "On new intent " + intent.getAction());
 		super.onNewIntent(intent);
 		setIntent(intent);
 		handleIntent(intent);
@@ -127,10 +129,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	protected void onResume() {
+		Log.d("OpenBike", "On resume " + getIntent().getAction());
 		OpenBikeManager.setCurrentActivity(this);
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
-		if (mRetrieveList) {
+		if (mRetrieveList) { // Know if we passed by onNewIntent() just before
 			mMapOverlays.clear();
 			if (ACTION_DETAIL.equals(intent.getAction())) {
 				setStation(intent.getData());
@@ -536,6 +539,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private void setStationList() {
 		mMapOverlays.addAll(mOpenBikeManager.getVisibleStations());
 		Collections.reverse(mMapOverlays);
+		Log.d("OpenBike", "Number of Overlays : " + mMapOverlays.size());
 	}
 
 	public void hideOverlayBalloon() {
