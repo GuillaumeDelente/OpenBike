@@ -88,8 +88,8 @@ public class OpenBikeDBAdapter {
 			+ " integer primary key, " + KEY_NAME + " text not null, "
 			+ KEY_CITY + " text not null, " + KEY_LATITUDE
 			+ " integer not null, " + KEY_LONGITUDE + " integer not null, "
-			+ KEY_SERVER + " text not null, "
-			+ KEY_SPECIAL_NAME + " text not null);";
+			+ KEY_SERVER + " text not null, " + KEY_SPECIAL_NAME
+			+ " text not null);";
 
 	public OpenBikeDBAdapter(Context context) {
 		// mContext = context;
@@ -276,23 +276,24 @@ public class OpenBikeDBAdapter {
 		} catch (NumberFormatException ex) {
 		}
 		query += "*";
-		
-		//FIXME: Put network id as argument in rawQuery(), doesn't work
-		String s = "SELECT vs._id, ob.availableBikes, ob.freeSlots, ob.isOpen, " +
-						"ob.latitude, ob.longitude, ob.name, ob.isFavorite " +
-				"FROM virtual_stations vs " +
-				"INNER JOIN stations ob " +
-				"ON (ob._id = vs._id AND vs.network = ob.network) " +
-				"WHERE " + table + " match ? AND vs.network = " + 
-				String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
-		
-		
-		Cursor cursor = mDb
-				.rawQuery(s,
-						new String[] {
-								query
-								//, String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0))
-								});
+
+		// FIXME: Put network id as argument in rawQuery(), doesn't work
+		String s = "SELECT vs._id, ob.availableBikes, ob.freeSlots, ob.isOpen, "
+				+ "ob.latitude, ob.longitude, ob.name, ob.isFavorite "
+				+ "FROM virtual_stations vs "
+				+ "INNER JOIN stations ob "
+				+ "ON (ob._id = vs._id AND vs.network = ob.network) "
+				+ "WHERE "
+				+ table
+				+ " match ? AND vs.network = "
+				+ String.valueOf(mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
+
+		Cursor cursor = mDb.rawQuery(s, new String[] { query
+		// ,
+		// String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE,
+		// 0))
+				});
 
 		/*
 		 * if (cursor == null) { return null; } /* else if
@@ -316,20 +317,18 @@ public class OpenBikeDBAdapter {
 		// Network is not in argument list because when I do so, it doesn't work
 		// !
 		String s = "SELECT vs._id, vs._id as "
-			+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
-			+ ", 'n° ' || vs._id as "
-			+ SearchManager.SUGGEST_COLUMN_TEXT_2
-			+ ", vs.name as "
-			+ SearchManager.SUGGEST_COLUMN_TEXT_1
-			+ " FROM"
-			+ " virtual_stations vs WHERE "
-			+ table
-			+ " MATCH ? AND vs.network = "
-			+ mPreferences.getInt(
-					FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
-		Cursor cursor = mDb.rawQuery(
-				s,
-				new String[] { query });
+				+ SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID
+				+ ", 'n° ' || vs._id as "
+				+ SearchManager.SUGGEST_COLUMN_TEXT_2
+				+ ", vs.name as "
+				+ SearchManager.SUGGEST_COLUMN_TEXT_1
+				+ " FROM"
+				+ " virtual_stations vs WHERE "
+				+ table
+				+ " MATCH ? AND vs.network = "
+				+ mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
+		Cursor cursor = mDb.rawQuery(s, new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
 		 * BaseColumns._ID, "'n° ' || " + BaseColumns._ID + " as " +
@@ -413,6 +412,15 @@ public class OpenBikeDBAdapter {
 		int count = cursor.getInt(0);
 		cursor.close();
 		return count;
+	}
+
+	// FIXME : to remove
+	public Cursor getStations() throws SQLException {
+		Cursor cursor = mDb.rawQuery("SELECT latitude, longitude FROM "
+				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
+				new String[] { String.valueOf(mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
+		return cursor;
 	}
 
 	private static class OpenBikeDBOpenHelper extends SQLiteOpenHelper {
@@ -522,11 +530,12 @@ public class OpenBikeDBAdapter {
 					db.beginTransaction();
 					// Create temporary table
 					db.execSQL(CREATE_NETWORKS_TABLE);
-					
+
 					// Fill Network table with BORDEAUX
-					db.execSQL("INSERT INTO networks " +
-							"VALUES (1, 'VCub', 'Bordeaux', 44837368, -576144, " +
-							"'http://openbikeserver-2.appspot.com/stations/','VCub +');");
+					db
+							.execSQL("INSERT INTO networks "
+									+ "VALUES (1, 'VCub', 'Bordeaux', 44837368, -576144, "
+									+ "'http://openbikeserver-2.appspot.com/stations/','VCub +');");
 
 					// Create temporary table
 					db.execSQL("CREATE TEMPORARY TABLE stations_backup ("

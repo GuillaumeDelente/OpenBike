@@ -257,6 +257,7 @@ public class OpenBikeManager {
 	}
 	
 	public ArrayList<StationOverlay> getVisibleStations() {
+		/*
 		if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
 			mVisibleStations = new ArrayList<StationOverlay>();
 			executeShowNetworksTask();
@@ -265,6 +266,8 @@ public class OpenBikeManager {
 			executeCreateVisibleStationsTask(true);
 		}
 	return mVisibleStations;
+	*/
+		return new ArrayList<StationOverlay>();
 	}
 	
 	private void updateDistance(Location location) {

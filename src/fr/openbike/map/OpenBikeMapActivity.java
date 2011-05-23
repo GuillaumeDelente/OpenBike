@@ -28,6 +28,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Paint.Align;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -45,10 +51,12 @@ import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 
 import com.google.android.maps.GeoPoint;
+import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
+import com.google.android.maps.OverlayItem;
 
 import fr.openbike.IOpenBikeActivity;
 import fr.openbike.MyLocationProvider;
@@ -126,8 +134,25 @@ public class OpenBikeMapActivity extends MapActivity implements
 		OpenBikeManager.setCurrentActivity(this);
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
+		
+		mMapOverlays.clear();
+		Drawable marker = getResources().getDrawable(R.drawable.pin);
+
+		marker.setBounds(0, 0, marker.getIntrinsicWidth(),
+														marker.getIntrinsicHeight());
+
+		mMapOverlays.add(new SitesOverlay(marker));
+/*
+		
 		if (mRetrieveList) {
 			mMapOverlays.clear();
+			Drawable marker = getResources().getDrawable(R.drawable.pin);
+
+			marker.setBounds(0, 0, marker.getIntrinsicWidth(),
+															marker.getIntrinsicHeight());
+
+			mMapOverlays.add(new SitesOverlay(marker));
+
 			if (ACTION_DETAIL.equals(intent.getAction())) {
 				setStation(intent.getData());
 				if (mMapPreferences.getBoolean(
@@ -160,6 +185,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		} else {
 			mMyLocationOverlay.setCurrentLocation(null);
 		}
+		*/
 		super.onResume();
 	}
 
@@ -325,17 +351,14 @@ public class OpenBikeMapActivity extends MapActivity implements
 													FilterPreferencesActivity.FAVORITE_FILTER,
 													false)) {
 										((StationOverlay) mMapOverlays
-												.get(mMapOverlays.size()
-														- 2))
+												.get(mMapOverlays.size() - 2))
 												.hideBalloon();
 										mMapOverlays
-												.remove(mMapOverlays.size()
-														- 2);
+												.remove(mMapOverlays.size() - 2);
 										// mMapView.invalidate();
 									} else {
 										((StationOverlay) mMapOverlays
-												.get(mMapOverlays.size()
-														- 2))
+												.get(mMapOverlays.size() - 2))
 												.getStation()
 												.setFavorite(false);
 									}
@@ -347,8 +370,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 								@Override
 								public void onCancel(DialogInterface arg0) {
 									((StationOverlay) mMapOverlays
-											.get(mMapOverlays.size()
-													- 2))
+											.get(mMapOverlays.size() - 2))
 											.refreshBalloon();
 
 								}
@@ -414,11 +436,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public void onLocationChanged(Location location) {
 		/*
-		if (mMyLocationOverlay == null) {
-			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
-			mMapOverlays.add(mMyLocationOverlay);
-		}
-		*/
+		 * if (mMyLocationOverlay == null) { mMyLocationOverlay = new
+		 * MyLocationOverlay(this, mMapView);
+		 * mMapOverlays.add(mMyLocationOverlay); }
+		 */
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
 		if (!mMapPreferences.getBoolean(
@@ -618,5 +639,78 @@ public class OpenBikeMapActivity extends MapActivity implements
 	public void showProgressDialog(String title, String message) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private class SitesOverlay extends ItemizedOverlay<OverlayItem> {
+		private List<OverlayItem> items = new ArrayList<OverlayItem>();
+		private Drawable marker = null;
+		int IMAGE_WIDTH;
+		int IMAGE_HEIGHT;
+
+		public SitesOverlay(Drawable marker) {
+			super(marker);
+			this.marker = marker;
+			IMAGE_WIDTH = marker.getIntrinsicWidth();
+			IMAGE_HEIGHT = marker.getIntrinsicHeight();
+			Cursor stations = mOpenBikeManager.getDbAdapter().getStations();
+			while (stations.moveToNext()) {
+				items.add(new StationOverlay(new GeoPoint(stations.getInt(stations
+						.getColumnIndex("latitude")), stations.getInt(stations
+						.getColumnIndex("longitude"))), "", ""));
+			}
+			populate();
+		}
+
+		@Override
+		protected OverlayItem createItem(int i) {
+			return (items.get(i));
+		}
+
+		@Override
+		public void draw(Canvas canvas, MapView mapView, boolean shadow) {
+			if (!shadow)
+				super.draw(canvas, mapView, shadow);
+			boundCenterBottom(marker);
+		}
+
+		@Override
+		public int size() {
+			return (items.size());
+		}
+		
+		private class StationOverlay extends OverlayItem {
+
+			public StationOverlay(GeoPoint point, String a, String b) {
+				super(point, a, b);
+			}
+
+			@Override
+			public Drawable getMarker(int stateBitset) {
+				
+				// You can also use Config.ARGB_4444 to conserve memory or ARGB_565 if 
+				// you don't have any transparency.
+				Bitmap canvasBitmap = Bitmap.createBitmap(IMAGE_WIDTH, 
+				                                          IMAGE_HEIGHT, 
+				                                          Bitmap.Config.ARGB_8888);
+				// Create a canvas, that will draw on to canvasBitmap. canvasBitmap is
+				// currently blank.
+				Canvas imageCanvas = new Canvas(canvasBitmap);
+				// Set up the paint for use with our Canvas
+				Paint imagePaint = new Paint();
+				imagePaint.setTextAlign(Align.CENTER);
+				imagePaint.setTextSize(16f);
+
+				// Draw the image to our canvas
+				marker.draw(imageCanvas);
+				// Draw the text on top of our image
+				imageCanvas.drawText("Sample Text", 
+				                         IMAGE_WIDTH / 2, 
+				                         IMAGE_HEIGHT / 2, 
+				                         imagePaint);
+				// This is the final image that you can use 
+				BitmapDrawable finalImage = new BitmapDrawable(canvasBitmap);
+				return marker;
+			}
+		}
 	}
 }
