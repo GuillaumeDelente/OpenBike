@@ -88,7 +88,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			showStationDetails(getIntent().getData());
 			finish();
-	    }
+		}
 		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 
@@ -108,9 +108,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	protected void onNewIntent(Intent intent) {
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			showStationDetails(intent.getData());
-	    } else {
-	    	setIntent(intent);
-	    }
+		} else {
+			setIntent(intent);
+		}
 		// handleIntent(intent);
 	}
 
@@ -133,6 +133,8 @@ public class OpenBikeListActivity extends ListActivity implements
 				mAdapter = new OpenBikeArrayAdaptor(this,
 						R.layout.station_list_entry, mOpenBikeManager
 								.getVisibleStations());
+			} else { // Check if update needed
+				mOpenBikeManager.getVisibleStations();
 			}
 			this.setListAdapter(mAdapter);
 			onListUpdated();
@@ -230,23 +232,20 @@ public class OpenBikeListActivity extends ListActivity implements
 			station = managedQuery(Uri.withAppendedPath(
 					StationsProvider.CONTENT_URI, mSelected), null, null, null,
 					null);
-			startActivity(Utils.getMapsIntent(station
-											.getInt(station
-													.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)),
-													station
-													.getInt(station
-															.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)), 
-															station
-															.getString(station
-																	.getColumnIndex(OpenBikeDBAdapter.KEY_NAME))));
+			startActivity(Utils.getMapsIntent(station.getInt(station
+					.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), station
+					.getInt(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)),
+					station.getString(station
+							.getColumnIndex(OpenBikeDBAdapter.KEY_NAME))));
 			return true;
 		case R.id.navigate:
 			station = managedQuery(Uri.withAppendedPath(
 					StationsProvider.CONTENT_URI, mSelected), null, null, null,
 					null);
 			startActivity(Utils.getNavigationIntent(station.getInt(station
-					.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), 
-					station.getInt(station
+					.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), station
+					.getInt(station
 							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))));
 			return true;
 		case R.id.add_favorite:
@@ -275,6 +274,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		final Context context = this;
+		final SharedPreferences.Editor editor = PreferenceManager
+				.getDefaultSharedPreferences(this).edit();
 		switch (id) {
 		case RestClient.NETWORK_ERROR:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
@@ -340,6 +341,22 @@ public class OpenBikeListActivity extends ListActivity implements
 							} else {
 								dialog.cancel();
 							}
+						}
+					}).create();
+		case RestClient.URL_ERROR:
+			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
+					getString(R.string.url_error)).setMessage(
+					(getString(R.string.url_error_summary))).setPositiveButton(
+					"Ok", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							editor
+									.putInt(
+											FilterPreferencesActivity.NETWORK_PREFERENCE,
+											0);
+							editor.commit();
+							startActivity(new Intent(context,
+									OpenBikeListActivity.class)
+									.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 						}
 					}).create();
 		case MyLocationProvider.ENABLE_GPS:
@@ -419,7 +436,6 @@ public class OpenBikeListActivity extends ListActivity implements
 		case CHOOSE_NETWORK:
 			final SharedPreferences preferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
-			final SharedPreferences.Editor editor = preferences.edit();
 			final CharSequence[] items = { "" };
 			mNetworkDialog = new AlertDialog.Builder(this).setCancelable(false)
 					.setTitle(getString(R.string.choose_network_title))
@@ -431,7 +447,8 @@ public class OpenBikeListActivity extends ListActivity implements
 											.putInt(
 													FilterPreferencesActivity.NETWORK_PREFERENCE,
 													mNetworks.get(item).getId());
-									Button okButton = mNetworkDialog.getButton(Dialog.BUTTON_POSITIVE);
+									Button okButton = mNetworkDialog
+											.getButton(Dialog.BUTTON_POSITIVE);
 									okButton.setEnabled(true);
 								}
 							}).setPositiveButton("Ok",
@@ -585,7 +602,6 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onListUpdated() {
-		// Log.i("OpenBike", "notifyDataSetChanged");
 		if (mAdapter == null) // OnCreate
 			return;
 		mAdapter.notifyDataSetChanged();

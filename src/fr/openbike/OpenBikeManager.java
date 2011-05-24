@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
@@ -174,7 +175,7 @@ public class OpenBikeManager {
 	}
 
 	public boolean executeUpdateAllStationsTask(boolean showToast) {
-		if (mActivity == null)
+		if (mActivity == null && mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) != 0)
 			return false;
 		if (mUpdateAllStationsTask == null && (System.currentTimeMillis() 
 				- mFilterPreferences.getLong(LAST_UPDATE, 0) > MIN_UPDATE_TIME)) {
@@ -260,10 +261,14 @@ public class OpenBikeManager {
 		/*
 		if (mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0) {
 			mVisibleStations = new ArrayList<StationOverlay>();
-			executeShowNetworksTask();
+			mActivity.startActivity(new Intent(mActivity, OpenBikeListActivity.class)
+				.setAction(OpenBikeListActivity.ACTION_CHOOSE_NETWORK)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 		} else if (mVisibleStations == null && mCreateVisibleStationsTask == null) {
 			mVisibleStations = new ArrayList<StationOverlay>();
 			executeCreateVisibleStationsTask(true);
+		} else if (mVisibleStations != null && mCreateVisibleStationsTask == null) {
+			executeUpdateAllStationsTask(false);
 		}
 	return mVisibleStations;
 	*/
@@ -475,6 +480,10 @@ public class OpenBikeManager {
 		@Override
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
+			if (UPDATE_SERVER_URL.equals("")) {
+				publishProgress(RestClient.URL_ERROR);
+				return false;
+			}
 			String json = RestClient
 					.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
 			if (json == null) {
@@ -557,6 +566,10 @@ public class OpenBikeManager {
 
 		protected Boolean doInBackground(Void... unused) {
 			int result = 1;
+			if (UPDATE_SERVER_URL.equals("")) {
+				publishProgress(RestClient.URL_ERROR);
+				return false;
+			}
 			String json = RestClient
 			.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
 			if (json == null) {

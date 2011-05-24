@@ -30,8 +30,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Paint.Align;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -39,6 +39,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -84,6 +85,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private OpenBikeManager mOpenBikeManager = null;
 	private int mSelected = 0;
 	private boolean mRetrieveList = false;
+	private Paint paint = new Paint();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -104,6 +106,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onNewIntent(Intent intent) {
+		Log.d("OpenBike", "On new intent " + intent.getAction());
 		super.onNewIntent(intent);
 		setIntent(intent);
 		handleIntent(intent);
@@ -131,61 +134,51 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	protected void onResume() {
+		Log.d("OpenBike", "On resume " + getIntent().getAction());
 		OpenBikeManager.setCurrentActivity(this);
 		mOpenBikeManager.startLocation();
 		Intent intent = getIntent();
-		
+
 		mMapOverlays.clear();
-		Drawable marker = getResources().getDrawable(R.drawable.pin);
+		BitmapDrawable marker1 = (BitmapDrawable) getResources().getDrawable(
+				R.drawable.pin);
+		MarkerDrawable marker = new MarkerDrawable(marker1.getBitmap());
 
-		marker.setBounds(0, 0, marker.getIntrinsicWidth(),
-														marker.getIntrinsicHeight());
+		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker
+				.getIntrinsicHeight());
 
-		mMapOverlays.add(new SitesOverlay(marker));
-/*
-		
-		if (mRetrieveList) {
-			mMapOverlays.clear();
-			Drawable marker = getResources().getDrawable(R.drawable.pin);
-
-			marker.setBounds(0, 0, marker.getIntrinsicWidth(),
-															marker.getIntrinsicHeight());
-
-			mMapOverlays.add(new SitesOverlay(marker));
-
-			if (ACTION_DETAIL.equals(intent.getAction())) {
-				setStation(intent.getData());
-				if (mMapPreferences.getBoolean(
-						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
-					zoomAndCenter(OpenBikeManager.getCurrentLocation());
-				} else {
-					zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
-							.getStation().getGeoPoint());
-				}
-			} else {
-				setStationList();
-				if (mMapPreferences.getBoolean(
-						FilterPreferencesActivity.CENTER_PREFERENCE, false))
-					zoomAndCenter(OpenBikeManager.getCurrentLocation());
-			}
-		}
-		mRetrieveList = true;
-
-		if (mMyLocationOverlay == null) {
-			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
-		}
-		mMapOverlays.add(mMyLocationOverlay);
-		if (mMapPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
-			if (!mMyLocationOverlay.isMyLocationDrawn()) {
-				mMyLocationOverlay.setCurrentLocation(OpenBikeManager
-						.getCurrentLocation());
-				// mMapView.invalidate();
-			}
-		} else {
-			mMyLocationOverlay.setCurrentLocation(null);
-		}
-		*/
+		mMapOverlays.add(new SitesOverlay(marker1));
+		/*
+		 * 
+		 * if (mRetrieveList) { // Know if we passed by onNewIntent() just
+		 * before mMapOverlays.clear(); Drawable marker =
+		 * getResources().getDrawable(R.drawable.pin);
+		 * 
+		 * marker.setBounds(0, 0, marker.getIntrinsicWidth(),
+		 * marker.getIntrinsicHeight());
+		 * 
+		 * mMapOverlays.add(new SitesOverlay(marker));
+		 * 
+		 * if (ACTION_DETAIL.equals(intent.getAction())) {
+		 * setStation(intent.getData()); if (mMapPreferences.getBoolean(
+		 * FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
+		 * zoomAndCenter(OpenBikeManager.getCurrentLocation()); } else {
+		 * zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
+		 * .getStation().getGeoPoint()); } } else { setStationList(); if
+		 * (mMapPreferences.getBoolean(
+		 * FilterPreferencesActivity.CENTER_PREFERENCE, false))
+		 * zoomAndCenter(OpenBikeManager.getCurrentLocation()); } }
+		 * mRetrieveList = true;
+		 * 
+		 * if (mMyLocationOverlay == null) { mMyLocationOverlay = new
+		 * MyLocationOverlay(this, mMapView); }
+		 * mMapOverlays.add(mMyLocationOverlay); if (mMapPreferences.getBoolean(
+		 * FilterPreferencesActivity.LOCATION_PREFERENCE, false)) { if
+		 * (!mMyLocationOverlay.isMyLocationDrawn()) {
+		 * mMyLocationOverlay.setCurrentLocation(OpenBikeManager
+		 * .getCurrentLocation()); // mMapView.invalidate(); } } else {
+		 * mMyLocationOverlay.setCurrentLocation(null); }
+		 */
 		super.onResume();
 	}
 
@@ -553,6 +546,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private void setStationList() {
 		mMapOverlays.addAll(mOpenBikeManager.getVisibleStations());
 		Collections.reverse(mMapOverlays);
+		Log.d("OpenBike", "Number of Overlays : " + mMapOverlays.size());
 	}
 
 	public void hideOverlayBalloon() {
@@ -641,6 +635,59 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	}
 
+	private class MarkerDrawable extends BitmapDrawable {
+		
+		public MarkerDrawable(Bitmap b) {
+			super(b);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see android.graphics.drawable.Drawable#draw(android.graphics.Canvas)
+		 */
+		@Override
+		public void draw(Canvas canvas) {
+			super.draw(canvas);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see android.graphics.drawable.Drawable#getOpacity()
+		 */
+		@Override
+		public int getOpacity() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see android.graphics.drawable.Drawable#setAlpha(int)
+		 */
+		@Override
+		public void setAlpha(int alpha) {
+			// TODO Auto-generated method stub
+
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * android.graphics.drawable.Drawable#setColorFilter(android.graphics
+		 * .ColorFilter)
+		 */
+		@Override
+		public void setColorFilter(ColorFilter cf) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
 	private class SitesOverlay extends ItemizedOverlay<OverlayItem> {
 		private List<OverlayItem> items = new ArrayList<OverlayItem>();
 		private Drawable marker = null;
@@ -654,9 +701,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 			IMAGE_HEIGHT = marker.getIntrinsicHeight();
 			Cursor stations = mOpenBikeManager.getDbAdapter().getStations();
 			while (stations.moveToNext()) {
-				items.add(new StationOverlay(new GeoPoint(stations.getInt(stations
-						.getColumnIndex("latitude")), stations.getInt(stations
-						.getColumnIndex("longitude"))), "", ""));
+				items
+						.add(new StationOverlay(new GeoPoint(stations
+								.getInt(stations.getColumnIndex("latitude")),
+								stations.getInt(stations
+										.getColumnIndex("longitude"))), "", ""));
 			}
 			populate();
 		}
@@ -677,7 +726,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		public int size() {
 			return (items.size());
 		}
-		
+
 		private class StationOverlay extends OverlayItem {
 
 			public StationOverlay(GeoPoint point, String a, String b) {
@@ -686,29 +735,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 			@Override
 			public Drawable getMarker(int stateBitset) {
-				
-				// You can also use Config.ARGB_4444 to conserve memory or ARGB_565 if 
-				// you don't have any transparency.
-				Bitmap canvasBitmap = Bitmap.createBitmap(IMAGE_WIDTH, 
-				                                          IMAGE_HEIGHT, 
-				                                          Bitmap.Config.ARGB_8888);
-				// Create a canvas, that will draw on to canvasBitmap. canvasBitmap is
-				// currently blank.
-				Canvas imageCanvas = new Canvas(canvasBitmap);
-				// Set up the paint for use with our Canvas
-				Paint imagePaint = new Paint();
-				imagePaint.setTextAlign(Align.CENTER);
-				imagePaint.setTextSize(16f);
-
-				// Draw the image to our canvas
-				marker.draw(imageCanvas);
-				// Draw the text on top of our image
-				imageCanvas.drawText("Sample Text", 
-				                         IMAGE_WIDTH / 2, 
-				                         IMAGE_HEIGHT / 2, 
-				                         imagePaint);
-				// This is the final image that you can use 
-				BitmapDrawable finalImage = new BitmapDrawable(canvasBitmap);
 				return marker;
 			}
 		}

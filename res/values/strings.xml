@@ -39,7 +39,10 @@
 	des données dans la base.</string>
 	<string name="json_error">Erreur de lecture</string>
 	<string name="json_error_summary">Une erreur est survenue lors de la lecture de
-	la réponse du serveur.</string>	
+	la réponse du serveur.</string>		
+	<string name="url_error">Erreur</string>
+	<string name="url_error_summary">La ville à afficher n\'a pas été enregistrée correctement, 
+	merci de la choisir dans la liste suivante.</string>	
 	<string name="retrieve_all">Initialisation</string>
 	<string name="retrieve_networks">Récupération de la liste des villes</string>
 	<string name="querying_server_summary">Contact du serveur en cours.</string>
@@ -84,6 +87,8 @@
 	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
 	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
 	<string name="network_title">Changer de ville</string>
+	<string name="report_bug_title">Signaler un bug</string>
+	<string name="report_bug_summary">Envoyer un mail au développeur</string>
 	
 	<!--  Autre -->	
     <plurals name="bike">

@@ -7,6 +7,10 @@
 				android:key="network"
 		        android:title="@string/network_title" 
 		        android:defaultValue="1"/>
+	   <Preference 
+				android:key="report_bug"
+		        android:title="@string/report_bug_title"
+		        android:summary="@string/report_bug_summary" />
 		<CheckBoxPreference android:key="acra.enable"
 		        android:title="@string/reporting_title"
 		        android:summary="@string/reporting_summary"
