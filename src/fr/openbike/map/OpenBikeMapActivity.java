@@ -27,11 +27,14 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.Paint.Align;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -85,7 +88,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private OpenBikeManager mOpenBikeManager = null;
 	private int mSelected = 0;
 	private boolean mRetrieveList = false;
-	private Paint paint = new Paint();
+	private static Paint mTextPaint = new Paint();
+	private static Paint mPinPaint = new Paint();
+	private static boolean mDrawText;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -142,12 +147,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapOverlays.clear();
 		BitmapDrawable marker1 = (BitmapDrawable) getResources().getDrawable(
 				R.drawable.pin);
-		MarkerDrawable marker = new MarkerDrawable(marker1.getBitmap());
+		MarkerDrawable marker = new MarkerDrawable(getResources(), marker1
+				.getBitmap());
 
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker
 				.getIntrinsicHeight());
 
-		mMapOverlays.add(new SitesOverlay(marker1));
+		mMapOverlays.add(new StationsOverlay(marker));
 		/*
 		 * 
 		 * if (mRetrieveList) { // Know if we passed by onNewIntent() just
@@ -632,80 +638,70 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public void showProgressDialog(String title, String message) {
 		// TODO Auto-generated method stub
-
 	}
 
 	private class MarkerDrawable extends BitmapDrawable {
-		
-		public MarkerDrawable(Bitmap b) {
-			super(b);
+
+		// For fast access and lot of modifications
+		public volatile String bike;
+		public volatile String slots;
+
+		public MarkerDrawable(Resources r, Bitmap b) {
+			super(r, b);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see android.graphics.drawable.Drawable#draw(android.graphics.Canvas)
-		 */
 		@Override
 		public void draw(Canvas canvas) {
 			super.draw(canvas);
+			canvas.drawText(String.valueOf(bike), -6, -31, mTextPaint);
+			canvas.drawText(String.valueOf(slots), -6, -16, mTextPaint);
+		}
+	}
+	
+	private class PinDrawable extends BitmapDrawable {
+
+		public PinDrawable() {
+			super();
+			mPinPaint.setStyle(Paint.Style.FILL);
+			mPinPaint.setColor(Color.BLUE);
+			mPinPaint.setAlpha(150);
+			mPinPaint.setAntiAlias(true);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see android.graphics.drawable.Drawable#getOpacity()
-		 */
 		@Override
-		public int getOpacity() {
-			// TODO Auto-generated method stub
-			return 0;
+		public void draw(Canvas canvas) {
+			canvas.drawCircle(0, 0, 5, mPinPaint);
 		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see android.graphics.drawable.Drawable#setAlpha(int)
-		 */
-		@Override
-		public void setAlpha(int alpha) {
-			// TODO Auto-generated method stub
-
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * android.graphics.drawable.Drawable#setColorFilter(android.graphics
-		 * .ColorFilter)
-		 */
-		@Override
-		public void setColorFilter(ColorFilter cf) {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
-	private class SitesOverlay extends ItemizedOverlay<OverlayItem> {
+	private class StationsOverlay extends ItemizedOverlay<OverlayItem> {
 		private List<OverlayItem> items = new ArrayList<OverlayItem>();
-		private Drawable marker = null;
+		private MarkerDrawable marker = null;
+		private PinDrawable pin = null;
+		
 		int IMAGE_WIDTH;
 		int IMAGE_HEIGHT;
 
-		public SitesOverlay(Drawable marker) {
+		public StationsOverlay(MarkerDrawable marker) {
 			super(marker);
+			pin = new PinDrawable();
 			this.marker = marker;
+			mTextPaint.setAntiAlias(true);
+			mTextPaint.setTextSize(15);
+			mTextPaint.setTextAlign(Align.RIGHT);
+			mTextPaint.setColor(Color.WHITE);
+			mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
 			IMAGE_WIDTH = marker.getIntrinsicWidth();
 			IMAGE_HEIGHT = marker.getIntrinsicHeight();
 			Cursor stations = mOpenBikeManager.getDbAdapter().getStations();
 			while (stations.moveToNext()) {
-				items
-						.add(new StationOverlay(new GeoPoint(stations
-								.getInt(stations.getColumnIndex("latitude")),
-								stations.getInt(stations
-										.getColumnIndex("longitude"))), "", ""));
+				items.add(new StationOverlay(new GeoPoint(stations
+						.getInt(stations.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), stations
+						.getInt(stations.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))), String
+						.valueOf(stations.getInt(stations
+								.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES))), String
+						.valueOf(stations.getInt(stations
+								.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS)))));
 			}
 			populate();
 		}
@@ -717,9 +713,15 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 		@Override
 		public void draw(Canvas canvas, MapView mapView, boolean shadow) {
-			if (!shadow)
+			if (!shadow) {
+				if (mMapView.getZoomLevel() >= 16) {
+					mDrawText = true;
+				} else {
+					mDrawText = false;
+				}
 				super.draw(canvas, mapView, shadow);
-			boundCenterBottom(marker);
+				boundCenterBottom(marker);
+			}
 		}
 
 		@Override
@@ -728,14 +730,20 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 
 		private class StationOverlay extends OverlayItem {
-
+			
 			public StationOverlay(GeoPoint point, String a, String b) {
 				super(point, a, b);
 			}
 
 			@Override
 			public Drawable getMarker(int stateBitset) {
-				return marker;
+				if (mDrawText) {
+					marker.bike = this.mTitle;
+					marker.slots = this.mSnippet;
+					return marker;
+				} else {
+					return pin;
+				}
 			}
 		}
 	}

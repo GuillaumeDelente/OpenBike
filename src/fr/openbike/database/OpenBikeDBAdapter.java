@@ -416,8 +416,12 @@ public class OpenBikeDBAdapter {
 
 	// FIXME : to remove
 	public Cursor getStations() throws SQLException {
-		Cursor cursor = mDb.rawQuery("SELECT latitude, longitude FROM "
-				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
+		Cursor cursor = mDb.rawQuery("SELECT " +
+				KEY_LATITUDE + ", " +
+				KEY_LONGITUDE + ", " +
+				KEY_BIKES + ", " +
+				KEY_SLOTS + " FROM " +
+				STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
 				new String[] { String.valueOf(mPreferences.getInt(
 						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
 		return cursor;
