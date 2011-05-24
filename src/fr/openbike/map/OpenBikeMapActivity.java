@@ -18,8 +18,6 @@
 package fr.openbike.map;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import android.app.AlertDialog;
@@ -27,21 +25,11 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
-import android.graphics.Paint.Align;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -55,12 +43,10 @@ import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 
 import com.google.android.maps.GeoPoint;
-import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
 
 import fr.openbike.IOpenBikeActivity;
 import fr.openbike.MyLocationProvider;
@@ -70,9 +56,7 @@ import fr.openbike.RestClient;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.list.OpenBikeListActivity;
-import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Network;
-import fr.openbike.utils.Utils;
 
 public class OpenBikeMapActivity extends MapActivity implements
 		IOpenBikeActivity {
@@ -88,9 +72,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private OpenBikeManager mOpenBikeManager = null;
 	private int mSelected = 0;
 	private boolean mRetrieveList = false;
-	private static Paint mTextPaint = new Paint();
-	private static Paint mPinPaint = new Paint();
-	private static boolean mDrawText;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -105,7 +86,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
 		mMapPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mMapOverlays = mMapView.getOverlays();
-		StationOverlay.init(this, mMapView);
 		handleIntent(getIntent());
 	}
 
@@ -127,8 +107,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 					&& OpenBikeManager.getCurrentLocation() != null) {
 				zoomAndCenter(OpenBikeManager.getCurrentLocation());
 			} else {
+				//TODO
+				/*
 				zoomAndCenter(((StationOverlay) mMapOverlays.get(0))
-						.getStation().getGeoPoint());
+						.getStation().getGeoPoint());*/
 			}
 		} else {
 			setStationList();
@@ -145,15 +127,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 		Intent intent = getIntent();
 
 		mMapOverlays.clear();
-		BitmapDrawable marker1 = (BitmapDrawable) getResources().getDrawable(
-				R.drawable.pin);
-		MarkerDrawable marker = new MarkerDrawable(getResources(), marker1
-				.getBitmap());
+		BitmapDrawable marker = (BitmapDrawable) getResources().getDrawable(R.drawable.pin);
 
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker
 				.getIntrinsicHeight());
 
-		mMapOverlays.add(new StationsOverlay(marker));
+		mMapOverlays.add(new StationsOverlay(getResources(), marker,
+				mOpenBikeManager.getDbAdapter().getStations()));
 		/*
 		 * 
 		 * if (mRetrieveList) { // Know if we passed by onNewIntent() just
@@ -197,6 +177,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 		// and because such an element is placed in first position by
 		// sorts, set all stations not current an sort them
 		// (to set any current station at its position.
+		
+		//TODO 
+		/*
 		StationOverlay station = getLastStationOverlay();
 		if (station != null) {
 			station.hideBalloon();
@@ -205,6 +188,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mOpenBikeManager.stopLocation();
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);
+		*/
 		super.onPause();
 	}
 
@@ -345,6 +329,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 										int id) {
 									mOpenBikeManager.setFavorite(mSelected,
 											false);
+									//TODO
+									/*
 									if (mMapPreferences
 											.getBoolean(
 													FilterPreferencesActivity.FAVORITE_FILTER,
@@ -361,6 +347,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 												.getStation()
 												.setFavorite(false);
 									}
+									*/
 									dialog.dismiss();
 								}
 							}).setOnCancelListener(
@@ -368,9 +355,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 								@Override
 								public void onCancel(DialogInterface arg0) {
+									//TODO
+									/*
 									((StationOverlay) mMapOverlays
 											.get(mMapOverlays.size() - 2))
 											.refreshBalloon();
+											*/
 
 								}
 							}).setNegativeButton(getString(R.string.no),
@@ -434,11 +424,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onLocationChanged(Location location) {
+		//TODO
 		/*
-		 * if (mMyLocationOverlay == null) { mMyLocationOverlay = new
-		 * MyLocationOverlay(this, mMapView);
-		 * mMapOverlays.add(mMyLocationOverlay); }
-		 */
 		mMyLocationOverlay.setCurrentLocation(location);
 		// Because when distance fitler enabled, onListUpdated is called
 		if (!mMapPreferences.getBoolean(
@@ -463,10 +450,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mIsFirstFix = (location == null) ? true : false;
 		mMapView.invalidate();
+		*/
 	}
 
 	@Override
 	public void onListUpdated() {
+		// TODO 
+		/*
 		int currentId = -1;
 		StationOverlay stationOverlay = null;
 		boolean hasCurrent = false;
@@ -506,9 +496,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mMapOverlays.add(mMyLocationOverlay);
 		}
 		mMapView.invalidate();
+		*/
 	}
 
 	public void setFavorite(int id, boolean isChecked) {
+		// TODO
+		/*
 		mSelected = id;
 		if (isChecked) {
 			mOpenBikeManager.setFavorite(id, true);
@@ -525,9 +518,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 		} else {
 			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);
 		}
+		*/
 	}
 
 	private void setStation(Uri uri) {
+		// TODO
+		/*
 		Cursor station = managedQuery(uri, null, null, null, null);
 		int latitude = station.getInt(station
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE));
@@ -547,15 +543,21 @@ public class OpenBikeMapActivity extends MapActivity implements
 				Utils.computeDistance(latitude, longitude))));
 		zoomAndCenter(((StationOverlay) mMapOverlays.get(0)).getStation()
 				.getGeoPoint());
+				*/
 	}
 
 	private void setStationList() {
+		// TODO
+		/*
 		mMapOverlays.addAll(mOpenBikeManager.getVisibleStations());
 		Collections.reverse(mMapOverlays);
 		Log.d("OpenBike", "Number of Overlays : " + mMapOverlays.size());
+		*/
 	}
 
 	public void hideOverlayBalloon() {
+		// TODO
+		/*
 		int position = mMapOverlays.size() - 2;
 		if (position >= 0) {
 			Overlay overlay = mMapOverlays.get(position);
@@ -566,6 +568,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				// "hideOtherBalloons, before last not a StationOverlay");
 			}
 		}
+		*/
 	}
 
 	@Override
@@ -599,13 +602,16 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapController.setZoom(16);
 		mMapController.animateTo(geoPoint);
 	}
-
+	
+	//TODO
+	/*
 	private StationOverlay getLastStationOverlay() {
 		int i = mMapOverlays.size() - 2;
 		if (i < 0)
 			return null;
 		return ((StationOverlay) mMapOverlays.get(i));
 	}
+	*/
 
 	/*
 	 * (non-Javadoc)
@@ -640,111 +646,4 @@ public class OpenBikeMapActivity extends MapActivity implements
 		// TODO Auto-generated method stub
 	}
 
-	private class MarkerDrawable extends BitmapDrawable {
-
-		// For fast access and lot of modifications
-		public volatile String bike;
-		public volatile String slots;
-
-		public MarkerDrawable(Resources r, Bitmap b) {
-			super(r, b);
-		}
-
-		@Override
-		public void draw(Canvas canvas) {
-			super.draw(canvas);
-			canvas.drawText(String.valueOf(bike), -6, -31, mTextPaint);
-			canvas.drawText(String.valueOf(slots), -6, -16, mTextPaint);
-		}
-	}
-	
-	private class PinDrawable extends BitmapDrawable {
-
-		public PinDrawable() {
-			super();
-			mPinPaint.setStyle(Paint.Style.FILL);
-			mPinPaint.setColor(Color.BLUE);
-			mPinPaint.setAlpha(150);
-			mPinPaint.setAntiAlias(true);
-		}
-
-		@Override
-		public void draw(Canvas canvas) {
-			canvas.drawCircle(0, 0, 5, mPinPaint);
-		}
-	}
-
-	private class StationsOverlay extends ItemizedOverlay<OverlayItem> {
-		private List<OverlayItem> items = new ArrayList<OverlayItem>();
-		private MarkerDrawable marker = null;
-		private PinDrawable pin = null;
-		
-		int IMAGE_WIDTH;
-		int IMAGE_HEIGHT;
-
-		public StationsOverlay(MarkerDrawable marker) {
-			super(marker);
-			pin = new PinDrawable();
-			this.marker = marker;
-			mTextPaint.setAntiAlias(true);
-			mTextPaint.setTextSize(15);
-			mTextPaint.setTextAlign(Align.RIGHT);
-			mTextPaint.setColor(Color.WHITE);
-			mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
-			IMAGE_WIDTH = marker.getIntrinsicWidth();
-			IMAGE_HEIGHT = marker.getIntrinsicHeight();
-			Cursor stations = mOpenBikeManager.getDbAdapter().getStations();
-			while (stations.moveToNext()) {
-				items.add(new StationOverlay(new GeoPoint(stations
-						.getInt(stations.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), stations
-						.getInt(stations.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))), String
-						.valueOf(stations.getInt(stations
-								.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES))), String
-						.valueOf(stations.getInt(stations
-								.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS)))));
-			}
-			populate();
-		}
-
-		@Override
-		protected OverlayItem createItem(int i) {
-			return (items.get(i));
-		}
-
-		@Override
-		public void draw(Canvas canvas, MapView mapView, boolean shadow) {
-			if (!shadow) {
-				if (mMapView.getZoomLevel() >= 16) {
-					mDrawText = true;
-				} else {
-					mDrawText = false;
-				}
-				super.draw(canvas, mapView, shadow);
-				boundCenterBottom(marker);
-			}
-		}
-
-		@Override
-		public int size() {
-			return (items.size());
-		}
-
-		private class StationOverlay extends OverlayItem {
-			
-			public StationOverlay(GeoPoint point, String a, String b) {
-				super(point, a, b);
-			}
-
-			@Override
-			public Drawable getMarker(int stateBitset) {
-				if (mDrawText) {
-					marker.bike = this.mTitle;
-					marker.slots = this.mSnippet;
-					return marker;
-				} else {
-					return pin;
-				}
-			}
-		}
-	}
 }
