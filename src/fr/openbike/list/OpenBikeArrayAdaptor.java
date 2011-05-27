@@ -88,6 +88,7 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 			viewHolder.favorite.setOnCheckedChangeListener(null);
 		}
 		StationOverlay overlay = getItem(position);
+		//FIXME A bug was reported in this line
 		if (overlay == null) {
 			//Log.e("OpenBike", "Invalid position: " + position);
 		}

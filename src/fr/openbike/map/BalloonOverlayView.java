@@ -15,22 +15,25 @@
 
 package fr.openbike.map;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.OverlayItem;
+
+import fr.openbike.MyLocationProvider;
 import fr.openbike.R;
-import fr.openbike.StationDetails;
+import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
-import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
 /**
@@ -49,16 +52,17 @@ import fr.openbike.utils.Utils;
  * @author Jeff Gilfelt
  * 
  */
-public class BalloonOverlayView extends FrameLayout {
+public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 
-	private Context mContext;
-	private RelativeLayout mLayout;
-	private CheckBox mFavorite;
-	private TextView mName;
-	private TextView mOpened;
-	private TextView mBikes;
-	private TextView mSlots;
+	private LinearLayout mLinearLayout;
+	private TextView mTextViewTitle;
+	private TextView mBikesTextView;
+	private TextView mSlotsTextView;
+	private TextView mClosedTextView;
 	private TextView mDistanceTextView;
+	private CheckBox mFavoriteCheckBox;
+	private Context mContext;
+	private int mBottomOffset;
 
 	/**
 	 * Create a new BalloonOverlayView.
@@ -69,50 +73,35 @@ public class BalloonOverlayView extends FrameLayout {
 	 *            - The bottom padding (in pixels) to be applied when rendering
 	 *            this view.
 	 */
-	public BalloonOverlayView(final Context context, int balloonBottomOffset,
-			int ballonLeftOffset) {
+	public BalloonOverlayView(Context context, int offset) {
+
 		super(context);
-		mContext = context;
-		setPadding(ballonLeftOffset, 0, 0, balloonBottomOffset);
-		mLayout = new RelativeLayout(context);
-		mLayout.setVisibility(VISIBLE);
+		this.mContext = context;
+		mLinearLayout = new LinearLayout(context);
+		mLinearLayout.setVisibility(VISIBLE);
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View v = inflater.inflate(R.layout.balloon_overlay, mLayout);
-		v.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-				// Log.i("OpenBike", "Item clicked");
-				showStationDetails(String.valueOf((Integer) mFavorite.getTag()));
-			}
-		});
-		mFavorite = (CheckBox) v.findViewById(R.id.favorite);
-		mName = (TextView) v.findViewById(R.id.balloon_item_name);
-		mBikes = (TextView) v.findViewById(R.id.balloon_item_bikes);
-		mSlots = (TextView) v.findViewById(R.id.balloon_item_slots);
-		mOpened = (TextView) v.findViewById(R.id.balloon_item_opened);
-		mDistanceTextView = (TextView) v
-				.findViewById(R.id.balloon_item_distance);
+		View v = inflater.inflate(R.layout.balloon_overlay, mLinearLayout);
+		mTextViewTitle = (TextView) v.findViewById(R.id.balloon_name);
+		mBikesTextView = (TextView) v.findViewById(R.id.balloon_bikes);
+		mSlotsTextView = (TextView) v.findViewById(R.id.balloon_slots);
+		mClosedTextView = (TextView) v.findViewById(R.id.balloon_closed);
+		mDistanceTextView = (TextView) v.findViewById(R.id.balloon_distance);
+		mFavoriteCheckBox = (CheckBox) v
+				.findViewById(R.id.balloon_item_favorite);
+		/*
+		 * final float scale = this.getResources().getDisplayMetrics().density;
+		 * favorite.setPadding(favorite.getPaddingLeft(),
+		 * favorite.getPaddingTop(), favorite.getPaddingRight() + (int)(10.0f *
+		 * scale + 0.5f), favorite.getPaddingBottom());
+		 */
 
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		params.gravity = Gravity.NO_GRAVITY;
 
-		addView(mLayout, params);
+		addView(mLinearLayout, params);
 
-	}
-
-	private void showStationDetails(Uri uri) {
-		Intent intent = new Intent(mContext, StationDetails.class)
-				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		intent.setAction(Intent.ACTION_VIEW);
-		intent.setData(uri);
-		mContext.startActivity(intent);
-	}
-
-	private void showStationDetails(String id) {
-		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
-				id));
 	}
 
 	/**
@@ -122,50 +111,63 @@ public class BalloonOverlayView extends FrameLayout {
 	 *            - The overlay item containing the relevant view data (title
 	 *            and snippet).
 	 */
-	public void setData(MinimalStation station) {
-		mLayout.setVisibility(VISIBLE);
-		mName.setText(station.getName());
-		mFavorite.setChecked(station.isFavorite());
-		mFavorite.setTag(station.getId());
-		mFavorite.setOnCheckedChangeListener(new FavoriteListener());
-		if (!station.isOpen()) {
-			mOpened.setVisibility(VISIBLE);
-			mBikes.setVisibility(INVISIBLE);
-			mSlots.setVisibility(INVISIBLE);
+	public void setData(Item item) {
+		Cursor station = ((Activity) mContext).managedQuery(Uri
+				.withAppendedPath(StationsProvider.CONTENT_URI, String
+						.valueOf(((StationsOverlay.StationOverlay) item)
+								.getId())), new String[] {
+				OpenBikeDBAdapter.KEY_NAME, OpenBikeDBAdapter.KEY_OPEN,
+				OpenBikeDBAdapter.KEY_FAVORITE, OpenBikeDBAdapter.KEY_BIKES,
+				OpenBikeDBAdapter.KEY_SLOTS }, null, null, null);
+		mLinearLayout.setVisibility(VISIBLE);
+		String name = station.getString(station
+				.getColumnIndex(OpenBikeDBAdapter.KEY_NAME));
+		mTextViewTitle.setText(name);
+
+		if (station.getInt(station
+				.getColumnIndex(OpenBikeDBAdapter.KEY_FAVORITE)) == 1) {
+			mFavoriteCheckBox.setChecked(true);
 		} else {
-			mOpened.setVisibility(INVISIBLE);
-			mBikes.setVisibility(VISIBLE);
-			mSlots.setVisibility(VISIBLE);
-			mBikes.setText(mContext.getResources().getQuantityString(
-					R.plurals.bike, station.getBikes(), station.getBikes()));
-			mSlots.setText(mContext.getResources().getQuantityString(
-					R.plurals.slot, station.getSlots(), station.getSlots()));
-			if (station.getDistance() != -1) {
-				mDistanceTextView.setText(mContext.getString(R.string.at) + " "
-						+ Utils.formatDistance(station.getDistance()));
-				mDistanceTextView.setVisibility(VISIBLE);
-			} else {
-				mDistanceTextView.setVisibility(GONE);
-			}
+			mFavoriteCheckBox.setChecked(false);
+		}
+
+		if (station.getInt(station.getColumnIndex(OpenBikeDBAdapter.KEY_OPEN)) == 1) {
+			// Opened station
+			int bikes = station.getInt(station
+					.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES));
+			int slots = station.getInt(station
+					.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS));
+			mBikesTextView.setText(mContext.getResources().getQuantityString(
+					R.plurals.bike, bikes, bikes));
+			mSlotsTextView.setText(mContext.getResources().getQuantityString(
+					R.plurals.slot, slots, slots));
+			mClosedTextView.setVisibility(GONE);
+			mBikesTextView.setVisibility(VISIBLE);
+			mSlotsTextView.setVisibility(VISIBLE);
+		} else {
+			// Closed station
+			mClosedTextView.setVisibility(VISIBLE);
+			mBikesTextView.setVisibility(GONE);
+			mSlotsTextView.setVisibility(GONE);
+		}
+		GeoPoint point = item.getPoint();
+		int distance = Utils.computeDistance(point.getLatitudeE6(), point.getLongitudeE6());
+		
+		if (distance == MyLocationProvider.DISTANCE_UNAVAILABLE) {
+			// No distance to show
+			mDistanceTextView.setVisibility(GONE);
+		} else {
+			// Show distance
+			mDistanceTextView.setText(mContext.getString(R.string.at) + " " + Utils.formatDistance(distance));
 		}
 	}
-
-	public void disableListeners() {
-		mFavorite.setOnCheckedChangeListener(null);
-
-	}
-
-	public void refreshData(MinimalStation station) {
-		setData(station);
-	}
-
-	// TODO : same as for the list
-	class FavoriteListener implements OnCheckedChangeListener {
-		@Override
-		public void onCheckedChanged(CompoundButton buttonView,
-				boolean isChecked) {
-			((OpenBikeMapActivity) mContext).setFavorite((Integer) buttonView
-					.getTag(), isChecked);
+	
+	public void setBalloonBottomOffset(int offset) {
+		int old = mBottomOffset;
+		mBottomOffset = offset;
+		if (old != mBottomOffset) {
+			setPadding(10, 0, 10, offset);
+			invalidate();
 		}
 	}
 }

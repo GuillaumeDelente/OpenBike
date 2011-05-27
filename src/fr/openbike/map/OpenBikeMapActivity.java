@@ -65,6 +65,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private MapController mMapController;
 	private MyLocationOverlay mMyLocationOverlay;
 	private List<Overlay> mMapOverlays;
+	private StationsOverlay mStationsOverlay;
 	private boolean mIsFirstFix = true;
 
 	private SharedPreferences mMapPreferences = null;
@@ -131,9 +132,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker
 				.getIntrinsicHeight());
+		mStationsOverlay = new StationsOverlay(getResources(), marker,
+				mOpenBikeManager.getDbAdapter().getStations(), mMapView);
 
-		mMapOverlays.add(new StationsOverlay(getResources(), marker,
-				mOpenBikeManager.getDbAdapter().getStations()));
+		mMapOverlays.add(mStationsOverlay);
 		/*
 		 * 
 		 * if (mRetrieveList) { // Know if we passed by onNewIntent() just
@@ -189,6 +191,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		hideOverlayBalloon();
 		StationOverlay.setBalloonView(null);
 		*/
+		mStationsOverlay.hideBalloon();
 		super.onPause();
 	}
 

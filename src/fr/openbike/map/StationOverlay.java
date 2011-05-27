@@ -42,7 +42,7 @@ import fr.openbike.utils.Utils;
 public class StationOverlay extends Overlay {
 
 	static private List<Overlay> mMapOverlays;
-	static private BalloonOverlayView mBalloonView;
+	static private BalloonOverlayView2 mBalloonView;
 	static MapController mMc;
 	static private Paint paint = new Paint();
 	static private Point point1 = new Point();
@@ -133,7 +133,7 @@ public class StationOverlay extends Overlay {
 				&& point1.y <= point2.y && point1.y >= point2.y - 60) {
 			boolean isRecycled;
 			if (mBalloonView == null) {
-				mBalloonView = new BalloonOverlayView(mapView.getContext(), 0,
+				mBalloonView = new BalloonOverlayView2(mapView.getContext(), 0,
 						0);
 				isRecycled = false;
 			} else {
@@ -218,11 +218,11 @@ public class StationOverlay extends Overlay {
 		}
 	}
 
-	public BalloonOverlayView getBallonView() {
+	public BalloonOverlayView2 getBallonView() {
 		return mBalloonView;
 	}
 
-	static public void setBalloonView(BalloonOverlayView balloon) {
+	static public void setBalloonView(BalloonOverlayView2 balloon) {
 		mBalloonView = balloon;
 	}
 
