@@ -61,8 +61,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
-		mActualFilter = mOpenBikeManager.getVcubFilter();
+		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
+		mActualFilter = mOpenBikeManager.getOpenBikeFilter();
 		mNetworkPreference = getPreferenceScreen().findPreference(
 				FilterPreferencesActivity.NETWORK_PREFERENCE);
 		mReportBugPreference = getPreferenceScreen().findPreference(

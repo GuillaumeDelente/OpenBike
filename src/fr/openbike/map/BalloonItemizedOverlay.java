@@ -158,23 +158,11 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	}
 
 	@Override
-	protected Item createItem(int i) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
 		boolean tapped = super.onTap(p, mapView);
 		if (!tapped)
 			hideBalloon();
 		return tapped;
-	}
-
-	@Override
-	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	/**
@@ -199,6 +187,14 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 		if (balloonView != null) {
 			balloonView.setVisibility(View.GONE);
 		}
+	}
+	
+	public boolean isBalloonShowing() {
+		return balloonView.getVisibility() == View.VISIBLE;
+	}
+	
+	public void updateBalloonData(Item item) {
+		balloonView.setData(item);
 	}
 
 	/*

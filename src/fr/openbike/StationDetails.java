@@ -217,7 +217,7 @@ public class StationDetails extends Activity {
 		super.onResume();
 		if (mStation != null)
 			mStation.moveToFirst();
-		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
+		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
 		mFavorite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override

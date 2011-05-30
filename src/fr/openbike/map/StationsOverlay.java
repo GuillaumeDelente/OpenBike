@@ -31,6 +31,7 @@ import android.graphics.Paint.Align;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -40,7 +41,7 @@ import fr.openbike.database.OpenBikeDBAdapter;
 
 class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 
-	private List<OverlayItem> items = new ArrayList<OverlayItem>();
+	private List<StationOverlay> items = new ArrayList<StationOverlay>();
 	private MarkerDrawable marker = null;
 	private PinDrawable pin = null;
 	private static Paint mTextPaint = new Paint();
@@ -50,35 +51,35 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 	int IMAGE_HEIGHT;
 
 	public StationsOverlay(Resources resources, BitmapDrawable drawable,
-			Cursor stationsCursor, MapView mv) {
+			MapView mv) {
 		super(drawable, mv);
-		pin = new PinDrawable();
 		this.marker = new MarkerDrawable(resources, drawable.getBitmap());
+		boundCenterBottom(marker);
+		pin = new PinDrawable();
 		mTextPaint.setAntiAlias(true);
 		mTextPaint.setTextSize(15);
 		mTextPaint.setTextAlign(Align.RIGHT);
 		mTextPaint.setColor(Color.WHITE);
 		mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		IMAGE_HEIGHT = marker.getIntrinsicHeight();
-		while (stationsCursor.moveToNext()) {
-			items.add(new StationOverlay(new GeoPoint(stationsCursor
-					.getInt(stationsCursor
-							.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)),
-					stationsCursor.getInt(stationsCursor
-							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))),
-					String.valueOf(stationsCursor.getInt(stationsCursor
-							.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES))),
-					String.valueOf(stationsCursor.getInt(stationsCursor
-							.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS))),
-					stationsCursor.getInt(stationsCursor
-							.getColumnIndex(BaseColumns._ID))));
-		}
+		populate();
+		Log.d("OpenBike", "Before create");
+	}
+
+	public void setItems(ArrayList<StationOverlay> list) {
+		Log.d("OpenBike", "setItems");
+		items = list;
+		setLastFocusedIndex(-1);
 		populate();
 	}
 
 	@Override
 	protected OverlayItem createItem(int i) {
 		return (items.get(i));
+	}
+
+	protected List<StationOverlay> getOverlayList() {
+		return items;
 	}
 
 	@Override
@@ -92,7 +93,6 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 				setBalloonBottomOffset(0);
 			}
 			super.draw(canvas, mapView, shadow);
-			boundCenterBottom(marker);
 		}
 	}
 
@@ -101,20 +101,47 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		return (items.size());
 	}
 
+	public ArrayList<StationOverlay> updateItems(Cursor stationsCursor) {
+		ArrayList<StationOverlay> overlays = new ArrayList<StationOverlay>(
+				stationsCursor.getCount());
+		int latitudeColumn = stationsCursor
+				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE);
+		int longitudeColumn = stationsCursor
+				.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE);
+		int bikesColumn = stationsCursor
+				.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES);
+		int slotsColumn = stationsCursor
+				.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS);
+		int idColumn = stationsCursor.getColumnIndex(BaseColumns._ID);
+		while (stationsCursor.moveToNext()) {
+			overlays.add(new StationOverlay(new GeoPoint(stationsCursor
+					.getInt(latitudeColumn), stationsCursor
+					.getInt(longitudeColumn)), String.valueOf(stationsCursor
+					.getInt(bikesColumn)), String.valueOf(stationsCursor
+					.getInt(slotsColumn)), stationsCursor.getInt(idColumn)));
+		}
+		Log.d("OpenBike", "Before finish updating");
+		return overlays;
+	}
+
 	public class StationOverlay extends OverlayItem {
 
 		private int mId;
+		private String mBikes;
+		private String mSlots;
 
 		public StationOverlay(GeoPoint point, String bikes, String slots, int id) {
-			super(point, bikes, slots);
+			super(point, null, null);
 			mId = id;
+			mBikes = String.valueOf(bikes);
+			mSlots = String.valueOf(slots);
 		}
 
 		@Override
 		public Drawable getMarker(int stateBitset) {
 			if (mDrawText) {
-				marker.bike = this.mTitle;
-				marker.slots = this.mSnippet;
+				marker.bike = mBikes;
+				marker.slots = mSlots;
 				return marker;
 			} else {
 				return pin;
@@ -123,6 +150,18 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 
 		public int getId() {
 			return mId;
+		}
+
+		public void setId(int id) {
+			mId = id;
+		}
+
+		public void setBikes(int bikes) {
+			mBikes = String.valueOf(bikes);
+		}
+
+		public void setSlots(int slots) {
+			mSlots = String.valueOf(slots);
 		}
 	}
 
@@ -140,8 +179,8 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		@Override
 		public void draw(Canvas canvas) {
 			super.draw(canvas);
-			canvas.drawText(String.valueOf(bike), -6, -31, mTextPaint);
-			canvas.drawText(String.valueOf(slots), -6, -16, mTextPaint);
+			canvas.drawText(bike, -6, -31, mTextPaint);
+			canvas.drawText(slots, -6, -16, mTextPaint);
 		}
 	}
 

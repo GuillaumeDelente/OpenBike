@@ -71,7 +71,7 @@ public class OpenBikeManager {
 	private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	private static ShowNetworksTask mShowNetworksTask = null;
 	
-	public BikeFilter getVcubFilter() {
+	public BikeFilter getOpenBikeFilter() {
 		return mOpenBikeFilter;
 	}
 
@@ -97,7 +97,7 @@ public class OpenBikeManager {
 		//StationOverlay.initialize((Context) activity);
 	}
 	
-	public static synchronized OpenBikeManager getVcuboidManagerInstance(Activity activity) {
+	public static synchronized OpenBikeManager getOpenBikeManagerInstance(Activity activity) {
 		//Log.e("OpenBike", "Getting VcuboidManager instance");
 		if (mThis == null) {
 			mThis = new OpenBikeManager(activity);

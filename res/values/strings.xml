@@ -59,6 +59,8 @@
 	<string name="choose_network_title">Choisissez votre ville</string>
 	<string name="choose_network">Veuillez choisir votre ville parmis la liste suivante. 
 	Si elle n\'y figure pas, demandez son ajout ici.</string>
+	<string name="loading">Chargement</string>
+	<string name="showing_load">Affichage des stations en cours...</string>
 
 	<!--  Preferences -->
 	<string name="menu_settings_title">Configuration</string>

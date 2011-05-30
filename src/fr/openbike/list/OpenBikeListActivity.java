@@ -90,7 +90,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			finish();
 		}
 		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
-		mOpenBikeManager = OpenBikeManager.getVcuboidManagerInstance(this);
+		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
 
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
