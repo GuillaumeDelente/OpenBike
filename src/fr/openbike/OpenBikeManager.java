@@ -569,12 +569,18 @@ public class OpenBikeManager {
 				publishProgress(RestClient.URL_ERROR);
 				return false;
 			}
-			String json = RestClient
-			.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
+			String json = null;
+			try { 
+				json = RestClient.connect(UPDATE_SERVER_URL + String.valueOf(mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0)));
+			} catch (Exception e) {
+				publishProgress(RestClient.NETWORK_ERROR);
+				return false;
+			}
 			if (json == null) {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
-			}/*
+			}
+			/*
 			if (!RestClient.updateListFromJson(json,
 					mVisibleStations)) {
 				publishProgress(OpenBikeDBAdapter.JSON_ERROR);
@@ -669,7 +675,11 @@ public class OpenBikeManager {
 				return false;
 			}
 			Cursor cursor = mOpenBikeDBAdapter
-					.getFilteredStationsCursor(Utils.whereClauseFromFilter(mOpenBikeFilter), 
+					.getFilteredStationsCursor(new String[] {BaseColumns._ID,
+							OpenBikeDBAdapter.KEY_BIKES, OpenBikeDBAdapter.KEY_SLOTS, 
+							OpenBikeDBAdapter.KEY_OPEN, OpenBikeDBAdapter.KEY_LATITUDE, 
+							OpenBikeDBAdapter.KEY_LONGITUDE, OpenBikeDBAdapter.KEY_NAME,
+							OpenBikeDBAdapter.KEY_FAVORITE}, Utils.whereClauseFromFilter(mOpenBikeFilter), 
 							mLocationProvider == null 
 								|| mLocationProvider.getMyLocation() == null ?
 										OpenBikeDBAdapter.KEY_NAME : null);

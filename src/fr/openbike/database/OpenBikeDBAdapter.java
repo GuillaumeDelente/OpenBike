@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.Network;
 
@@ -198,9 +199,9 @@ public class OpenBikeDBAdapter {
 				+ " WHERE " + BaseColumns._ID + " = ? AND " + KEY_NETWORK
 				+ " = ?;";
 		try {
+			mDb.beginTransaction();
 			JSONArray jsonArray = new JSONArray(json);
 			JSONObject jsonStation;
-			mDb.beginTransaction();
 			SQLiteStatement update = mDb.compileStatement(sql);
 			update.bindLong(5, mPreferences.getInt(
 					FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
@@ -218,7 +219,10 @@ public class OpenBikeDBAdapter {
 		} catch (Exception e) {
 			success = DB_ERROR;
 		} finally {
-			mDb.endTransaction();
+			if (mDb.inTransaction())
+				mDb.endTransaction();
+			else
+				Log.d("OpenBike", "DB Not in transaction");
 		}
 		return success;
 	}
@@ -253,15 +257,13 @@ public class OpenBikeDBAdapter {
 	 * KEY_PAYMENT, KEY_SPECIAL }, null, null, null, null, null); }
 	 */
 
-	public Cursor getFilteredStationsCursor(String where, String orderBy) {
+	public Cursor getFilteredStationsCursor(String[] projection, String where, String orderBy) {
 		String nWhere;
 		if (where == null)
 			nWhere = KEY_NETWORK + " = ?";
 		else
 			nWhere = where + " AND " + KEY_NETWORK + " = ?";
-		return mDb.query(STATIONS_TABLE, new String[] { BaseColumns._ID,
-				KEY_BIKES, KEY_SLOTS, KEY_OPEN, KEY_LATITUDE, KEY_LONGITUDE,
-				KEY_NAME, KEY_FAVORITE, KEY_SPECIAL }, nWhere,
+		return mDb.query(STATIONS_TABLE, projection, nWhere,
 				new String[] { String.valueOf(mPreferences.getInt(
 						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) },
 				null, null, orderBy);
