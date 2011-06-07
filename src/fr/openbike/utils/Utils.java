@@ -98,9 +98,9 @@ public class Utils {
 		if (filter.isShowOnlyFavorites())
 			selection.add("(" + OpenBikeDBAdapter.KEY_FAVORITE + " = 1 )");
 		if (filter.isShowOnlyWithBikes())
-			selection.add("(" + OpenBikeDBAdapter.KEY_BIKES + " >= 1 )");
-		else if (filter.isShowOnlyWithSlots())
-			selection.add("(" + OpenBikeDBAdapter.KEY_SLOTS + " >= 1 )");
+			selection.add("(" + OpenBikeDBAdapter.KEY_BIKES + " != 0 )");
+		if (filter.isShowOnlyWithSlots())
+			selection.add("(" + OpenBikeDBAdapter.KEY_SLOTS + " != 0 )");
 		int size = selection.size();
 		if (size == 0)
 			return null;

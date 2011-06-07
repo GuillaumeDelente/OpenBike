@@ -184,16 +184,20 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	 * Sets the visibility of this overlay's balloon view to GONE.
 	 */
 	protected void hideBalloon() {
-		if (balloonView != null) {
-			balloonView.setVisibility(View.GONE);
-		}
+		if (balloonView == null)
+			return;
+		balloonView.setVisibility(View.GONE);
 	}
 	
 	public boolean isBalloonShowing() {
+		if (balloonView == null)
+			return false;
 		return balloonView.getVisibility() == View.VISIBLE;
 	}
 	
 	public void updateBalloonData(Item item) {
+		if (balloonView == null)
+			return;
 		balloonView.setData(item);
 	}
 

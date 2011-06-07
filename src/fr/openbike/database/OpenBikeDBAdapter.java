@@ -263,6 +263,7 @@ public class OpenBikeDBAdapter {
 			nWhere = KEY_NETWORK + " = ?";
 		else
 			nWhere = where + " AND " + KEY_NETWORK + " = ?";
+		Log.d("OpenBike", "where : " + nWhere);
 		return mDb.query(STATIONS_TABLE, projection, nWhere,
 				new String[] { String.valueOf(mPreferences.getInt(
 						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) },

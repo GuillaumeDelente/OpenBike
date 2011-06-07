@@ -30,6 +30,7 @@ import android.graphics.Typeface;
 import android.graphics.Paint.Align;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.provider.BaseColumns;
 import android.util.Log;
 
@@ -38,6 +39,7 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
 import fr.openbike.database.OpenBikeDBAdapter;
+import fr.openbike.filter.BikeFilter;
 
 class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 
@@ -101,7 +103,8 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		return (items.size());
 	}
 
-	public ArrayList<StationOverlay> updateItems(Cursor stationsCursor) {
+	public ArrayList<StationOverlay> getOverlaysFromCursor(
+			Cursor stationsCursor, BikeFilter filter, Location location) {
 		ArrayList<StationOverlay> overlays = new ArrayList<StationOverlay>(
 				stationsCursor.getCount());
 		int latitudeColumn = stationsCursor
@@ -113,14 +116,26 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		int slotsColumn = stationsCursor
 				.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS);
 		int idColumn = stationsCursor.getColumnIndex(BaseColumns._ID);
+		StationOverlay overlay;
+		Location stationLocation = new Location("");
+		float distance = 0;
+		int limit = filter.getDistanceFilter();
 		while (stationsCursor.moveToNext()) {
-			overlays.add(new StationOverlay(new GeoPoint(stationsCursor
+			overlay = new StationOverlay(new GeoPoint(stationsCursor
 					.getInt(latitudeColumn), stationsCursor
 					.getInt(longitudeColumn)), String.valueOf(stationsCursor
 					.getInt(bikesColumn)), String.valueOf(stationsCursor
-					.getInt(slotsColumn)), stationsCursor.getInt(idColumn)));
+					.getInt(slotsColumn)), stationsCursor.getInt(idColumn));
+			if (filter.isFilteringByDistance() && location != null) {
+				stationLocation.setLatitude(((double) stationsCursor.getInt(latitudeColumn)) * 1E-6);
+				stationLocation.setLongitude(((double) stationsCursor.getInt(longitudeColumn)) * 1E-6);
+				distance = location.distanceTo(stationLocation);
+				if (distance > limit) {
+					continue;
+				}
+			}
+			overlays.add(overlay);
 		}
-		Log.d("OpenBike", "Before finish updating");
 		return overlays;
 	}
 
