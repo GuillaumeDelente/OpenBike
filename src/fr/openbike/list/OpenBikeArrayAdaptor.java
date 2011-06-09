@@ -32,20 +32,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
-import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.utils.Utils;
 
-public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
+public class OpenBikeArrayAdaptor extends ArrayAdapter<MinimalStation> {
 	
 	private LayoutInflater mInflater;
 	private Context mContext;
 	private static Drawable mRedBike;
 	private static Drawable mGreenBike;
+	private ArrayList<MinimalStation> mStations = null;
 
 	public OpenBikeArrayAdaptor(Context context, int layout,
-			ArrayList<StationOverlay> list) {
+			ArrayList<MinimalStation> list) {
 		super(context, layout, list);
+		mStations = list;
 		mInflater = LayoutInflater.from(context);
 		mContext = context;
 		mRedBike = context.getResources().getDrawable(R.drawable.red_list);
@@ -87,12 +88,10 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 			viewHolder = (ViewHolder) convertView.getTag();
 			viewHolder.favorite.setOnCheckedChangeListener(null);
 		}
-		StationOverlay overlay = getItem(position);
-		//FIXME A bug was reported in this line
-		if (overlay == null) {
-			//Log.e("OpenBike", "Invalid position: " + position);
+		MinimalStation station = getItem(position);
+		if (station == null) {
+			//TODO: handle error
 		}
-		MinimalStation station = overlay.getStation();
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
 			viewHolder.closed.setVisibility(View.VISIBLE);
@@ -128,6 +127,10 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<StationOverlay> {
 		viewHolder.favorite.setOnCheckedChangeListener(new FavoriteListener());
 		viewHolder.favorite.setTag(station.getId());
 		return convertView;
+	}
+	
+	public ArrayList<MinimalStation> getList() {
+		return mStations;
 	}
 	
 	class FavoriteListener implements OnCheckedChangeListener {

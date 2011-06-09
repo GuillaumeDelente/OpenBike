@@ -20,7 +20,6 @@ package fr.openbike.filter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
 
 public class Filtering {
@@ -32,11 +31,11 @@ public class Filtering {
 	static public void onlyFavorites() {
 	}
 
-	public static void filter(ArrayList<StationOverlay> mVisibleStations,
+	public static void filter(ArrayList<MinimalStation> mVisibleStations,
 			BikeFilter mVcubFilter) {
-		for (Iterator<StationOverlay> it = mVisibleStations.iterator(); it
+		for (Iterator<MinimalStation> it = mVisibleStations.iterator(); it
 				.hasNext();) {
-			MinimalStation s = ((StationOverlay) it.next()).getStation();
+			MinimalStation s = it.next();
 			if (mVcubFilter.isShowOnlyFavorites() && !s.isFavorite()) {
 				it.remove();
 				continue;

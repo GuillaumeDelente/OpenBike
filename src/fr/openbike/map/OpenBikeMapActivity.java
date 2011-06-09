@@ -117,7 +117,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (mMapPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
-				mMyLocationOverlay.setCurrentLocation(OpenBikeManager
+				mMyLocationOverlay.setCurrentLocation(mOpenBikeManager
 						.getCurrentLocation()); // mMapView.invalidate();
 			}
 		} else {
@@ -135,12 +135,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	private void handleIntent(Intent intent) {
 		mMapOverlays.clear();
+		Location location = mOpenBikeManager.getCurrentLocation();
 		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 			if (mMapPreferences.getBoolean(
 					FilterPreferencesActivity.CENTER_PREFERENCE, false)
-					&& OpenBikeManager.getCurrentLocation() != null) {
-				zoomAndCenter(OpenBikeManager.getCurrentLocation());
+					&& location != null) {
+				zoomAndCenter(location);
 			} else {
 				// TODO
 				/*
@@ -150,7 +151,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			}
 		} else {
 			setStationList();
-			zoomAndCenter(OpenBikeManager.getCurrentLocation());
+			zoomAndCenter(location);
 		}
 		mMapView.invalidate();
 	}
@@ -633,7 +634,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 							OpenBikeDBAdapter.KEY_SLOTS }, Utils
 							.whereClauseFromFilter(mOpenBikeFilter), null);
 			mOverlays = mStationsOverlay.getOverlaysFromCursor(cursor,
-					mOpenBikeFilter, OpenBikeManager.getCurrentLocation());
+					mOpenBikeFilter, mOpenBikeManager.getCurrentLocation());
 			return true;
 		}
 

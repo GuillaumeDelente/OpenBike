@@ -33,8 +33,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import fr.openbike.map.StationOverlay;
-import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Network;
 
 public class RestClient {
@@ -128,6 +126,7 @@ public class RestClient {
 	 * (JSONException e) { // TODO Auto-generated catch block
 	 * e.printStackTrace(); return JSON_ERROR; } }
 	 */
+	/*
 	public static boolean updateListFromJson(String json,
 			ArrayList<StationOverlay> mVisibleStations) {
 		// Log.i("OpenBike", "updateListFromJson");
@@ -152,6 +151,7 @@ public class RestClient {
 			return false;
 		}
 	}
+	*/
 
 	public static ArrayList<Network> getNetworkList(String json) {
 		// Log.i("OpenBike", "updateDbFromJson");

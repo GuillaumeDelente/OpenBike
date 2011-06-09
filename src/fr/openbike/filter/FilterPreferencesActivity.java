@@ -90,7 +90,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			setResult(RESULT_OK);
 			mModifiedFilter.setNeedDbQuery(mActualFilter);
 			mOpenBikeManager.setVcubFilter(mModifiedFilter);
-			mOpenBikeManager.executeCreateVisibleStationsTask(false);
+			//TODO:
+			//mOpenBikeManager.executeCreateVisibleStationsTask(false);
 			// Log.e("OpenBike", "Only Favorites ? "
 			// + mModifiedFilter.isShowOnlyFavorites());
 		}

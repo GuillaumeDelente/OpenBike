@@ -18,6 +18,7 @@
 package fr.openbike.list;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -31,8 +32,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -53,6 +57,9 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+
+import com.google.android.maps.GeoPoint;
+
 import fr.openbike.IOpenBikeActivity;
 import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
@@ -61,9 +68,11 @@ import fr.openbike.RestClient;
 import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
+import fr.openbike.filter.BikeFilter;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.map.OpenBikeMapActivity;
+import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
@@ -80,6 +89,8 @@ public class OpenBikeListActivity extends ListActivity implements
 	private String mSelected = null;
 	private boolean mBackToList = false;
 	private static ArrayList<Network> mNetworks;
+	private CreateListAdaptorTask mCreateListAdaptorTask = null;
+	private UpdateDistanceTask mUpdateDistanceTask = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -130,14 +141,19 @@ public class OpenBikeListActivity extends ListActivity implements
 		} else {
 			findViewById(R.id.search_results).setVisibility(View.GONE);
 			if (mAdapter == null) {
-				mAdapter = new OpenBikeArrayAdaptor(this,
-						R.layout.station_list_entry, mOpenBikeManager
-								.getVisibleStations());
+				executeCreateListAdaptorTask();
+				/*
+				 * mAdapter = new OpenBikeArrayAdaptor(this,
+				 * R.layout.station_list_entry,
+				 * mOpenBikeManager.getDbAdapter().getFilteredStationsCursor
+				 * (BaseColumns._ID, OpenBikeDBAdapter.KEY_NAME,
+				 * OpenBikeDBAdapter.KEY_LONGITUDE, int latitude, int
+				 * availablesBikes, int freeLocations, boolean isOpen, boolean
+				 * isFavorite, int distance), where, orderBy));
+				 */
 			} else { // Check if update needed
-				mOpenBikeManager.getVisibleStations();
+				// mOpenBikeManager.getVisibleStations();
 			}
-			this.setListAdapter(mAdapter);
-			onListUpdated();
 		}
 	}
 
@@ -458,8 +474,8 @@ public class OpenBikeListActivity extends ListActivity implements
 									editor.commit();
 									mOpenBikeManager
 											.updateNetworkTable(mNetworks);
-									mOpenBikeManager
-											.executeCreateVisibleStationsTask(true);
+									// TODO:
+									// mOpenBikeManager.executeCreateVisibleStationsTask(true);
 
 									startActivity(new Intent(context,
 											OpenBikeListActivity.class)
@@ -593,7 +609,14 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onLocationChanged(Location l) {
-		onListUpdated();
+		Log.d("OpenBike", "locationChanged");
+		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
+		if (filter.isFilteringByDistance()) {
+			// TODO:
+			// executeCreateStationListTask();
+		} else {
+			executeUpdateDistanceTask(l);
+		}
 		if (l == null)
 			return;
 		Toast.makeText(this, getString(R.string.position_updated),
@@ -656,10 +679,12 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	private void showResults(String query) {
-		OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
-				R.layout.station_list_entry, mOpenBikeManager
-						.getSearchResults(query));
-		getListView().setAdapter(adapter);
+		// TODO: asyncTask ?
+		/*
+		 * OpenBikeArrayAdaptor adapter = new OpenBikeArrayAdaptor(this,
+		 * R.layout.station_list_entry, mOpenBikeManager
+		 * .getSearchResults(query)); getListView().setAdapter(adapter);
+		 */
 	}
 
 	@Override
@@ -668,5 +693,173 @@ public class OpenBikeListActivity extends ListActivity implements
 		showDialog(CHOOSE_NETWORK);
 		Button okButton = mNetworkDialog.getButton(Dialog.BUTTON_POSITIVE);
 		okButton.setEnabled(false);
+	}
+
+	private void executeCreateListAdaptorTask() {
+		if (mCreateListAdaptorTask == null && mAdapter == null) {
+			mCreateListAdaptorTask = (CreateListAdaptorTask) new CreateListAdaptorTask(
+					mOpenBikeManager.getCurrentLocation()).execute();
+		}
+	}
+
+	private void executeUpdateDistanceTask(Location location) {
+		if (mUpdateDistanceTask != null) {
+			mUpdateDistanceTask.cancel(true);
+		}
+		mUpdateDistanceTask = (UpdateDistanceTask) new UpdateDistanceTask(
+				location).execute();
+	}
+
+	private class CreateListAdaptorTask extends AsyncTask<Void, Void, Boolean> {
+
+		OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager.getDbAdapter();
+		Location mCurrentLocation = null;
+
+		protected CreateListAdaptorTask(Location location) {
+			mCurrentLocation = location;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			setLoadingList();
+		}
+
+		@Override
+		protected Boolean doInBackground(Void... unused) {
+			ArrayList<MinimalStation> stations = createStationList();
+			if (stations != null) {
+				mAdapter = new OpenBikeArrayAdaptor(
+						(Context) OpenBikeListActivity.this,
+						R.layout.station_list_entry, stations);
+				return true;
+			} else {
+				// TODO: errorr
+				return false;
+			}
+		}
+
+		private ArrayList<MinimalStation> createStationList() {
+			int size = mOpenBikeDBAdapter.getStationCount();
+			if (size == 0) {
+				// retrieve from network
+			}
+			BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
+			int distanceFilter = filter.isFilteringByDistance() ? filter
+					.getDistanceFilter() : 0;
+			ArrayList<MinimalStation> stationsList = new ArrayList<MinimalStation>(
+					size);
+
+			Cursor cursor = mOpenBikeDBAdapter.getFilteredStationsCursor(
+					new String[] { BaseColumns._ID,
+							OpenBikeDBAdapter.KEY_BIKES,
+							OpenBikeDBAdapter.KEY_SLOTS,
+							OpenBikeDBAdapter.KEY_OPEN,
+							OpenBikeDBAdapter.KEY_LATITUDE,
+							OpenBikeDBAdapter.KEY_LONGITUDE,
+							OpenBikeDBAdapter.KEY_NAME,
+							OpenBikeDBAdapter.KEY_FAVORITE }, Utils
+							.whereClauseFromFilter(mOpenBikeManager
+									.getOpenBikeFilter()),
+					mCurrentLocation == null ? OpenBikeDBAdapter.KEY_NAME
+							: null);
+			MinimalStation minimalStation;
+			Location stationLocation = null;
+			int distanceToStation = 0;
+			int id_col = cursor.getColumnIndex(BaseColumns._ID);
+			int latitude_col = cursor
+					.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE);
+			int longitude_col = cursor
+					.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE);
+			int name_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_NAME);
+			int bikes_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_BIKES);
+			int slots_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS);
+			int open_col = cursor.getColumnIndex(OpenBikeDBAdapter.KEY_OPEN);
+			int favorite_col = cursor
+					.getColumnIndex(OpenBikeDBAdapter.KEY_FAVORITE);
+			if (mCurrentLocation != null)
+				stationLocation = new Location("");
+			while (cursor.moveToNext()) {
+				if (isCancelled())
+					return null;
+				if (stationLocation != null) {
+					stationLocation.setLatitude((double) cursor
+							.getInt(latitude_col) * 1E-6);
+					stationLocation.setLongitude((double) cursor
+							.getInt(longitude_col) * 1E-6);
+					distanceToStation = (int) stationLocation
+							.distanceTo(mCurrentLocation);
+					if (distanceToStation > distanceFilter)
+						continue;
+				}
+				minimalStation = new MinimalStation(cursor.getInt(id_col),
+						cursor.getString(name_col), cursor
+								.getInt(longitude_col), cursor
+								.getInt(latitude_col),
+						cursor.getInt(bikes_col), cursor.getInt(slots_col),
+						cursor.getInt(open_col) == 0 ? false : true, cursor
+								.getInt(favorite_col) == 0 ? false : true,
+						stationLocation != null ? distanceToStation : -1);
+				stationsList.add(minimalStation);
+			}
+			cursor.close();
+			if (isCancelled())
+				return null;
+			if (mCurrentLocation != null) {
+				Utils.sortStationsByDistance(stationsList);
+			}
+			return stationsList;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean isListCreated) {
+			if (!isListCreated) {
+				// executeGetAllStationsTask();
+			} else {
+				setListAdapter(mAdapter);
+				onListUpdated();
+				// TODO: first run dialog
+				mCreateListAdaptorTask = null;
+			}
+		}
+	}
+
+	private class UpdateDistanceTask extends AsyncTask<Void, Void, Void> {
+
+		Location mLocation = null;
+
+		protected UpdateDistanceTask(Location location) {
+			mLocation = location;
+		}
+
+		@Override
+		protected Void doInBackground(Void... unused) {
+			Iterator<MinimalStation> it = mAdapter.getList().iterator();
+			if (mLocation == null) {
+				while (it.hasNext()) {
+					it.next().setDistance(
+							MyLocationProvider.DISTANCE_UNAVAILABLE);
+				}
+				return null;
+			}
+			MinimalStation station;
+			Location stationLocation = new Location("");
+			GeoPoint geoPoint = null;
+			while (it.hasNext()) {
+				station = it.next();
+				geoPoint = station.getGeoPoint();
+				stationLocation.setLatitude(geoPoint.getLatitudeE6() * 1E-6);
+				stationLocation.setLongitude(geoPoint.getLongitudeE6() * 1E-6);
+				station.setDistance(
+						(int) mLocation.distanceTo(stationLocation));
+			}
+			Utils.sortStationsByDistance(mAdapter.getList());
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void unused) {
+			onListUpdated();
+		}
 	}
 }

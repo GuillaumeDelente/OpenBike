@@ -28,20 +28,31 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.net.Uri;
-
-import com.google.android.maps.Overlay;
-
 import fr.openbike.MyLocationProvider;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
-import fr.openbike.map.MyLocationOverlay;
-import fr.openbike.map.StationOverlay;
 import fr.openbike.object.MinimalStation;
 
 public class Utils {
 
-	static public void sortStationsByDistance(List<? extends Overlay> list) {
+	static public void sortStationsByDistance(
+			List<? extends MinimalStation> list) {
+		Collections.sort(list, new Comparator<MinimalStation>() {
+			@Override
+			public int compare(MinimalStation s1, MinimalStation s2) {
+				if (s1.getDistance() < s2.getDistance()) {
+					return -1;
+				} else if (s1.getDistance() > s2.getDistance()) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		});
+	}
+/*
+	static public void sortStationsByName(List<? extends Overlay> list) {
 		Collections.sort(list, new Comparator<Overlay>() {
 			@Override
 			public int compare(Overlay o1, Overlay o2) {
@@ -53,13 +64,7 @@ public class Utils {
 						return 1;
 					MinimalStation s1 = ((StationOverlay) o1).getStation();
 					MinimalStation s2 = ((StationOverlay) o2).getStation();
-					if (s1.getDistance() < s2.getDistance()) {
-						return -1;
-					} else if (s1.getDistance() > s2.getDistance()) {
-						return 1;
-					} else {
-						return 0;
-					}
+					return s1.getName().compareToIgnoreCase(s2.getName());
 				} else if (o1 instanceof MyLocationOverlay) {
 					return -1;
 				} else if (o2 instanceof MyLocationOverlay) {
@@ -69,29 +74,7 @@ public class Utils {
 			}
 		});
 	}
-
-	static public void sortStationsByName(List<? extends Overlay> list) {
-		Collections.sort(list, new Comparator<Overlay>() {
-			@Override
-			public int compare(Overlay o1, Overlay o2) {
-				if (o1 instanceof StationOverlay
-						&& o2 instanceof StationOverlay) {
-				if (((StationOverlay) o1).isCurrent())
-					return -1;
-				if (((StationOverlay) o2).isCurrent())
-					return 1;
-				MinimalStation s1 = ((StationOverlay) o1).getStation();
-				MinimalStation s2 = ((StationOverlay) o2).getStation();
-				return s1.getName().compareToIgnoreCase(s2.getName());
-				} else if (o1 instanceof MyLocationOverlay) {
-					return -1;
-				} else if (o2 instanceof MyLocationOverlay) {
-					return 1;
-				}
-				return 0;
-			}
-		});
-	}
+	*/
 
 	static public String whereClauseFromFilter(BikeFilter filter) {
 		Vector<String> selection = new Vector<String>();
@@ -110,48 +93,38 @@ public class Utils {
 		}
 		return where;
 	}
-	
+
 	static public String formatDistance(int distance) {
 		int km = distance / 1000;
 		int m = distance % 1000;
 		return km == 0 ? m + "m" : km + "," + m + "km ";
 	}
-	
+
 	static public boolean isIntentAvailable(Intent intent, Context context) {
 		final PackageManager packageManager = context.getPackageManager();
 		List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
 				PackageManager.MATCH_DEFAULT_ONLY);
 		return list.size() > 0;
 	}
-	
+
 	public static int computeDistance(int latitude, int longitude) {
-		if (!OpenBikeManager.isLocationAvailable()) {
+		Location location = OpenBikeManager.getOpenBikeManagerInstance(null).getCurrentLocation();
+		if (location == null) {
 			return MyLocationProvider.DISTANCE_UNAVAILABLE;
 		}
-		Location location = OpenBikeManager.getCurrentLocation();
 		Location l = new Location("");
-		l.setLatitude((double) latitude*1E-6);
-		l.setLongitude((double) longitude*1E-6);
+		l.setLatitude((double) latitude * 1E-6);
+		l.setLongitude((double) longitude * 1E-6);
 		return (int) location.distanceTo(l);
 	}
-	
+
 	public static Intent getNavigationIntent(int latitude, int longitude) {
-		return new Intent(
-				Intent.ACTION_VIEW,
-				Uri
-						.parse("google.navigation:q="
-								+ latitude * 1E-6
-								+ ","
-								+ longitude * 1E-6
-								+ "&mode=w"));
+		return new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q="
+				+ latitude * 1E-6 + "," + longitude * 1E-6 + "&mode=w"));
 	}
-	
+
 	public static Intent getMapsIntent(int latitude, int longitude, String label) {
-		return new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" +
-				latitude * 1E-6
-				+ "," +
-				longitude * 1E-6
-				+ " ("
-				+ label + ")"));
+		return new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + latitude
+				* 1E-6 + "," + longitude * 1E-6 + " (" + label + ")"));
 	}
 }
