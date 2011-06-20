@@ -25,15 +25,18 @@ import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -60,8 +63,10 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import com.google.android.maps.GeoPoint;
 
+import fr.openbike.ILocationService;
+import fr.openbike.ILocationServiceListener;
 import fr.openbike.IOpenBikeActivity;
-import fr.openbike.MyLocationProvider;
+import fr.openbike.LocationService;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
@@ -77,7 +82,7 @@ import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeListActivity extends ListActivity implements
-		IOpenBikeActivity {
+		IOpenBikeActivity, ILocationServiceListener {
 
 	public static final int WELCOME_MESSAGE = 2;
 	public static final int CHOOSE_NETWORK = 3;
@@ -88,9 +93,15 @@ public class OpenBikeListActivity extends ListActivity implements
 	private AlertDialog mNetworkDialog = null;
 	private String mSelected = null;
 	private boolean mBackToList = false;
+	private boolean mIsBound = false;
 	private static ArrayList<Network> mNetworks;
 	private CreateListAdaptorTask mCreateListAdaptorTask = null;
 	private UpdateDistanceTask mUpdateDistanceTask = null;
+	private ILocationService mBoundService = null;
+	private SharedPreferences mPreferences = null;
+	private ServiceConnection mConnection = null;
+	private Location mLastLocation = null;
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -102,6 +113,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		}
 		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 		final ListView listView = getListView();
 		listView.setOnItemClickListener(new OnItemClickListener() {
@@ -113,6 +125,19 @@ public class OpenBikeListActivity extends ListActivity implements
 			}
 		});
 		registerForContextMenu(listView);
+		mConnection = new ServiceConnection() {
+			public void onServiceConnected(ComponentName className, IBinder service) {
+				Log.d("OpenBike", "Service connected");
+				mBoundService = ((LocationService.LocationServiceBinder) service)
+						.getService();
+				mBoundService.addListener(OpenBikeListActivity.this);
+			}
+
+			public void onServiceDisconnected(ComponentName className) {
+				mBoundService = null;
+				Toast.makeText(OpenBikeListActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+			}
+		};
 	}
 
 	@Override
@@ -129,7 +154,9 @@ public class OpenBikeListActivity extends ListActivity implements
 	protected void onResume() {
 		super.onResume();
 		OpenBikeManager.setCurrentActivity(this);
-		mOpenBikeManager.startLocation();
+		if (mPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
+			doBindService();
+		}
 		Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			findViewById(R.id.search_results).setVisibility(View.VISIBLE);
@@ -159,14 +186,15 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	protected void onPause() {
-		super.onPause();
-		mOpenBikeManager.stopLocation();
+		super.onPause();		
 		mOpenBikeManager.detach();
 	}
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
+	protected void onStop() {
+		if (mIsBound)
+			doUnbindService();
+		super.onStop();
 	}
 
 	@Override
@@ -236,7 +264,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		mSelected = (String.valueOf((Integer) holder.favorite.getTag()));
 		menu.setHeaderTitle(holder.name.getText());
 	}
-
+	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		Cursor station;
@@ -375,7 +403,7 @@ public class OpenBikeListActivity extends ListActivity implements
 									.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 						}
 					}).create();
-		case MyLocationProvider.ENABLE_GPS:
+		case LocationService.ENABLE_GPS:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -395,7 +423,7 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case MyLocationProvider.NO_LOCATION_PROVIDER:
+		case LocationService.NO_LOCATION_PROVIDER:
 			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
@@ -608,16 +636,20 @@ public class OpenBikeListActivity extends ListActivity implements
 	}
 
 	@Override
-	public void onLocationChanged(Location l) {
-		Log.d("OpenBike", "locationChanged");
+	public void onLocationChanged(Location location) {
+		if (location == mLastLocation) {
+			Log.d("OpenBike", "List : same location");
+			return;
+		}
+		mLastLocation = location;
 		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
 		if (filter.isFilteringByDistance()) {
 			// TODO:
 			// executeCreateStationListTask();
 		} else {
-			executeUpdateDistanceTask(l);
+			executeUpdateDistanceTask(location);
 		}
-		if (l == null)
+		if (location == null)
 			return;
 		Toast.makeText(this, getString(R.string.position_updated),
 				Toast.LENGTH_SHORT).show();
@@ -625,9 +657,22 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onListUpdated() {
-		if (mAdapter == null) // OnCreate
-			return;
-		mAdapter.notifyDataSetChanged();
+		executeCreateListAdaptorTask();
+	}
+	
+	void doBindService() {
+		Log.d("OpenBike", "Service binded");
+		bindService(new Intent(this, LocationService.class), mConnection,
+				Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (mIsBound) {
+			// Detach our existing connection.
+			unbindService(mConnection);
+			mIsBound = false;
+		}
 	}
 
 	public void setFavorite(int id, boolean isChecked) {
@@ -697,13 +742,22 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	private void executeCreateListAdaptorTask() {
 		if (mCreateListAdaptorTask == null && mAdapter == null) {
+			// TODO: pass location
 			mCreateListAdaptorTask = (CreateListAdaptorTask) new CreateListAdaptorTask(
-					mOpenBikeManager.getCurrentLocation()).execute();
+					null).execute();
+			/*
+			 * mCreateListAdaptorTask = (CreateListAdaptorTask) new
+			 * CreateListAdaptorTask(
+			 * mOpenBikeManager.getCurrentLocation()).execute();
+			 */
 		}
 	}
 
 	private void executeUpdateDistanceTask(Location location) {
-		if (mUpdateDistanceTask != null) {
+		if (mCreateListAdaptorTask != null) {
+			mCreateListAdaptorTask.setUpdateOnPostExecute();
+			return;
+		} if (mUpdateDistanceTask != null) {
 			mUpdateDistanceTask.cancel(true);
 		}
 		mUpdateDistanceTask = (UpdateDistanceTask) new UpdateDistanceTask(
@@ -714,6 +768,9 @@ public class OpenBikeListActivity extends ListActivity implements
 
 		OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager.getDbAdapter();
 		Location mCurrentLocation = null;
+		boolean mUpdateOnPostExecute = false;
+		boolean mAdaptorCreated = false;
+		ArrayList<MinimalStation> mStations = null;
 
 		protected CreateListAdaptorTask(Location location) {
 			mCurrentLocation = location;
@@ -727,14 +784,18 @@ public class OpenBikeListActivity extends ListActivity implements
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
-			ArrayList<MinimalStation> stations = createStationList();
-			if (stations != null) {
-				mAdapter = new OpenBikeArrayAdaptor(
-						(Context) OpenBikeListActivity.this,
-						R.layout.station_list_entry, stations);
+			mStations = createStationList();
+			if (mStations != null) {
+				if (mAdapter == null) {
+					mAdaptorCreated = true;
+					mAdapter = new OpenBikeArrayAdaptor(
+							(Context) OpenBikeListActivity.this,
+							R.layout.station_list_entry, mStations);
+				} else {
+				}
 				return true;
 			} else {
-				// TODO: errorr
+				// TODO: error
 				return false;
 			}
 		}
@@ -816,11 +877,23 @@ public class OpenBikeListActivity extends ListActivity implements
 			if (!isListCreated) {
 				// executeGetAllStationsTask();
 			} else {
-				setListAdapter(mAdapter);
-				onListUpdated();
+				if (mAdaptorCreated) {
+					setListAdapter(mAdapter);
+				} else {
+					ArrayList<MinimalStation> list = mAdapter.getList();
+					list.clear();
+					list.addAll(mStations);
+				}
+				mAdapter.notifyDataSetChanged();
 				// TODO: first run dialog
 				mCreateListAdaptorTask = null;
+				if (mUpdateOnPostExecute)
+					executeUpdateDistanceTask(mLastLocation);
 			}
+		}
+
+		private void setUpdateOnPostExecute() {
+			mUpdateOnPostExecute = true;
 		}
 	}
 
@@ -838,7 +911,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			if (mLocation == null) {
 				while (it.hasNext()) {
 					it.next().setDistance(
-							MyLocationProvider.DISTANCE_UNAVAILABLE);
+							LocationService.DISTANCE_UNAVAILABLE);
 				}
 				return null;
 			}
@@ -850,16 +923,19 @@ public class OpenBikeListActivity extends ListActivity implements
 				geoPoint = station.getGeoPoint();
 				stationLocation.setLatitude(geoPoint.getLatitudeE6() * 1E-6);
 				stationLocation.setLongitude(geoPoint.getLongitudeE6() * 1E-6);
-				station.setDistance(
-						(int) mLocation.distanceTo(stationLocation));
+				station
+						.setDistance((int) mLocation
+								.distanceTo(stationLocation));
 			}
+			// FIXME:
+			// Use mAdapter.sort
 			Utils.sortStationsByDistance(mAdapter.getList());
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void unused) {
-			onListUpdated();
+			mAdapter.notifyDataSetChanged();
 		}
 	}
 }

@@ -52,7 +52,7 @@ public class OpenBikeManager {
 	
 	protected static OpenBikeDBAdapter mOpenBikeDBAdapter = null;
 	protected static Activity mActivity = null;
-	protected static MyLocationProvider mLocationProvider = null;
+	//protected static MyLocationProvider mLocationProvider = null;
 	private static OpenBikeManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
 	private BikeFilter mOpenBikeFilter = null;
@@ -79,9 +79,11 @@ public class OpenBikeManager {
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
 		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity);
 		mOpenBikeDBAdapter.open();
+		/*
 		if (mFilterPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false))
 			useLocation();
+			*/
 		initializeFilter();
 		initializeNetwork();		
 		//StationOverlay.initialize((Context) activity);
@@ -344,7 +346,7 @@ public class OpenBikeManager {
 			((IOpenBikeActivity) mActivity).onLocationChanged(location);
 		}
 	}
-
+	/*
 	public void useLocation() {
 		if (mLocationProvider == null)
 			mLocationProvider = new MyLocationProvider((Context) mActivity, this);
@@ -362,7 +364,9 @@ public class OpenBikeManager {
 			//Utils.sortStationsByName(mVisibleStations);
 		}
 	}
+	*/
 
+	/*
 	public Location getCurrentLocation() {
 		if (mLocationProvider != null && mLocationProvider.isLocationAvailable()) {
 			return mLocationProvider.getMyLocation();
@@ -370,6 +374,7 @@ public class OpenBikeManager {
 			return null;
 		}
 	}
+	*/
 	
 	// Only at first launch, as we
 	// haven't show location related dialog,
@@ -388,15 +393,16 @@ public class OpenBikeManager {
 	public void showAskForGps() {
 		if (mActivity != null && (mActivity instanceof IOpenBikeActivity 
 				|| mActivity instanceof FilterPreferencesActivity))
-			mActivity.showDialog(MyLocationProvider.ENABLE_GPS);
+			mActivity.showDialog(LocationService.ENABLE_GPS);
 	}
 	
 	public void showNoLocationProvider() {
 		if (mActivity != null && (mActivity instanceof IOpenBikeActivity 
 				|| mActivity instanceof FilterPreferencesActivity))
-			mActivity.showDialog(MyLocationProvider.NO_LOCATION_PROVIDER);
+			mActivity.showDialog(LocationService.NO_LOCATION_PROVIDER);
 	}
 	
+	/*
 	public void startLocation() {
 		if (mLocationProvider != null)
 			mLocationProvider.enableMyLocation();
@@ -406,6 +412,7 @@ public class OpenBikeManager {
 		if (mLocationProvider != null)
 			mLocationProvider.disableMyLocation();
 	}
+	*/
 	
 	private boolean isFirstRun() {
 		return mFilterPreferences.getBoolean("firstRun", true);
@@ -648,9 +655,11 @@ public class OpenBikeManager {
 		}
 	}
 	
+	/*
 	public static boolean isLocationAvailable() {
 		return (mLocationProvider != null && mLocationProvider.getMyLocation() != null);
 	}
+	*/
 	
 	
 	/******************************************************************/

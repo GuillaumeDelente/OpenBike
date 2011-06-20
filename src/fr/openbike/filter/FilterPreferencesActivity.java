@@ -19,22 +19,32 @@ package fr.openbike.filter;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
-import fr.openbike.MyLocationProvider;
+import android.util.Log;
+import android.widget.Toast;
+import fr.openbike.ILocationService;
+import fr.openbike.ILocationServiceListener;
+import fr.openbike.LocationService;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.list.OpenBikeListActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
-		implements OnSharedPreferenceChangeListener, OnClickListener {
+		implements OnSharedPreferenceChangeListener, OnClickListener,
+		ILocationServiceListener {
 
 	protected BikeFilter mActualFilter;
 	protected BikeFilter mModifiedFilter;
@@ -42,6 +52,10 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	protected Preference mReportBugPreference;
 	protected Dialog mConfirmDialog;
 	private OpenBikeManager mOpenBikeManager;
+	private ServiceConnection mConnection = null;
+	private ILocationService mBoundService = null;
+	private boolean mIsBound = false;
+	private Location mLastLocation = null;
 
 	public static final String NETWORK_PREFERENCE = "network";
 	public static final String REPORT_BUG_PREFERENCE = "report_bug";
@@ -56,25 +70,45 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mConnection = new ServiceConnection() {
+			public void onServiceConnected(ComponentName className,
+					IBinder service) {
+				Log.d("OpenBike", "Service connected");
+				mBoundService = ((LocationService.LocationServiceBinder) service)
+						.getService();
+				mBoundService.addListener(FilterPreferencesActivity.this);
+			}
+
+			public void onServiceDisconnected(ComponentName className) {
+				mBoundService = null;
+				Toast.makeText(FilterPreferencesActivity.this, "Disconnected",
+						Toast.LENGTH_SHORT).show();
+			}
+		};
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+		PreferenceScreen preferenceScreen = getPreferenceScreen();
 		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
 		mActualFilter = mOpenBikeManager.getOpenBikeFilter();
-		mNetworkPreference = getPreferenceScreen().findPreference(
-				FilterPreferencesActivity.NETWORK_PREFERENCE);
-		mReportBugPreference = getPreferenceScreen().findPreference(
-				FilterPreferencesActivity.REPORT_BUG_PREFERENCE);
+		mNetworkPreference = preferenceScreen
+				.findPreference(FilterPreferencesActivity.NETWORK_PREFERENCE);
+		mReportBugPreference = preferenceScreen
+				.findPreference(FilterPreferencesActivity.REPORT_BUG_PREFERENCE);
 		mNetworkPreference.setSummary(OpenBikeManager.NETWORK_NAME + " : "
 				+ OpenBikeManager.NETWORK_CITY);
-		getPreferenceScreen().getSharedPreferences()
+		preferenceScreen.getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 		try {
 			mModifiedFilter = mActualFilter.clone();
 		} catch (CloneNotSupportedException e) {
 			// Cannot happend
+		} 
+		if (preferenceScreen.getSharedPreferences().getBoolean(
+				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
+			doBindService();
 		}
 	}
 
@@ -90,8 +124,8 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			setResult(RESULT_OK);
 			mModifiedFilter.setNeedDbQuery(mActualFilter);
 			mOpenBikeManager.setVcubFilter(mModifiedFilter);
-			//TODO:
-			//mOpenBikeManager.executeCreateVisibleStationsTask(false);
+			// TODO:
+			// mOpenBikeManager.executeCreateVisibleStationsTask(false);
 			// Log.e("OpenBike", "Only Favorites ? "
 			// + mModifiedFilter.isShowOnlyFavorites());
 		}
@@ -99,9 +133,21 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	}
 
 	@Override
+	protected void onStop() {
+		doUnbindService();
+		super.onStop();
+	}
+
+	@Override
+	public void onClick(DialogInterface arg0, int arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-		case MyLocationProvider.ENABLE_GPS:
+		case LocationService.ENABLE_GPS:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -121,7 +167,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 									dialog.cancel();
 								}
 							}).create();
-		case MyLocationProvider.NO_LOCATION_PROVIDER:
+		case LocationService.NO_LOCATION_PROVIDER:
 			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
@@ -154,10 +200,13 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 					.setAction(OpenBikeListActivity.ACTION_CHOOSE_NETWORK)
 					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 		} else if (preference == mReportBugPreference) {
-			final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+			final Intent emailIntent = new Intent(
+					android.content.Intent.ACTION_SEND);
 			emailIntent.setType("plain/text");
-			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"contact@openbike.fr"});
-			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Bug OpenBike");
+			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+					new String[] { "contact@openbike.fr" });
+			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,
+					"Bug OpenBike");
 			startActivity(Intent.createChooser(emailIntent, "Signaler un bug"));
 		}
 		return super.onPreferenceTreeClick(preferenceScreen, preference);
@@ -201,12 +250,35 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Log.i("OpenBike", "Location changed");
 			if (sharedPreferences.getBoolean(
 					FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
-				// Log.i("OpenBike", "use Location");
-				mOpenBikeManager.useLocation();
+				doUnbindService();
 			} else {
-				// Log.i("OpenBike", "dont Use Location");
-				mOpenBikeManager.dontUseLocation();
+				doBindService();
 			}
 		}
+	}
+
+	void doBindService() {
+		Log.d("OpenBike", "Service binded");
+		bindService(new Intent(this, LocationService.class), mConnection,
+				Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (mIsBound) {
+			// Detach our existing connection.
+			unbindService(mConnection);
+			mIsBound = false;
+		}
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		Log.d("OpenBike", "Location received");
+		if (location == mLastLocation) {
+			Log.d("OpenBike", "same location");
+			return;
+		}
+		mLastLocation = location;
 	}
 }

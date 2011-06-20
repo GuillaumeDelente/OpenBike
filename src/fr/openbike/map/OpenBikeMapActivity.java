@@ -24,8 +24,11 @@ import java.util.List;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
@@ -33,6 +36,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -46,6 +50,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -53,8 +58,10 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
+import fr.openbike.ILocationService;
+import fr.openbike.ILocationServiceListener;
 import fr.openbike.IOpenBikeActivity;
-import fr.openbike.MyLocationProvider;
+import fr.openbike.LocationService;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
 import fr.openbike.RestClient;
@@ -67,7 +74,7 @@ import fr.openbike.object.Network;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeMapActivity extends MapActivity implements
-		IOpenBikeActivity {
+		IOpenBikeActivity, ILocationServiceListener {
 
 	public static String ACTION_DETAIL = "fr.openbike.action.VIEW_STATION";
 	private MapController mMapController;
@@ -84,6 +91,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private PopulateOverlays mPopulateOverlays = null;
 	private int mSelected = 0;
 	private boolean mIsCreatingActivity = true;
+	private ServiceConnection mConnection = null;
+	private ILocationService mBoundService = null;
+	private SharedPreferences mPreferences = null;
+	private boolean mIsBound = false;
+	private Location mLastLocation = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -101,7 +113,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapOverlays = mMapView.getOverlays();
 		handleIntent(getIntent());
 		OpenBikeManager.setCurrentActivity(this);
-		mOpenBikeManager.startLocation();
+		// mOpenBikeManager.startLocation();
 		BitmapDrawable marker = (BitmapDrawable) getResources().getDrawable(
 				R.drawable.pin);
 
@@ -117,12 +129,31 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (mMapPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			if (!mMyLocationOverlay.isMyLocationDrawn()) {
-				mMyLocationOverlay.setCurrentLocation(mOpenBikeManager
-						.getCurrentLocation()); // mMapView.invalidate();
+				// TODO
+				/*
+				 * mMyLocationOverlay.setCurrentLocation(mOpenBikeManager
+				 * .getCurrentLocation()); // mMapView.invalidate();
+				 */
 			}
 		} else {
 			mMyLocationOverlay.setCurrentLocation(null);
 		}
+		mConnection = new ServiceConnection() {
+			public void onServiceConnected(ComponentName className,
+					IBinder service) {
+				Log.d("OpenBike", "Service connected");
+				mBoundService = ((LocationService.LocationServiceBinder) service)
+						.getService();
+				mBoundService.addListener(OpenBikeMapActivity.this);
+			}
+
+			public void onServiceDisconnected(ComponentName className) {
+				mBoundService = null;
+				Toast.makeText(OpenBikeMapActivity.this, "Disconnected",
+						Toast.LENGTH_SHORT).show();
+			}
+		};
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 	}
 
 	@Override
@@ -135,7 +166,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	private void handleIntent(Intent intent) {
 		mMapOverlays.clear();
-		Location location = mOpenBikeManager.getCurrentLocation();
+		// TODO
+		// Location location = mOpenBikeManager.getCurrentLocation();
+		Location location = null;
 		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 			if (mMapPreferences.getBoolean(
@@ -156,11 +189,30 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapView.invalidate();
 	}
 
+	void doBindService() {
+		Log.d("OpenBike", "Service binded");
+		bindService(new Intent(this, LocationService.class), mConnection,
+				Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (mIsBound) {
+			// Detach our existing connection.
+			unbindService(mConnection);
+			mIsBound = false;
+		}
+	}
+
 	@Override
 	protected void onResume() {
 		Log.d("OpenBike", "On resume " + getIntent().getAction());
 		OpenBikeManager.setCurrentActivity(this);
 		executePopulateOverlays();
+		if (mPreferences.getBoolean(
+				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
+			doBindService();
+		}
 		if (!mIsCreatingActivity) {
 			// Need to update the list
 
@@ -213,8 +265,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
+	protected void onStop() {
+		if (mIsBound)
+			doUnbindService();
+		super.onStop();
 	}
 
 	@Override
@@ -299,7 +353,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 							dialog.cancel();
 						}
 					}).create();
-		case MyLocationProvider.ENABLE_GPS:
+		case LocationService.ENABLE_GPS:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -319,7 +373,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case MyLocationProvider.NO_LOCATION_PROVIDER:
+		case LocationService.NO_LOCATION_PROVIDER:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"
@@ -442,7 +496,15 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onLocationChanged(Location location) {
+		Log.d("OpenBike", "Location received");
+		if (location == mLastLocation) {
+			Log.d("OpenBike", "same location");
+			return;
+		}
+		Log.d("OpenBike", "new location");
+		mLastLocation = location;
 		mMyLocationOverlay.setCurrentLocation(location);
+		mStationsOverlay.setCurrentLocation(location);
 		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
 		if (filter.isFilteringByDistance()) {
 			executePopulateOverlays();
@@ -585,10 +647,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	private void executePopulateOverlays() {
-		if (mPopulateOverlays == null) {
-			mPopulateOverlays = (PopulateOverlays) new PopulateOverlays()
-					.execute();
+		if (mPopulateOverlays != null) {
+			mPopulateOverlays.cancel(true);
 		}
+		mPopulateOverlays = (PopulateOverlays) new PopulateOverlays().execute();
 	}
 
 	private void executeUpdateOverlays() {
@@ -603,7 +665,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mUpdateOverlays = (UpdateOverlays) new UpdateOverlays().execute();
 	}
 
-	private class PopulateOverlays extends AsyncTask<Void, Integer, Boolean> {
+	private class PopulateOverlays extends AsyncTask<Void, Integer, Void> {
 
 		private OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager
 				.getDbAdapter();
@@ -611,21 +673,22 @@ public class OpenBikeMapActivity extends MapActivity implements
 				.getOpenBikeFilter();
 		private ArrayList<StationOverlay> mOverlays = null;
 		private boolean mUpdateOnPostExecute = false;
+		private int OK = 0;
+		private int CANCELLED = -1;
+		private int EMPTY = -2;
 
 		@Override
-		protected Boolean doInBackground(Void... unused) {
-			if (getStationsCursor()) {
-				publishProgress(50);
-			} else {
-				return false;
-			}
-			return true;
+		protected Void doInBackground(Void... unused) {
+			publishProgress(getStationsCursor());
+			return null;
 		}
 
-		private boolean getStationsCursor() {
+		private int getStationsCursor() {
 			if (mOpenBikeDBAdapter.getStationCount() == 0) {
-				return false;
+				return EMPTY;
 			}
+			if (isCancelled())
+				return CANCELLED;
 			Cursor cursor = mOpenBikeDBAdapter.getFilteredStationsCursor(
 					new String[] { BaseColumns._ID, OpenBikeDBAdapter.KEY_OPEN,
 							OpenBikeDBAdapter.KEY_LATITUDE,
@@ -633,20 +696,30 @@ public class OpenBikeMapActivity extends MapActivity implements
 							OpenBikeDBAdapter.KEY_BIKES,
 							OpenBikeDBAdapter.KEY_SLOTS }, Utils
 							.whereClauseFromFilter(mOpenBikeFilter), null);
+			if (isCancelled()) {
+				cursor.close();
+				return CANCELLED;
+			}
 			mOverlays = mStationsOverlay.getOverlaysFromCursor(cursor,
-					mOpenBikeFilter, mOpenBikeManager.getCurrentLocation());
-			return true;
+					mOpenBikeFilter, mLastLocation);
+			cursor.close();
+			return OK;
 		}
 
 		@Override
 		protected void onPreExecute() {
+			Log.d("OpenBike", "onPreExecute map");
 			showProgressDialog(getString(R.string.loading),
 					getString(R.string.showing_load));
 		}
 
 		@Override
 		protected void onProgressUpdate(Integer... values) {
-			if (mOverlays != null) {
+			if (values[0] == CANCELLED) {
+				return;
+			} else if (values[0] == CANCELLED) {
+				//TODO
+			} else if (mOverlays != null) {
 				mStationsOverlay.setItems(mOverlays);
 				mMapView.invalidate();
 			} else {
@@ -655,13 +728,21 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 
 		@Override
-		protected void onPostExecute(Boolean isListCreated) {
+		protected void onPostExecute(Void unused) {
+			Log.d("OpenBike", "onPostExecute map");
 			dismissProgressDialog();
 			mPopulateOverlays = null;
 			if (mUpdateOnPostExecute) {
 				Log.d("OpenBike", "updating overlays after populate");
 				executeUpdateOverlays();
 			}
+		}
+
+		@Override
+		protected void onCancelled() {
+			Log.d("OpenBike", "onCancelled map");
+			dismissProgressDialog();
+			super.onCancelled();
 		}
 
 		private void setUpdateOnPostExecute() {
@@ -704,6 +785,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				stationOverlay.setSlots(cursor.getInt(cursor
 						.getColumnIndex(OpenBikeDBAdapter.KEY_SLOTS)));
 			}
+			cursor.close();
 			return true;
 		}
 

@@ -18,6 +18,7 @@ package fr.openbike.map;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.location.Location;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,7 +31,7 @@ import android.widget.TextView;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.OverlayItem;
 
-import fr.openbike.MyLocationProvider;
+import fr.openbike.LocationService;
 import fr.openbike.R;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
@@ -111,7 +112,7 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 	 *            - The overlay item containing the relevant view data (title
 	 *            and snippet).
 	 */
-	public void setData(Item item) {
+	public void setData(Item item, Location location) {
 		Cursor station = ((Activity) mContext).managedQuery(Uri
 				.withAppendedPath(StationsProvider.CONTENT_URI, String
 						.valueOf(((StationsOverlay.StationOverlay) item)
@@ -151,9 +152,9 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 			mSlotsTextView.setVisibility(GONE);
 		}
 		GeoPoint point = item.getPoint();
-		int distance = Utils.computeDistance(point.getLatitudeE6(), point.getLongitudeE6());
+		int distance = Utils.computeDistance(point.getLatitudeE6(), point.getLongitudeE6(), location);
 		
-		if (distance == MyLocationProvider.DISTANCE_UNAVAILABLE) {
+		if (distance == LocationService.DISTANCE_UNAVAILABLE) {
 			// No distance to show
 			mDistanceTextView.setVisibility(GONE);
 		} else {

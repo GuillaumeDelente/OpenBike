@@ -18,6 +18,7 @@ package fr.openbike.map;
 import java.util.List;
 
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -49,6 +50,7 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	final MapController mc;
 	private Item currentFocussedItem;
 	private int currentFocussedIndex;
+	private Location mLocation;
 
 	/**
 	 * Create a new BalloonItemizedOverlay
@@ -130,10 +132,10 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 
 		List<Overlay> mapOverlays = mapView.getOverlays();
 		if (mapOverlays.size() > 1) {
-			//hideOtherBalloons(mapOverlays);
+			// hideOtherBalloons(mapOverlays);
 		}
 
-		balloonView.setData(currentFocussedItem);
+		balloonView.setData(currentFocussedItem, mLocation);
 
 		GeoPoint point = currentFocussedItem.getPoint();
 		MapView.LayoutParams params = new MapView.LayoutParams(
@@ -170,7 +172,8 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	 * populate additional sub-views.
 	 */
 	protected BalloonOverlayView<Item> createBalloonOverlayView() {
-		return new BalloonOverlayView<Item>(getMapView().getContext(), viewOffset);
+		return new BalloonOverlayView<Item>(getMapView().getContext(),
+				viewOffset);
 	}
 
 	/**
@@ -188,29 +191,30 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 			return;
 		balloonView.setVisibility(View.GONE);
 	}
-	
+
 	public boolean isBalloonShowing() {
 		if (balloonView == null)
 			return false;
 		return balloonView.getVisibility() == View.VISIBLE;
 	}
-	
+
 	public void updateBalloonData(Item item) {
 		if (balloonView == null)
 			return;
-		balloonView.setData(item);
+		balloonView.setData(item, mLocation);
+	}
+
+	public void setCurrentLocation(Location location) {
+		mLocation = location;
 	}
 
 	/*
-	private void hideOtherBalloons(List<Overlay> overlays) {
-
-		for (Overlay overlay : overlays) {
-			if (overlay instanceof BalloonItemizedOverlay<?> && overlay != this) {
-				((BalloonItemizedOverlay<?>) overlay).hideBalloon();
-			}
-		}
-	}
-	*/
+	 * private void hideOtherBalloons(List<Overlay> overlays) {
+	 * 
+	 * for (Overlay overlay : overlays) { if (overlay instanceof
+	 * BalloonItemizedOverlay<?> && overlay != this) {
+	 * ((BalloonItemizedOverlay<?>) overlay).hideBalloon(); } } }
+	 */
 
 	/**
 	 * Sets the onTouchListener for the balloon being displayed, calling the

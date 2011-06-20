@@ -260,11 +260,12 @@ public class StationDetails extends Activity {
 						+ getString(mStation.getInt(mStation
 								.getColumnIndex(OpenBikeDBAdapter.KEY_SPECIAL)) == 1 ? R.string.yes
 								: R.string.no));
+		//TODO pass location to compute distance
 		int distance = Utils.computeDistance(mStation.getInt(mStation
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE)), mStation
 				.getInt(mStation
-						.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)));
-		if (distance != MyLocationProvider.DISTANCE_UNAVAILABLE) {
+						.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE)), null);
+		if (distance != LocationService.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.upper_at) + " "
 					+ Utils.formatDistance(distance));
 			mDistance.setVisibility(View.VISIBLE);

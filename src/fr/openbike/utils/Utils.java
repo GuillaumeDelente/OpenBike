@@ -28,8 +28,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.net.Uri;
-import fr.openbike.MyLocationProvider;
-import fr.openbike.OpenBikeManager;
+import fr.openbike.LocationService;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
 import fr.openbike.object.MinimalStation;
@@ -107,15 +106,15 @@ public class Utils {
 		return list.size() > 0;
 	}
 
-	public static int computeDistance(int latitude, int longitude) {
-		Location location = OpenBikeManager.getOpenBikeManagerInstance(null).getCurrentLocation();
-		if (location == null) {
-			return MyLocationProvider.DISTANCE_UNAVAILABLE;
+	public static int computeDistance(int latitude, int longitude, Location from) {
+		//TODO
+		if (from == null) {
+			return LocationService.DISTANCE_UNAVAILABLE;
 		}
 		Location l = new Location("");
 		l.setLatitude((double) latitude * 1E-6);
 		l.setLongitude((double) longitude * 1E-6);
-		return (int) location.distanceTo(l);
+		return (int) from.distanceTo(l);
 	}
 
 	public static Intent getNavigationIntent(int latitude, int longitude) {
