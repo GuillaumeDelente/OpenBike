@@ -26,7 +26,6 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.BikeFilter;
@@ -295,86 +294,6 @@ public class OpenBikeManager {
 		*/
 	}
 	
-	private void resetDistances() {
-		//TODO:
-		/*
-		if (mVisibleStations == null)
-			return;
-		StationOverlay overlay;
-		MinimalStation station;
-		Iterator<StationOverlay> it = mVisibleStations.iterator();
-		while(it.hasNext()) {
-			overlay = it.next();
-			station = overlay.getStation();
-			station.setDistance(-1);
-		}
-		*/
-	}
-	
-	public void onLocationChanged(Location location) {
-		//TODO
-		/*
-		if (mGetAllStationsTask != null) {
-			//First launch, retrieving station list
-			return;
-		} else if (mCreateVisibleStationsTask == null) {
-			if (location == null) {
-				//FIXME:
-				//mVcubFilter.setNeedDbQuery();
-				executeCreateVisibleStationsTask(false);
-				//resetDistances();
-				//Utils.sortStationsByName(mVisibleStations);
-			} else if (mOpenBikeFilter.isFilteringByDistance()) {
-				if (!mOpenBikeFilter.isNeedDbQuery())
-					updateDistance(location);
-				executeCreateVisibleStationsTask(false);
-			} else {
-				updateDistance(location);
-				Utils.sortStationsByDistance(mVisibleStations);
-			}
-		} else { // We received a new location during list creation :
-			// cancel the current task and launch a new one.
-			mCreateVisibleStationsTask.cancel(true);
-			mCreateVisibleStationsTask = null;
-			//FIXME:
-			//mVcubFilter.setNeedDbQuery(true);
-			executeCreateVisibleStationsTask(true);
-		}
-		*/
-		if (mActivity instanceof IOpenBikeActivity) {
-			Log.d("OpenBike", "manager location changed");
-			((IOpenBikeActivity) mActivity).onLocationChanged(location);
-		}
-	}
-	/*
-	public void useLocation() {
-		if (mLocationProvider == null)
-			mLocationProvider = new MyLocationProvider((Context) mActivity, this);
-	}
-	
-	public void dontUseLocation() {
-		mActivity.removeDialog(MyLocationProvider.ENABLE_GPS);
-		mLocationProvider.disableMyLocation();
-		mLocationProvider = null;
-		//FIXME: Ugly way to know if we need
-		// DB query and avoid useless operations
-		if (!mOpenBikeFilter.isFilteringByDistance()) {
-			resetDistances();
-			//TODO:
-			//Utils.sortStationsByName(mVisibleStations);
-		}
-	}
-	*/
-
-	/*
-	public Location getCurrentLocation() {
-		if (mLocationProvider != null && mLocationProvider.isLocationAvailable()) {
-			return mLocationProvider.getMyLocation();
-		} else {
-			return null;
-		}
-	}
-	*/
 	
 	// Only at first launch, as we
 	// haven't show location related dialog,

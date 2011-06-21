@@ -17,6 +17,8 @@
  */
 package fr.openbike;
 
+import android.location.Location;
+
 
 /**
  * @author guitou
@@ -26,4 +28,5 @@ public interface ILocationService {
 	
 	public void addListener(ILocationServiceListener listener); 
     public void removeListener(ILocationServiceListener listener);
+    public Location getCurrentLocation();
 }

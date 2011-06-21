@@ -72,7 +72,7 @@ public class LocationService extends Service implements ILocationService,
 			listeners = new ArrayList<ILocationServiceListener>();
 		}
 		listeners.add(listener);
-		listener.onLocationChanged(mLastFix);
+		listener.onLocationChanged(mLastFix, true);
 	}
 
 	// Suppression d'un listener
@@ -87,7 +87,7 @@ public class LocationService extends Service implements ILocationService,
 		Log.d("OpenBike", "Fire location changed");
 		if (listeners != null) {
 			for (ILocationServiceListener listener : listeners) {
-				listener.onLocationChanged(l);
+				listener.onLocationChanged(l, false);
 			}
 		}
 	}
@@ -230,5 +230,10 @@ public class LocationService extends Service implements ILocationService,
 	    public ILocationService getService() { 
 	        return service; 
 	    } 
+	}
+
+	@Override
+	public Location getCurrentLocation() {
+		return mLastFix;
 	}
 }

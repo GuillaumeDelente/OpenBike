@@ -90,12 +90,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private UpdateOverlays mUpdateOverlays = null;
 	private PopulateOverlays mPopulateOverlays = null;
 	private int mSelected = 0;
-	private boolean mIsCreatingActivity = true;
 	private ServiceConnection mConnection = null;
 	private ILocationService mBoundService = null;
 	private SharedPreferences mPreferences = null;
 	private boolean mIsBound = false;
-	private Location mLastLocation = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -126,18 +124,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
 		}
 		mMapOverlays.add(mMyLocationOverlay);
-		if (mMapPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
-			if (!mMyLocationOverlay.isMyLocationDrawn()) {
-				// TODO
-				/*
-				 * mMyLocationOverlay.setCurrentLocation(mOpenBikeManager
-				 * .getCurrentLocation()); // mMapView.invalidate();
-				 */
-			}
-		} else {
-			mMyLocationOverlay.setCurrentLocation(null);
-		}
 		mConnection = new ServiceConnection() {
 			public void onServiceConnected(ComponentName className,
 					IBinder service) {
@@ -208,16 +194,14 @@ public class OpenBikeMapActivity extends MapActivity implements
 	protected void onResume() {
 		Log.d("OpenBike", "On resume " + getIntent().getAction());
 		OpenBikeManager.setCurrentActivity(this);
-		executePopulateOverlays();
 		if (mPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
+		} else {
+			mMyLocationOverlay.setCurrentLocation(null);
+			executePopulateOverlays();
 		}
-		if (!mIsCreatingActivity) {
-			// Need to update the list
-
-		}
-		mIsCreatingActivity = false;
+		
 		/*
 		 * 
 		 * if (mRetrieveList) { // Know if we passed by onNewIntent() just
@@ -495,18 +479,12 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	@Override
-	public void onLocationChanged(Location location) {
+	public void onLocationChanged(Location location, boolean firstFix) {
 		Log.d("OpenBike", "Location received");
-		if (location == mLastLocation) {
-			Log.d("OpenBike", "same location");
-			return;
-		}
-		Log.d("OpenBike", "new location");
-		mLastLocation = location;
 		mMyLocationOverlay.setCurrentLocation(location);
 		mStationsOverlay.setCurrentLocation(location);
 		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
-		if (filter.isFilteringByDistance()) {
+		if (firstFix || filter.isFilteringByDistance()) {
 			executePopulateOverlays();
 		} else {
 			mMapView.invalidate();
@@ -700,8 +678,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 				cursor.close();
 				return CANCELLED;
 			}
-			mOverlays = mStationsOverlay.getOverlaysFromCursor(cursor,
-					mOpenBikeFilter, mLastLocation);
+			//FIXME
+			if (mIsBound && mBoundService == null) {
+				Log.e("OpenBike", "mBoundService is null !");
+			} else {
+				mOverlays = mStationsOverlay.getOverlaysFromCursor(cursor,
+					mOpenBikeFilter, mIsBound ? mBoundService.getCurrentLocation() : null);
+			}
 			cursor.close();
 			return OK;
 		}

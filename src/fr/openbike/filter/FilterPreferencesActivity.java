@@ -250,9 +250,9 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 			// Log.i("OpenBike", "Location changed");
 			if (sharedPreferences.getBoolean(
 					FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
-				doUnbindService();
-			} else {
 				doBindService();
+			} else {
+				doUnbindService();
 			}
 		}
 	}
@@ -273,7 +273,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 	}
 
 	@Override
-	public void onLocationChanged(Location location) {
+	public void onLocationChanged(Location location, boolean unused) {
 		Log.d("OpenBike", "Location received");
 		if (location == mLastLocation) {
 			Log.d("OpenBike", "same location");
