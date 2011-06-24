@@ -20,6 +20,7 @@ package fr.openbike.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -53,8 +54,8 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 	int IMAGE_HEIGHT;
 
 	public StationsOverlay(Resources resources, BitmapDrawable drawable,
-			MapView mv) {
-		super(drawable, mv);
+			MapView mv, Context context) {
+		super(drawable, mv, context);
 		this.marker = new MarkerDrawable(resources, drawable.getBitmap());
 		boundCenterBottom(marker);
 		pin = new PinDrawable();

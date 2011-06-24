@@ -60,9 +60,10 @@ public class OpenBikeManager {
 	//private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	private static ShowNetworksTask mShowNetworksTask = null;
 	
+	/*
 	public BikeFilter getOpenBikeFilter() {
 		return mOpenBikeFilter;
-	}
+	}*/
 
 	public void setVcubFilter(BikeFilter vcubFilter) {
 		mOpenBikeFilter = vcubFilter;
@@ -76,14 +77,14 @@ public class OpenBikeManager {
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.other_preferences, false);
 		PreferenceManager.setDefaultValues((Context) activity, R.xml.location_preferences, false);
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
-		mOpenBikeDBAdapter = new OpenBikeDBAdapter((Context) activity);
+		mOpenBikeDBAdapter = OpenBikeDBAdapter.getInstance((Context) activity);
 		mOpenBikeDBAdapter.open();
 		/*
 		if (mFilterPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false))
 			useLocation();
 			*/
-		initializeFilter();
+		//initializeFilter();
 		initializeNetwork();		
 		//StationOverlay.initialize((Context) activity);
 	}
@@ -194,9 +195,11 @@ public class OpenBikeManager {
 		return false;
 	}
 	
+	/*
 	private void initializeFilter() {
 		mOpenBikeFilter = new BikeFilter((Context) mActivity);
 	}
+	*/
 	
 	
 	public void setFavorite(int id, boolean isChecked) {

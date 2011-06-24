@@ -40,6 +40,7 @@ import fr.openbike.ILocationServiceListener;
 import fr.openbike.LocationService;
 import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
+import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.list.OpenBikeListActivity;
 
 abstract public class FilterPreferencesActivity extends PreferenceActivity
@@ -92,7 +93,7 @@ abstract public class FilterPreferencesActivity extends PreferenceActivity
 		super.onResume();
 		PreferenceScreen preferenceScreen = getPreferenceScreen();
 		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
-		mActualFilter = mOpenBikeManager.getOpenBikeFilter();
+		mActualFilter = BikeFilter.getInstance(this);
 		mNetworkPreference = preferenceScreen
 				.findPreference(FilterPreferencesActivity.NETWORK_PREFERENCE);
 		mReportBugPreference = preferenceScreen

@@ -17,8 +17,11 @@ package fr.openbike.map;
 
 import java.util.List;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,6 +36,8 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
 import fr.openbike.R;
+import fr.openbike.StationDetails;
+import fr.openbike.database.StationsProvider;
 
 /**
  * An abstract extension of ItemizedOverlay for displaying an information
@@ -51,6 +56,7 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	private Item currentFocussedItem;
 	private int currentFocussedIndex;
 	private Location mLocation;
+	private Context mContext;
 
 	/**
 	 * Create a new BalloonItemizedOverlay
@@ -61,11 +67,13 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	 * @param mapView
 	 *            - The view upon which the overlay items are to be drawn.
 	 */
-	public BalloonItemizedOverlay(Drawable defaultMarker, MapView mapView) {
+	public BalloonItemizedOverlay(Drawable defaultMarker, MapView mapView,
+			Context context) {
 		super(defaultMarker);
 		this.mapView = mapView;
 		viewOffset = 0;
 		mc = mapView.getController();
+		mContext = context;
 	}
 
 	/**
@@ -101,7 +109,15 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	 * @return true if you handled the tap, otherwise false.
 	 */
 	protected boolean onBalloonTap(int index, Item item) {
-		return false;
+		Intent intent = new Intent(mContext, StationDetails.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(Uri
+				.withAppendedPath(StationsProvider.CONTENT_URI, String
+						.valueOf(((StationsOverlay.StationOverlay) item)
+								.getId())));
+		mContext.startActivity(intent);
+		return true;
 	}
 
 	/*

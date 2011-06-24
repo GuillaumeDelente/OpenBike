@@ -49,7 +49,7 @@ public class StationsProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		Context context = getContext();
-		mDb = new OpenBikeDBAdapter(context);
+		mDb = OpenBikeDBAdapter.getInstance(context);
 		mDb.open();
 		return true;
 	}

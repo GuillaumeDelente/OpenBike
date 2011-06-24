@@ -51,6 +51,7 @@ public class OpenBikeDBAdapter {
 
 	private SQLiteDatabase mDb;
 	private OpenBikeDBOpenHelper mDbHelper;
+	private static OpenBikeDBAdapter mInstance = null;
 	public static final String KEY_ADDRESS = "address";
 	public static final String KEY_BIKES = "availableBikes";
 	public static final String KEY_SLOTS = "freeSlots";
@@ -92,11 +93,17 @@ public class OpenBikeDBAdapter {
 			+ KEY_SERVER + " text not null, " + KEY_SPECIAL_NAME
 			+ " text not null);";
 
-	public OpenBikeDBAdapter(Context context) {
+	private OpenBikeDBAdapter(Context context) {
 		// mContext = context;
 		mDbHelper = new OpenBikeDBOpenHelper(context, DATABASE_NAME, null,
 				DATABASE_VERSION);
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+	}
+	
+	public static synchronized OpenBikeDBAdapter getInstance (Context context) {
+		if (mInstance == null)
+			mInstance = new OpenBikeDBAdapter(context);
+		return mInstance;
 	}
 
 	public void close() {
@@ -257,7 +264,8 @@ public class OpenBikeDBAdapter {
 	 * KEY_PAYMENT, KEY_SPECIAL }, null, null, null, null, null); }
 	 */
 
-	public Cursor getFilteredStationsCursor(String[] projection, String where, String orderBy) {
+	public Cursor getFilteredStationsCursor(String[] projection, String where,
+			String orderBy) {
 		String nWhere;
 		if (where == null)
 			nWhere = KEY_NETWORK + " = ?";
@@ -294,8 +302,8 @@ public class OpenBikeDBAdapter {
 
 		Cursor cursor = mDb.rawQuery(s, new String[] { query
 		// ,
-		// String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE,
-		// 0))
+				// String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE,
+				// 0))
 				});
 
 		/*
@@ -419,15 +427,11 @@ public class OpenBikeDBAdapter {
 
 	// FIXME : to remove
 	public Cursor getStations() throws SQLException {
-		Cursor cursor = mDb.rawQuery("SELECT " +
-				BaseColumns._ID + ", " +
-				KEY_LATITUDE + ", " +
-				KEY_LONGITUDE + ", " +
-				KEY_BIKES + ", " +
-				KEY_NAME + ", " +
-				KEY_SLOTS + " FROM " +
-				STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
-				new String[] { String.valueOf(mPreferences.getInt(
+		Cursor cursor = mDb.rawQuery("SELECT " + BaseColumns._ID + ", "
+				+ KEY_LATITUDE + ", " + KEY_LONGITUDE + ", " + KEY_BIKES + ", "
+				+ KEY_NAME + ", " + KEY_SLOTS + " FROM " + STATIONS_TABLE
+				+ " WHERE " + KEY_NETWORK + " = ?", new String[] { String
+				.valueOf(mPreferences.getInt(
 						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
 		return cursor;
 	}

@@ -118,7 +118,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		marker.setBounds(0, 0, marker.getIntrinsicWidth(), marker
 				.getIntrinsicHeight());
 		mMapOverlays.clear();
-		mStationsOverlay = new StationsOverlay(getResources(), marker, mMapView);
+		mStationsOverlay = new StationsOverlay(getResources(), marker, mMapView, this);
 		mMapOverlays.add(mStationsOverlay);
 		if (mMyLocationOverlay == null) {
 			mMyLocationOverlay = new MyLocationOverlay(this, mMapView);
@@ -198,6 +198,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
 		} else {
+			mStationsOverlay.setCurrentLocation(null);
 			mMyLocationOverlay.setCurrentLocation(null);
 			executePopulateOverlays();
 		}
@@ -483,7 +484,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		Log.d("OpenBike", "Location received");
 		mMyLocationOverlay.setCurrentLocation(location);
 		mStationsOverlay.setCurrentLocation(location);
-		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
+		BikeFilter filter = BikeFilter.getInstance(this);
 		if (firstFix || filter.isFilteringByDistance()) {
 			executePopulateOverlays();
 		} else {
@@ -500,7 +501,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onListUpdated() {
-		BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
+		BikeFilter filter = BikeFilter.getInstance(this);
 		if (filter.isFilteringByDistance() || filter.isShowOnlyWithBikes()
 				|| filter.isShowOnlyWithSlots()) {
 			executePopulateOverlays();
@@ -647,8 +648,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 		private OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager
 				.getDbAdapter();
-		private BikeFilter mOpenBikeFilter = mOpenBikeManager
-				.getOpenBikeFilter();
+		private BikeFilter mOpenBikeFilter = BikeFilter.getInstance(OpenBikeMapActivity.this);
 		private ArrayList<StationOverlay> mOverlays = null;
 		private boolean mUpdateOnPostExecute = false;
 		private int OK = 0;
@@ -737,8 +737,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 		private OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager
 				.getDbAdapter();
-		private BikeFilter mOpenBikeFilter = mOpenBikeManager
-				.getOpenBikeFilter();
+		private BikeFilter mOpenBikeFilter = BikeFilter.getInstance(OpenBikeMapActivity.this);
 		private List<StationOverlay> mOverlays = null;
 
 		@Override

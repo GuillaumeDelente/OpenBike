@@ -17,12 +17,14 @@ package fr.openbike.map;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -33,6 +35,7 @@ import com.google.android.maps.OverlayItem;
 
 import fr.openbike.LocationService;
 import fr.openbike.R;
+import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
 import fr.openbike.utils.Utils;
@@ -63,6 +66,7 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 	private TextView mDistanceTextView;
 	private CheckBox mFavoriteCheckBox;
 	private Context mContext;
+	private String mId;
 	private int mBottomOffset;
 
 	/**
@@ -77,7 +81,7 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 	public BalloonOverlayView(Context context, int offset) {
 
 		super(context);
-		this.mContext = context;
+		mContext = context;
 		mLinearLayout = new LinearLayout(context);
 		mLinearLayout.setVisibility(VISIBLE);
 		LayoutInflater inflater = (LayoutInflater) context
@@ -90,17 +94,16 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 		mDistanceTextView = (TextView) v.findViewById(R.id.balloon_distance);
 		mFavoriteCheckBox = (CheckBox) v
 				.findViewById(R.id.balloon_item_favorite);
-		/*
-		 * final float scale = this.getResources().getDisplayMetrics().density;
-		 * favorite.setPadding(favorite.getPaddingLeft(),
-		 * favorite.getPaddingTop(), favorite.getPaddingRight() + (int)(10.0f *
-		 * scale + 0.5f), favorite.getPaddingBottom());
-		 */
-
+		mFavoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
+			
+			@Override
+			public void onCheckedChanged(CompoundButton checkBox, boolean checked) {
+				OpenBikeDBAdapter.getInstance(mContext).updateFavorite(Integer.parseInt(mId), checked);
+			}
+		});
 		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		params.gravity = Gravity.NO_GRAVITY;
-
 		addView(mLinearLayout, params);
 
 	}
@@ -113,10 +116,11 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 	 *            and snippet).
 	 */
 	public void setData(Item item, Location location) {
+		mId = String
+		.valueOf(((StationsOverlay.StationOverlay) item)
+				.getId());
 		Cursor station = ((Activity) mContext).managedQuery(Uri
-				.withAppendedPath(StationsProvider.CONTENT_URI, String
-						.valueOf(((StationsOverlay.StationOverlay) item)
-								.getId())), new String[] {
+				.withAppendedPath(StationsProvider.CONTENT_URI, mId), new String[] {
 				OpenBikeDBAdapter.KEY_NAME, OpenBikeDBAdapter.KEY_OPEN,
 				OpenBikeDBAdapter.KEY_FAVORITE, OpenBikeDBAdapter.KEY_BIKES,
 				OpenBikeDBAdapter.KEY_SLOTS }, null, null, null);
@@ -159,6 +163,7 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 			mDistanceTextView.setVisibility(GONE);
 		} else {
 			// Show distance
+			mDistanceTextView.setVisibility(VISIBLE);
 			mDistanceTextView.setText(mContext.getString(R.string.at) + " " + Utils.formatDistance(distance));
 		}
 	}
@@ -170,5 +175,18 @@ public class BalloonOverlayView<Item extends OverlayItem> extends FrameLayout {
 			setPadding(10, 0, 10, offset);
 			invalidate();
 		}
+	}
+	
+	private void showStationDetails(Uri uri) {
+		Intent intent = new Intent(mContext, StationDetails.class)
+				.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(uri);
+		mContext.startActivity(intent);
+	}
+
+	private void showStationDetails(String id) {
+		showStationDetails(Uri.withAppendedPath(StationsProvider.CONTENT_URI,
+				id));
 	}
 }

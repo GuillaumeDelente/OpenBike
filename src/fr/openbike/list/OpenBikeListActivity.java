@@ -87,7 +87,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	public static final int WELCOME_MESSAGE = 2;
 	public static final int CHOOSE_NETWORK = 3;
 	public static final String ACTION_CHOOSE_NETWORK = "android.intent.action.choose_network";
-	private OpenBikeManager mOpenBikeManager = null;
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
 	private AlertDialog mNetworkDialog = null;
@@ -100,6 +99,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	private ILocationService mBoundService = null;
 	private SharedPreferences mPreferences = null;
 	private ServiceConnection mConnection = null;
+	private OpenBikeDBAdapter mDBAdapter = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -110,7 +110,6 @@ public class OpenBikeListActivity extends ListActivity implements
 			finish();
 		}
 		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
-		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 		final ListView listView = getListView();
@@ -138,6 +137,7 @@ public class OpenBikeListActivity extends ListActivity implements
 						Toast.LENGTH_SHORT).show();
 			}
 		};
+		mDBAdapter = OpenBikeDBAdapter.getInstance(this);
 	}
 
 	@Override
@@ -163,7 +163,8 @@ public class OpenBikeListActivity extends ListActivity implements
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			showResults(query);
 		} else if (ACTION_CHOOSE_NETWORK.equals(intent.getAction())) {
-			mOpenBikeManager.executeShowNetworksTask();
+			// TODO
+			// mOpenBikeManager.executeShowNetworksTask();
 		} else {
 			findViewById(R.id.search_results).setVisibility(View.GONE);
 			if (useLocation) {
@@ -178,7 +179,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mOpenBikeManager.detach();
+		// mOpenBikeManager.detach();
 	}
 
 	@Override
@@ -215,7 +216,8 @@ public class OpenBikeListActivity extends ListActivity implements
 			onSearchRequested();
 			return true;
 		case R.id.menu_update_all:
-			mOpenBikeManager.executeUpdateAllStationsTask(true);
+			// TODO
+			// mOpenBikeManager.executeUpdateAllStationsTask(true);
 			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(this, ListFilterActivity.class));
@@ -284,11 +286,11 @@ public class OpenBikeListActivity extends ListActivity implements
 							.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE))));
 			return true;
 		case R.id.add_favorite:
-			mOpenBikeManager.setFavorite(Integer.parseInt(mSelected), true);
+			mDBAdapter.updateFavorite(Integer.parseInt(mSelected), true);
 			onListUpdated();
 			return true;
 		case R.id.remove_favorite:
-			mOpenBikeManager.setFavorite(Integer.parseInt(mSelected), false);
+			mDBAdapter.updateFavorite(Integer.parseInt(mSelected), false);
 			onListUpdated();
 			return true;
 		case R.id.show_details:
@@ -326,8 +328,10 @@ public class OpenBikeListActivity extends ListActivity implements
 											.getInt(
 													FilterPreferencesActivity.NETWORK_PREFERENCE,
 													0) == 0
-											|| !mOpenBikeManager
-													.isStationListRetrieved()) {
+									// TODO
+									// ||
+									// !mOpenBikeManager.isStationListRetrieved()
+									) {
 										mAdapter = null;
 										finish();
 									} else {
@@ -349,8 +353,10 @@ public class OpenBikeListActivity extends ListActivity implements
 											.getInt(
 													FilterPreferencesActivity.NETWORK_PREFERENCE,
 													0) == 0
-											|| !mOpenBikeManager
-													.isStationListRetrieved()) {
+									// TODO
+									// ||
+									// !mOpenBikeManager.isStationListRetrieved()
+									) {
 										mAdapter = null;
 										finish();
 									} else {
@@ -369,8 +375,9 @@ public class OpenBikeListActivity extends ListActivity implements
 									.getInt(
 											FilterPreferencesActivity.NETWORK_PREFERENCE,
 											0) == 0
-									|| !mOpenBikeManager
-											.isStationListRetrieved()) {
+							// TODO
+							// || !mOpenBikeManager.isStationListRetrieved()
+							) {
 								mAdapter = null;
 								finish();
 							} else {
@@ -446,7 +453,7 @@ public class OpenBikeListActivity extends ListActivity implements
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int id) {
-									mOpenBikeManager.setFavorite(Integer
+									mDBAdapter.updateFavorite(Integer
 											.parseInt(mSelected), false);
 									onListUpdated();
 									dialog.cancel();
@@ -491,9 +498,8 @@ public class OpenBikeListActivity extends ListActivity implements
 								public void onClick(DialogInterface dialog,
 										int id) {
 									editor.commit();
-									mOpenBikeManager
-											.updateNetworkTable(mNetworks);
 									// TODO:
+									// mOpenBikeManager.updateNetworkTable(mNetworks);
 									// mOpenBikeManager.executeCreateVisibleStationsTask(true);
 
 									startActivity(new Intent(context,
@@ -665,7 +671,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	public void setFavorite(int id, boolean isChecked) {
 		mSelected = String.valueOf(id);
 		if (isChecked) {
-			mOpenBikeManager.setFavorite(id, true);
+			OpenBikeDBAdapter.getInstance(this).updateFavorite(id, true);
 			onListUpdated();
 		} else {
 			showDialog(OpenBikeManager.REMOVE_FROM_FAVORITE);
@@ -755,8 +761,8 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	private class CreateListAdaptorTask extends AsyncTask<Void, Void, Boolean> {
 
-		private OpenBikeDBAdapter mOpenBikeDBAdapter = mOpenBikeManager
-				.getDbAdapter();
+		private OpenBikeDBAdapter mOpenBikeDBAdapter = OpenBikeDBAdapter
+				.getInstance(OpenBikeListActivity.this);
 		private boolean mUpdateOnPostExecute = false;
 		private boolean mAdaptorCreated = false;
 		private ArrayList<MinimalStation> mStations = null;
@@ -794,11 +800,12 @@ public class OpenBikeListActivity extends ListActivity implements
 		private ArrayList<MinimalStation> createStationList() {
 			int size = mOpenBikeDBAdapter.getStationCount();
 			if (size == 0) {
+				//TODO
 				// retrieve from network
 			}
-			BikeFilter filter = mOpenBikeManager.getOpenBikeFilter();
-			final int distanceFilter = filter.isFilteringByDistance() ? filter
-					.getDistanceFilter() : 0;
+			final int distanceFilter = mPreferences.getBoolean(
+					FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false) ? mPreferences.getInt(
+					FilterPreferencesActivity.DISTANCE_FILTER, 0) : 0;
 			ArrayList<MinimalStation> stationsList = new ArrayList<MinimalStation>(
 					size);
 
@@ -811,8 +818,7 @@ public class OpenBikeListActivity extends ListActivity implements
 							OpenBikeDBAdapter.KEY_LONGITUDE,
 							OpenBikeDBAdapter.KEY_NAME,
 							OpenBikeDBAdapter.KEY_FAVORITE }, Utils
-							.whereClauseFromFilter(mOpenBikeManager
-									.getOpenBikeFilter()),
+							.whereClauseFromFilter(BikeFilter.getInstance(OpenBikeListActivity.this)),
 					mCurrentLocation == null ? OpenBikeDBAdapter.KEY_NAME
 							: null);
 			MinimalStation minimalStation;
@@ -841,7 +847,8 @@ public class OpenBikeListActivity extends ListActivity implements
 							.getInt(longitude_col) * 1E-6);
 					distanceToStation = (int) stationLocation
 							.distanceTo(mCurrentLocation);
-					if (distanceFilter != 0 && distanceToStation > distanceFilter)
+					if (distanceFilter != 0
+							&& distanceToStation > distanceFilter)
 						continue;
 				}
 				minimalStation = new MinimalStation(cursor.getInt(id_col),
@@ -867,7 +874,7 @@ public class OpenBikeListActivity extends ListActivity implements
 		protected void onPostExecute(Boolean isListCreated) {
 			Log.d("OpenBike", "onPostExecute CreateListAdaptorTask");
 			if (!isListCreated) {
-				//TODO
+				// TODO
 				// executeGetAllStationsTask();
 			} else {
 				if (mAdaptorCreated) {

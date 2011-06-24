@@ -28,8 +28,9 @@ public class BikeFilter implements Cloneable {
 	private boolean mShowOnlyWithBikes = false;
 	private boolean mNeedDbQuery = true;
 	private int mDistanceFilter = 0;
+	private static BikeFilter mInstance = null;
 
-	public BikeFilter(Context context) {
+	private BikeFilter(Context context) {
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		mShowOnlyFavorites = preferences.getBoolean(FilterPreferencesActivity.FAVORITE_FILTER, false);
@@ -39,6 +40,12 @@ public class BikeFilter implements Cloneable {
 						preferences.getInt(
 								FilterPreferencesActivity.DISTANCE_FILTER, 1000)
 				: 0;
+	}
+	
+	public static synchronized BikeFilter getInstance(Context context) {
+		if (mInstance == null)
+			mInstance = new BikeFilter(context);
+		return mInstance;
 	}
 
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {

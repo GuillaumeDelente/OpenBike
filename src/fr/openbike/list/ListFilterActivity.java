@@ -17,7 +17,6 @@
  */
 package fr.openbike.list;
 
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -60,14 +59,5 @@ public class ListFilterActivity extends FilterPreferencesActivity {
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);
-	}
-
-	/* (non-Javadoc)
-	 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
-	 */
-	@Override
-	public void onClick(DialogInterface arg0, int arg1) {
-		// TODO Auto-generated method stub
-		
 	}
 }
