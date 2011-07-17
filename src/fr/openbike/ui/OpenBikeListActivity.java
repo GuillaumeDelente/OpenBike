@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.list;
+package fr.openbike.ui;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -63,16 +63,13 @@ import com.google.android.maps.GeoPoint;
 
 import fr.openbike.IOpenBikeActivity;
 import fr.openbike.R;
-import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
-import fr.openbike.filter.FilterPreferencesActivity;
-import fr.openbike.list.OpenBikeArrayAdaptor.ViewHolder;
-import fr.openbike.map.OpenBikeMapActivity;
-import fr.openbike.object.MinimalStation;
+import fr.openbike.model.MinimalStation;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
+import fr.openbike.ui.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeListActivity extends ListActivity implements

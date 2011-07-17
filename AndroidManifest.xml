@@ -21,7 +21,7 @@
 			</intent-filter>
 			</activity>
 			
-		<activity android:name=".list.OpenBikeListActivity"
+		<activity android:name=".ui.OpenBikeListActivity"
 			android:label="@string/app_name" android:launchMode="singleTop"
 			android:theme="@android:style/Theme.NoTitleBar">
 			<meta-data android:name="android.app.searchable"
@@ -35,16 +35,16 @@
 				-->
 			</intent-filter>
 		</activity>
-		<activity android:name=".map.OpenBikeMapActivity"
+		<activity android:name=".ui.OpenBikeMapActivity"
 			android:launchMode="singleTop" android:theme="@android:style/Theme.NoTitleBar" />
-		<activity android:name=".list.ListFilterActivity"
+		<activity android:name=".ui.ListFilterActivity"
 			android:label="@string/configuration_title" />
 
-		<activity android:name=".map.MapFilterActivity"
+		<activity android:name=".ui.MapFilterActivity"
 			android:label="@string/configuration_title" />
-		<activity android:name=".map.StationMapFilterActivity"
+		<activity android:name=".ui.StationMapFilterActivity"
 			android:label="@string/configuration_title" />
-		<activity android:name=".StationDetails" android:launchMode="singleTop"
+		<activity android:name=".ui.StationDetails" android:launchMode="singleTop"
 			android:theme="@android:style/Theme.NoTitleBar">
 			<intent-filter priority="100">
 				<action android:name="android.intent.action.VIEW" />

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.object;
+package fr.openbike.model;
 
 
 
@@ -26,7 +26,7 @@ package fr.openbike.object;
  * 
  */
 
-public class Station extends MinimalStation{
+public class Station extends MinimalStation {
 	private String mAddress;
 	private boolean mHasPayment;
 	private boolean mIsSpecial;

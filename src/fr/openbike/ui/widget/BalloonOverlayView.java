@@ -13,7 +13,7 @@
  * 
  */
 
-package fr.openbike.map;
+package fr.openbike.ui.widget;
 
 import android.app.Activity;
 import android.content.Context;
@@ -34,10 +34,11 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.OverlayItem;
 
 import fr.openbike.R;
-import fr.openbike.StationDetails;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
 import fr.openbike.service.LocationService;
+import fr.openbike.ui.StationDetails;
+import fr.openbike.ui.StationsOverlay;
 import fr.openbike.utils.Utils;
 
 /**

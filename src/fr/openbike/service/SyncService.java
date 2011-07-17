@@ -51,11 +51,11 @@ import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.text.format.DateUtils;
 import android.util.Log;
-import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.io.RemoteBikesHandler;
 import fr.openbike.io.RemoteExecutor;
 import fr.openbike.io.RemoteNetworksHandler;
-import fr.openbike.object.Network;
+import fr.openbike.model.Network;
+import fr.openbike.ui.FilterPreferencesActivity;
 
 /**
  * Background {@link Service} that synchronizes data living in
@@ -227,10 +227,5 @@ public class SyncService extends IntentService {
 		public long getContentLength() {
 			return -1;
 		}
-	}
-
-	private interface Prefs {
-		String IOSCHED_SYNC = "iosched_sync";
-		String LOCAL_VERSION = "local_version";
 	}
 }

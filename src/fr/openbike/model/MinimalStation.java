@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.object;
+package fr.openbike.model;
 
 import com.google.android.maps.GeoPoint;
 
@@ -43,6 +43,7 @@ public class MinimalStation {
 	public static final String SLOTS = "freeSlots";
 	public static final String LATITUDE = "latitude";
 	public static final String LONGITUDE = "longitude";
+	public static final String NETWORK = "network";
 	
 	public MinimalStation(int id, String name,
 			int longitude, int latitude, int availablesBikes,

@@ -16,7 +16,7 @@
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.openbike.filter;
+package fr.openbike.ui.widget;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import fr.openbike.R;
+import fr.openbike.ui.FilterPreferencesActivity;
 
 public class SeekBarPreference extends DialogPreference implements
 		SeekBar.OnSeekBarChangeListener {

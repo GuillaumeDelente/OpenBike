@@ -43,10 +43,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import fr.openbike.R;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.filter.FilterPreferencesActivity;
-import fr.openbike.list.OpenBikeListActivity;
-import fr.openbike.map.OpenBikeMapActivity;
-import fr.openbike.object.Network;
+import fr.openbike.model.Network;
 import fr.openbike.service.SyncService;
 
 public class HomeActivity extends BaseActivity {
@@ -60,6 +57,7 @@ public class HomeActivity extends BaseActivity {
 	private SharedPreferences mSharedPreferences;
 	private LayoutInflater mLayoutInflater;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

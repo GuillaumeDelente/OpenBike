@@ -36,9 +36,9 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
-import fr.openbike.filter.FilterPreferencesActivity;
-import fr.openbike.object.Network;
-import fr.openbike.object.Station;
+import fr.openbike.model.Network;
+import fr.openbike.model.Station;
+import fr.openbike.ui.FilterPreferencesActivity;
 
 public class OpenBikeDBAdapter {
 
@@ -155,10 +155,9 @@ public class OpenBikeDBAdapter {
 		final int virtualNetworkColumn = virtualInsertHelper
 				.getColumnIndex(KEY_NETWORK);
 
-		final int network = mPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
-
-		for (int i = 0; i < jsonArray.length(); i++) {
+		final int networkId = jsonArray.getJSONObject(0).getInt(Station.NETWORK);
+		final int size = jsonArray.length();
+		for (int i = 0; i < size; i++) {
 			JSONObject jsonStation = jsonArray.getJSONObject(i);
 			stationsInsertHelper.prepareForInsert();
 			stationsInsertHelper.bind(idColumn, jsonStation.getInt(Station.ID));
@@ -180,7 +179,7 @@ public class OpenBikeDBAdapter {
 					.getBoolean(Station.PAYMENT));
 			stationsInsertHelper.bind(specialColumn, jsonStation
 					.getBoolean(Station.SPECIAL));
-			stationsInsertHelper.bind(networkColumn, network);
+			stationsInsertHelper.bind(networkColumn, networkId);
 			stationsInsertHelper.bind(favoriteColumn, 0);
 			stationsInsertHelper.execute();
 
@@ -189,7 +188,7 @@ public class OpenBikeDBAdapter {
 					.getInt(Station.ID));
 			virtualInsertHelper.bind(virtualNameColumn, jsonStation
 					.getString(Station.NAME));
-			virtualInsertHelper.bind(virtualNetworkColumn, network);
+			virtualInsertHelper.bind(virtualNetworkColumn, networkId);
 			virtualInsertHelper.execute();
 		}
 	}
@@ -227,11 +226,10 @@ public class OpenBikeDBAdapter {
 		boolean updateOnly = true;
 		final int size = jsonArray.length();
 		JSONObject jsonStation;
-		final int networkId = mPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
 		try {
 			mDb.beginTransaction();
 			ContentValues contentValues = new ContentValues();
+			final int networkId = jsonArray.getJSONObject(0).getInt(Station.NETWORK);
 			for (int i = 0; i < size; i++) {
 				jsonStation = jsonArray.getJSONObject(i);
 				contentValues.put(OpenBikeDBAdapter.KEY_BIKES, jsonStation

@@ -15,25 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.map;
+package fr.openbike.ui;
 
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import fr.openbike.R;
-import fr.openbike.filter.FilterPreferencesActivity;
 
-public class MapFilterActivity extends FilterPreferencesActivity {
+public class ListFilterActivity extends FilterPreferencesActivity {
 	
 	protected CheckBoxPreference mDistanceFilterCb;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.map_preferences);
-		addPreferencesFromResource(R.xml.location_preferences);
-		addPreferencesFromResource(R.xml.filter_preferences);
+	    addPreferencesFromResource(R.xml.location_preferences);
+	    addPreferencesFromResource(R.xml.filter_preferences);
 	    addPreferencesFromResource(R.xml.other_preferences);
 	}
 
@@ -61,14 +58,5 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);
-	}
-
-	/* (non-Javadoc)
-	 * @see android.content.DialogInterface.OnClickListener#onClick(android.content.DialogInterface, int)
-	 */
-	@Override
-	public void onClick(DialogInterface dialog, int which) {
-		// TODO Auto-generated method stub
-		
 	}
 }

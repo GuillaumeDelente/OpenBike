@@ -26,7 +26,7 @@ import org.xmlpull.v1.XmlPullParser;
 
 import android.util.Log;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.object.Network;
+import fr.openbike.model.Network;
 
 /**
  * Handle a remote {@link XmlPullParser} that defines a set of {@link Speakers}

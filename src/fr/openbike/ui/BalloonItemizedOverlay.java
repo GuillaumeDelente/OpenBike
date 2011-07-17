@@ -13,7 +13,7 @@
  * 
  */
 
-package fr.openbike.map;
+package fr.openbike.ui;
 
 import java.util.List;
 
@@ -35,8 +35,8 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
 import fr.openbike.R;
-import fr.openbike.StationDetails;
 import fr.openbike.database.StationsProvider;
+import fr.openbike.ui.widget.BalloonOverlayView;
 
 /**
  * An abstract extension of ItemizedOverlay for displaying an information
@@ -199,7 +199,7 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 	/**
 	 * Sets the visibility of this overlay's balloon view to GONE.
 	 */
-	protected void hideBalloon() {
+	public void hideBalloon() {
 		if (balloonView == null)
 			return;
 		balloonView.setVisibility(View.GONE);

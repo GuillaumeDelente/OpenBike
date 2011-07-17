@@ -29,7 +29,6 @@ import fr.openbike.database.OpenBikeDBAdapter;
  * entries. Assumes that the remote source is a Google Spreadsheet.
  */
 public class RemoteBikesHandler extends JSONHandler {
-	private static final String TAG = "SpeakersHandler";
 
 	/** {@inheritDoc} */
 	@Override

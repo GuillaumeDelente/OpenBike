@@ -15,13 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.map;
+package fr.openbike.ui;
 
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import fr.openbike.R;
-import fr.openbike.filter.FilterPreferencesActivity;
 
 public class StationMapFilterActivity extends FilterPreferencesActivity {
 

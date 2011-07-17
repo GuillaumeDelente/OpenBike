@@ -26,7 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-import fr.openbike.object.Network;
+import fr.openbike.model.Network;
 
 /**
  * @author guitou

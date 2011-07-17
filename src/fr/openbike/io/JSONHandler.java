@@ -68,6 +68,11 @@ public abstract class JSONHandler {
 	 * parsing or applying an {@link XmlPullParser}.
 	 */
 	public static class HandlerException extends IOException {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4445747653914953086L;
+
 		public HandlerException(String message) {
 			super(message);
 		}

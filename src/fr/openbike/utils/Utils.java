@@ -30,9 +30,9 @@ import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.net.Uri;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.filter.FilterPreferencesActivity;
-import fr.openbike.object.MinimalStation;
+import fr.openbike.model.MinimalStation;
 import fr.openbike.service.LocationService;
+import fr.openbike.ui.FilterPreferencesActivity;
 
 public class Utils {
 

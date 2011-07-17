@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.map;
+package fr.openbike.ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ import com.google.android.maps.OverlayItem;
 
 import fr.openbike.database.OpenBikeDBAdapter;
 
-class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
+public class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 
 	private List<StationOverlay> items = new ArrayList<StationOverlay>();
 	private MarkerDrawable marker = null;
@@ -77,7 +77,7 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		return (items.get(i));
 	}
 
-	protected List<StationOverlay> getOverlayList() {
+	public List<StationOverlay> getOverlayList() {
 		return items;
 	}
 

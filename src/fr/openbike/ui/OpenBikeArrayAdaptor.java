@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike.list;
+package fr.openbike.ui;
 
 import java.util.ArrayList;
 
@@ -32,7 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import fr.openbike.R;
-import fr.openbike.object.MinimalStation;
+import fr.openbike.model.MinimalStation;
 import fr.openbike.utils.Utils;
 
 public class OpenBikeArrayAdaptor extends ArrayAdapter<MinimalStation> {
