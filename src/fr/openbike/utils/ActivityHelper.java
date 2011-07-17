@@ -42,6 +42,9 @@ import fr.openbike.ui.HomeActivity;
  */
 public class ActivityHelper {
 	protected Activity mActivity;
+	public static final int ERROR_DATABASE = 1;
+	public static final int REMOVE_FROM_FAVORITE = 2;
+	public static final int PROGRESS_DIALOG = 3;
 
 	/**
 	 * Factory method for creating {@link ActivityHelper} objects for a given

@@ -2,6 +2,15 @@
 	<item type="id" name="actionbar_compat" />
 	<item type="id" name="actionbar_compat_logo" />
 	<item type="id" name="actionbar_compat_text" />
-	
+	<item type="id" name="database_error" />
+	<item type="id" name="choose_network" />
+	<item type="id" name="network_error" />
+	<item type="id" name="json_error" />
+	<item type="id" name="url_error" />
+	<item type="id" name="enable_gps" />
+	<item type="id" name="no_location_provider" />
+	<item type="id" name="progress" />
+	<item type="id" name="remove_from_favorite" />
+	<item type="id" name="welcome" />
 	
 </resources>

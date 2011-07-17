@@ -41,14 +41,17 @@ import android.app.IntentService;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.preference.PreferenceManager;
 import android.text.format.DateUtils;
 import android.util.Log;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.io.RemoteBikesHandler;
 import fr.openbike.io.RemoteExecutor;
 import fr.openbike.io.RemoteNetworksHandler;
@@ -79,6 +82,7 @@ public class SyncService extends IntentService {
 	private static final String ENCODING_GZIP = "gzip";
 
 	private RemoteExecutor mRemoteExecutor;
+	private SharedPreferences mPreferences;
 
 	/**
 	 * @param name
@@ -87,13 +91,13 @@ public class SyncService extends IntentService {
 		super("OpenBike Sync service");
 	}
 
-	
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
 		final HttpClient httpClient = getHttpClient(this);
 		mRemoteExecutor = new RemoteExecutor(httpClient);
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -109,14 +113,20 @@ public class SyncService extends IntentService {
 
 		try {
 			if (intent.getAction().equals(ACTION_SYNC))
-				mRemoteExecutor.executeGet("url", new RemoteBikesHandler(),
-						this);
+				mRemoteExecutor.executeGet(mPreferences.getString(
+						FilterPreferencesActivity.UPDATE_SERVER_URL, ""),
+						new RemoteBikesHandler(), this);
 			else if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
 				Log.d(TAG, "execution choose network");
 				resultIntent.setAction(ACTION_RESULT_NETWORK);
-				resultIntent.putExtra(EXTRA_RESULT, (ArrayList<Network>) mRemoteExecutor
-								.executeGetForResult("http://openbikeserver.appspot.com/networks",
-										new RemoteNetworksHandler(), this));
+				resultIntent
+						.putExtra(
+								EXTRA_RESULT,
+								(ArrayList<Network>) mRemoteExecutor
+										.executeGetForResult(
+												"http://openbikeserver.appspot.com/networks",
+												new RemoteNetworksHandler(),
+												this));
 				Log.d(TAG, "Sending result");
 				sendBroadcast(resultIntent);
 			}

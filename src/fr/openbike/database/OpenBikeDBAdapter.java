@@ -32,7 +32,6 @@ import android.database.DatabaseUtils.InsertHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
@@ -164,23 +163,23 @@ public class OpenBikeDBAdapter {
 			stationsInsertHelper.prepareForInsert();
 			stationsInsertHelper.bind(idColumn, jsonStation.getInt(Station.ID));
 			stationsInsertHelper.bind(nameColumn, jsonStation
-					.getInt(Station.NAME));
+					.getString(Station.NAME));
 			stationsInsertHelper.bind(openColumn, jsonStation
-					.getInt(Station.OPEN));
+					.getBoolean(Station.OPEN));
 			stationsInsertHelper.bind(bikesColumn, jsonStation
 					.getInt(Station.BIKES));
 			stationsInsertHelper.bind(slotsColumn, jsonStation
 					.getInt(Station.SLOTS));
 			stationsInsertHelper.bind(addressColumn, jsonStation
-					.getInt(Station.ADDRESS));
-			stationsInsertHelper.bind(latitudeColumn, jsonStation
-					.getInt(Station.LATITUDE));
-			stationsInsertHelper.bind(longitudeColumn, jsonStation
-					.getInt(Station.LONGITUDE));
+					.getString(Station.ADDRESS));
+			stationsInsertHelper.bind(latitudeColumn, (int) (jsonStation
+					.getDouble(Station.LATITUDE) * 1E6));
+			stationsInsertHelper.bind(longitudeColumn, (int) (jsonStation
+					.getDouble(Station.LONGITUDE) * 1E6));
 			stationsInsertHelper.bind(paymentColumn, jsonStation
-					.getInt(Station.PAYMENT));
+					.getBoolean(Station.PAYMENT));
 			stationsInsertHelper.bind(specialColumn, jsonStation
-					.getInt(Station.SPECIAL));
+					.getBoolean(Station.SPECIAL));
 			stationsInsertHelper.bind(networkColumn, network);
 			stationsInsertHelper.bind(favoriteColumn, 0);
 			stationsInsertHelper.execute();
@@ -189,7 +188,7 @@ public class OpenBikeDBAdapter {
 			virtualInsertHelper.bind(virtualIdColumn, jsonStation
 					.getInt(Station.ID));
 			virtualInsertHelper.bind(virtualNameColumn, jsonStation
-					.getInt(Station.NAME));
+					.getString(Station.NAME));
 			virtualInsertHelper.bind(virtualNetworkColumn, network);
 			virtualInsertHelper.execute();
 		}
@@ -198,8 +197,11 @@ public class OpenBikeDBAdapter {
 	public boolean insertNetwork(Network network) throws SQLiteException {
 		if (network == null)
 			Log.d("OpenBike", "Network is null");
-		if (getNetwork(network.getId(), new String[] {BaseColumns._ID}) != null)
+		if (getNetwork(network.getId(), new String[] { BaseColumns._ID }) != null) {
+			Log.d("OpenBike", "Network already in db");
 			return false;
+		}
+		Log.d("OpenBike", "Need inserting Network in db");
 		ContentValues newValues = new ContentValues();
 		newValues.put(BaseColumns._ID, network.getId());
 		newValues.put(KEY_NAME, network.getName());
@@ -215,33 +217,36 @@ public class OpenBikeDBAdapter {
 	public void insertOrUpdateStations(JSONArray jsonArray)
 			throws SQLiteException, JSONException {
 		if (!updateStations(jsonArray)) {
+			Log.d("OpenBike", "Inserting stations");
 			insertStations(jsonArray);
 		}
 	}
 
 	public boolean updateStations(JSONArray jsonArray) throws SQLiteException,
 			JSONException {
-		boolean needInsert = false;
-		String sql = "UPDATE " + STATIONS_TABLE + " SET " + KEY_BIKES
-				+ " = ?, " + KEY_SLOTS + " = ?, " + KEY_OPEN + " = ? "
-				+ " WHERE " + BaseColumns._ID + " = ? AND " + KEY_NETWORK
-				+ " = ?;";
-
+		boolean updateOnly = true;
+		final int size = jsonArray.length();
 		JSONObject jsonStation;
+		final int networkId = mPreferences.getInt(
+				FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
 		try {
 			mDb.beginTransaction();
-			SQLiteStatement update = mDb.compileStatement(sql);
-			update.bindLong(5, mPreferences.getInt(
-					FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
-			for (int i = 0; i < jsonArray.length(); i++) {
+			ContentValues contentValues = new ContentValues();
+			for (int i = 0; i < size; i++) {
 				jsonStation = jsonArray.getJSONObject(i);
-				update.bindLong(1, jsonStation.getInt(Station.BIKES));
-				update.bindLong(2, jsonStation.getInt(Station.SLOTS));
-				update
-						.bindLong(3, jsonStation.getBoolean(Station.OPEN) ? 1
-								: 0);
-				update.bindLong(4, jsonStation.getInt(Station.ID));
-				update.execute();
+				contentValues.put(OpenBikeDBAdapter.KEY_BIKES, jsonStation
+						.getInt(Station.BIKES));
+				contentValues.put(OpenBikeDBAdapter.KEY_SLOTS, jsonStation
+						.getInt(Station.SLOTS));
+				contentValues.put(OpenBikeDBAdapter.KEY_OPEN, jsonStation
+						.getBoolean(Station.OPEN));
+				if (mDb.update(STATIONS_TABLE, contentValues, BaseColumns._ID
+						+ " = " + jsonStation.getInt(Station.ID) + " AND "
+						+ KEY_NETWORK + " = " + networkId, null) == 0) {
+					updateOnly = false;
+					break;
+				}
+
 			}
 		} catch (SQLiteException e) {
 			mDb.endTransaction();
@@ -250,7 +255,9 @@ public class OpenBikeDBAdapter {
 			mDb.endTransaction();
 			throw e;
 		}
-		return needInsert;
+		mDb.setTransactionSuccessful();
+		mDb.endTransaction();
+		return updateOnly;
 	}
 
 	/*
@@ -286,6 +293,9 @@ public class OpenBikeDBAdapter {
 	public Cursor getFilteredStationsCursor(String[] projection, String where,
 			String orderBy) {
 		String nWhere;
+		Log.d("OpenBike", "Getting stations for network "
+				+ mPreferences.getInt(
+						FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
 		if (where == null)
 			nWhere = KEY_NETWORK + " = ?";
 		else
@@ -423,13 +433,21 @@ public class OpenBikeDBAdapter {
 	}
 
 	public Cursor getNetwork(int id, String[] columns) {
-		Cursor cursor = mDb.query(true, NETWORKS_TABLE, columns,
-				BaseColumns._ID + " = ?", new String[] { String.valueOf(id), },
-				null, null, null, null);
-		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
-			return null;
+		Log.d("OpenBike", "getting Network : " + id);
+		try {
+			Cursor cursor = mDb
+					.query(true, NETWORKS_TABLE, columns, BaseColumns._ID
+							+ " = ?", new String[] { String.valueOf(id) },
+							null, null, null, null);
+			if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
+				Log.d("OpenBike", "No Network : " + id + " in db");
+				return null;
+			}
+			return cursor;
+		} catch (Exception e) {
+			Log.d("OpenBike", "getNetwork exception : " + e.getMessage());
 		}
-		return cursor;
+		return null;
 	}
 
 	public int getStationCount() throws SQLException {

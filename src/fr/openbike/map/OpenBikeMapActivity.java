@@ -59,14 +59,11 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
 import fr.openbike.IOpenBikeActivity;
-import fr.openbike.OpenBikeManager;
 import fr.openbike.R;
-import fr.openbike.RestClient;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.list.OpenBikeListActivity;
 import fr.openbike.map.StationsOverlay.StationOverlay;
-import fr.openbike.object.Network;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
@@ -302,7 +299,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public Dialog onCreateDialog(int id) {
 		switch (id) {
-		case RestClient.NETWORK_ERROR:
+		case R.id.network_error:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.network_error)).setMessage(
 					(getString(R.string.network_error_summary)))
@@ -313,7 +310,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case OpenBikeDBAdapter.JSON_ERROR:
+		case R.id.json_error:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.json_error)).setMessage(
 					(getString(R.string.json_error_summary)))
@@ -324,7 +321,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case OpenBikeDBAdapter.DB_ERROR:
+		case R.id.database_error:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.db_error)).setMessage(
 					(getString(R.string.db_error_summary))).setPositiveButton(
@@ -333,7 +330,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 							dialog.cancel();
 						}
 					}).create();
-		case LocationService.ENABLE_GPS:
+		case R.id.enable_gps:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.gps_disabled)).setMessage(
 					getString(R.string.should_enable_gps) + "\n"
@@ -353,7 +350,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case LocationService.NO_LOCATION_PROVIDER:
+		case R.id.no_location_provider:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					getString(R.string.location_disabled)).setMessage(
 					getString(R.string.should_enable_location) + "\n"
@@ -373,7 +370,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case OpenBikeManager.REMOVE_FROM_FAVORITE:
+		case R.id.remove_from_favorite:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.remove_favorite)).setMessage(
 					(getString(R.string.remove_favorite_sure)))
@@ -410,7 +407,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case OpenBikeManager.PROGRESS_DIALOG:
+		case R.id.progress:
 			mPdialog.setCancelable(false);
 			return mPdialog;
 		}
@@ -592,30 +589,19 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMapController.animateTo(geoPoint);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see fr.openbike.IOpenBikeActivity#showChooseNetwork(java.util.ArrayList)
-	 */
-	@Override
-	public void showChooseNetwork(ArrayList<Network> networks) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override
 	public void showProgressDialog(String title, String message) {
 		mPdialog.setTitle(title);
 		mPdialog.setMessage(message);
 		if (!mPdialog.isShowing())
-			showDialog(OpenBikeManager.PROGRESS_DIALOG);
+			showDialog(R.id.progress);
 	}
 
 	@Override
 	public void dismissProgressDialog() {
 		// onListUpdated();
 		if (mPdialog.isShowing())
-			dismissDialog(OpenBikeManager.PROGRESS_DIALOG);
+			dismissDialog(R.id.progress);
 	}
 
 	private void executePopulateOverlays() {

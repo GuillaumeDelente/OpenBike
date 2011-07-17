@@ -66,7 +66,6 @@ public class StationDetails extends Activity implements
 	public static final int NAVIGATION_NOT_AVAILABLE = 1;
 
 	private Cursor mStation = null;
-	OpenBikeManager mOpenBikeManager = null;
 	private TextView mName = null;
 	private TextView mDistance = null;
 	private TextView mBikes = null;

@@ -17,9 +17,6 @@
  */
 package fr.openbike;
 
-import java.util.ArrayList;
-
-import fr.openbike.object.Network;
 
 public interface IOpenBikeActivity {
 	public void showProgressDialog(String title, String message);
@@ -27,7 +24,6 @@ public interface IOpenBikeActivity {
 	public void showUpdateAllStationsOnProgress(boolean animate);
 	public void finishUpdateAllStationsOnProgress(boolean animate);
 	public void onListUpdated();
-	public void showChooseNetwork(ArrayList<Network> networks);
 	public void showDialog(int id);
 	public void dismissDialog(int id);
 }

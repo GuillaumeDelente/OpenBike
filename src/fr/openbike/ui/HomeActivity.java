@@ -51,7 +51,6 @@ import fr.openbike.service.SyncService;
 
 public class HomeActivity extends BaseActivity {
 
-	public static final int CHOOSE_NETWORK = 2;
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	private static final String EXTRA_NETWORKS = "extra_networks";
 
@@ -102,6 +101,7 @@ public class HomeActivity extends BaseActivity {
 				&& (mNetworkDialog == null || !mNetworkDialog.isShowing())) {
 			showChooseNetwork();
 		}
+		startSync();
 		super.onResume();
 	}
 
@@ -115,9 +115,18 @@ public class HomeActivity extends BaseActivity {
 		final Intent intent = new Intent(SyncService.ACTION_CHOOSE_NETWORK,
 				null, this, SyncService.class);
 		startService(intent);
-		showDialog(CHOOSE_NETWORK);
+		showDialog(R.id.choose_network);
 	}
 
+	private void startSync() {
+		Log.d("OpenBike", "Start Sync");
+		if (mSharedPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
+			return;
+		final Intent intent = new Intent(SyncService.ACTION_SYNC,
+				null, this, SyncService.class);
+		startService(intent);
+	}
+	
 	/**
 	 * 
 	 */
@@ -196,7 +205,7 @@ public class HomeActivity extends BaseActivity {
 		final SharedPreferences.Editor editor = PreferenceManager
 				.getDefaultSharedPreferences(this).edit();
 		switch (id) {
-		case ERROR_DATABASE:
+		case R.id.database_error:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					R.string.db_error).setMessage(R.string.db_error_summary)
 					.setPositiveButton(R.string.Ok, new OnClickListener() {
@@ -206,7 +215,7 @@ public class HomeActivity extends BaseActivity {
 							dialog.cancel();
 						}
 					}).create();
-		case CHOOSE_NETWORK:
+		case R.id.choose_network:
 			final SharedPreferences preferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
 			mNetworkDialog = new AlertDialog.Builder(this).setCancelable(false)
@@ -242,9 +251,10 @@ public class HomeActivity extends BaseActivity {
 												.insertNetwork(network);
 										editor.commit();
 										setCurrentNetwork(editor, network);
+										//startSync();
 									} catch (SQLiteException e) {
-										dismissDialog(CHOOSE_NETWORK);
-										showDialog(ERROR_DATABASE);
+										dismissDialog(R.id.choose_network);
+										showDialog(R.id.database_error);
 									}
 								}
 
@@ -253,7 +263,7 @@ public class HomeActivity extends BaseActivity {
 									editor
 											.putString(
 													FilterPreferencesActivity.UPDATE_SERVER_URL,
-													network.getServerUrl());
+													network.getServerUrl() + network.getId());
 									editor
 											.putInt(
 													FilterPreferencesActivity.NETWORK_LATITUDE,
@@ -286,7 +296,7 @@ public class HomeActivity extends BaseActivity {
 													0) == 0) {
 										finish();
 									} else {
-										dismissDialog(CHOOSE_NETWORK);
+										dismissDialog(R.id.choose_network);
 										startActivity(new Intent(context,
 												OpenBikeListActivity.class)
 												.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
@@ -335,7 +345,7 @@ public class HomeActivity extends BaseActivity {
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
 		switch (id) {
-		case CHOOSE_NETWORK:
+		case R.id.choose_network:
 			if (((AlertDialog) dialog).getListView().getEmptyView() == null) {
 				View emptyView = mLayoutInflater.inflate(R.layout.loading_view,
 						null);
