@@ -33,14 +33,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.OverlayItem;
 
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.filter.BikeFilter;
 
 class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 
@@ -66,11 +64,9 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		IMAGE_HEIGHT = marker.getIntrinsicHeight();
 		populate();
-		Log.d("OpenBike", "Before create");
 	}
 
 	public void setItems(ArrayList<StationOverlay> list) {
-		Log.d("OpenBike", "setItems");
 		items = list;
 		setLastFocusedIndex(-1);
 		populate();
@@ -105,7 +101,7 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 	}
 
 	public ArrayList<StationOverlay> getOverlaysFromCursor(
-			Cursor stationsCursor, BikeFilter filter, Location location) {
+			Cursor stationsCursor, Location location, int distanceFilter) {
 		ArrayList<StationOverlay> overlays = new ArrayList<StationOverlay>(
 				stationsCursor.getCount());
 		int latitudeColumn = stationsCursor
@@ -120,18 +116,17 @@ class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		StationOverlay overlay;
 		Location stationLocation = new Location("");
 		float distance = 0;
-		int limit = filter.getDistanceFilter();
 		while (stationsCursor.moveToNext()) {
 			overlay = new StationOverlay(new GeoPoint(stationsCursor
 					.getInt(latitudeColumn), stationsCursor
 					.getInt(longitudeColumn)), String.valueOf(stationsCursor
 					.getInt(bikesColumn)), String.valueOf(stationsCursor
 					.getInt(slotsColumn)), stationsCursor.getInt(idColumn));
-			if (filter.isFilteringByDistance() && location != null) {
+			if (distanceFilter != 0 && location != null) {
 				stationLocation.setLatitude(((double) stationsCursor.getInt(latitudeColumn)) * 1E-6);
 				stationLocation.setLongitude(((double) stationsCursor.getInt(longitudeColumn)) * 1E-6);
 				distance = location.distanceTo(stationLocation);
-				if (distance > limit) {
+				if (distance > distanceFilter) {
 					continue;
 				}
 			}

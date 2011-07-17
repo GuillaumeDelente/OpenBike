@@ -42,12 +42,13 @@ public class BikeFilter implements Cloneable {
 				: 0;
 	}
 	
+	/*
 	public static synchronized BikeFilter getInstance(Context context) {
 		if (mInstance == null)
 			mInstance = new BikeFilter(context);
 		return mInstance;
 	}
-
+*/
 	public void setShowOnlyFavorites(boolean showOnlyFavorites) {
 		mShowOnlyFavorites = showOnlyFavorites;
 	}
@@ -123,7 +124,7 @@ public class BikeFilter implements Cloneable {
 		setNeedDbQuery();
 		return query;
 	}
-
+/*
 	@Override
 	public BikeFilter clone() throws CloneNotSupportedException {
 		return (BikeFilter) super.clone();
@@ -146,4 +147,5 @@ public class BikeFilter implements Cloneable {
 				&& mShowOnlyWithSlots == that.mShowOnlyWithSlots
 				&& mDistanceFilter == that.mDistanceFilter;
 	}
+	*/
 }

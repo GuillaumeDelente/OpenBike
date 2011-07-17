@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -133,14 +132,12 @@ public abstract class BalloonItemizedOverlay<Item extends OverlayItem> extends
 
 		boolean isRecycled;
 		if (balloonView == null) {
-			Log.d("OpenBike", "Ballon created");
 			balloonView = createBalloonOverlayView();
 			clickRegion = (View) balloonView
 					.findViewById(R.id.balloon_main_layout);
 			clickRegion.setOnTouchListener(createBalloonTouchListener());
 			isRecycled = false;
 		} else {
-			Log.d("OpenBike", "Ballon recycled");
 			isRecycled = true;
 		}
 

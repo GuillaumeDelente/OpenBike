@@ -33,7 +33,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -50,6 +49,9 @@ import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.map.OpenBikeMapActivity;
+import fr.openbike.service.ILocationService;
+import fr.openbike.service.ILocationServiceListener;
+import fr.openbike.service.LocationService;
 import fr.openbike.utils.Utils;
 
 /**
@@ -99,13 +101,11 @@ public class StationDetails extends Activity implements
 		mGoogleMaps = (ImageButton) findViewById(R.id.show_google_maps);
 		mShowMap = (ImageButton) findViewById(R.id.show_map);
 		mGoogleMaps.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View arg0) {
 				startMaps();
 			}
 		});
-
 		mNavigate.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -123,7 +123,6 @@ public class StationDetails extends Activity implements
 		mConnection = new ServiceConnection() {
 			public void onServiceConnected(ComponentName className,
 					IBinder service) {
-				Log.d("OpenBike", "Service connected");
 				mBoundService = ((LocationService.LocationServiceBinder) service)
 						.getService();
 				mBoundService.addListener(StationDetails.this);
@@ -139,7 +138,6 @@ public class StationDetails extends Activity implements
 	}
 
 	void doBindService() {
-		Log.d("OpenBike", "Service binded");
 		bindService(new Intent(this, LocationService.class), mConnection,
 				Context.BIND_AUTO_CREATE);
 		mIsBound = true;
@@ -246,15 +244,15 @@ public class StationDetails extends Activity implements
 	}
 
 	@Override
-	protected void onPause() {
-		mFavorite.setOnCheckedChangeListener(null);
-		super.onPause();
-	}
-
-	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 		setIntent(intent);
+	}
+
+	@Override
+	protected void onPause() {
+		mFavorite.setOnCheckedChangeListener(null);
+		super.onPause();
 	}
 
 	@Override
@@ -278,8 +276,10 @@ public class StationDetails extends Activity implements
 		} else {
 			mStation.moveToFirst();
 		}
-		mLatitude = mStation.getInt(mStation.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE));
-		mLongitude = mStation.getInt(mStation.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE));
+		mLatitude = mStation.getInt(mStation
+				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE));
+		mLongitude = mStation.getInt(mStation
+				.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE));
 		mName.setText(mStation.getInt(mStation.getColumnIndex(BaseColumns._ID))
 				+ " - "
 				+ mStation.getString(mStation
@@ -295,7 +295,9 @@ public class StationDetails extends Activity implements
 								.getColumnIndex(OpenBikeDBAdapter.KEY_PAYMENT)) == 1 ? R.string.yes
 								: R.string.no));
 		mSpecial
-				.setText(OpenBikeManager.SPECIAL_STATION
+				.setText(PreferenceManager.getDefaultSharedPreferences(this)
+						.getString(FilterPreferencesActivity.SPECIAL_STATION,
+								"")
 						+ " : "
 						+ getString(mStation.getInt(mStation
 								.getColumnIndex(OpenBikeDBAdapter.KEY_SPECIAL)) == 1 ? R.string.yes
@@ -332,17 +334,18 @@ public class StationDetails extends Activity implements
 		}
 		if (mStation != null)
 			mStation.moveToFirst();
-		mOpenBikeManager = OpenBikeManager.getOpenBikeManagerInstance(this);
 		mFavorite.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
 			public void onCheckedChanged(CompoundButton button,
 					boolean isChecked) {
-				mOpenBikeManager.setFavorite(mStation.getInt(mStation
-						.getColumnIndex(BaseColumns._ID)), isChecked);
+				OpenBikeDBAdapter.getInstance(StationDetails.this)
+						.updateFavorite(
+								mStation.getInt(mStation
+										.getColumnIndex(BaseColumns._ID)),
+								isChecked);
 			}
 		});
-
 	}
 
 	private void handleIntent() {
@@ -359,8 +362,7 @@ public class StationDetails extends Activity implements
 	 */
 	@Override
 	public void onLocationChanged(Location location, boolean alert) {
-		int distance = Utils.computeDistance(mLatitude, mLongitude,
-				location);
+		int distance = Utils.computeDistance(mLatitude, mLongitude, location);
 		if (distance != LocationService.DISTANCE_UNAVAILABLE) {
 			mDistance.setText(getString(R.string.upper_at) + " "
 					+ Utils.formatDistance(distance));

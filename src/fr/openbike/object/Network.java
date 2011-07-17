@@ -17,6 +17,9 @@
  */
 package fr.openbike.object;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 
 /**
  * Model class which will store the Station Items
@@ -25,7 +28,7 @@ package fr.openbike.object;
  * 
  */
 
-public class Network {
+public class Network implements Parcelable {
 	private int mId;
 	private String mName;
 	private String mCity;
@@ -33,6 +36,14 @@ public class Network {
 	private String mSpecialName;
 	private int mLongitude;
 	private int mLatitude;
+
+	public static final String ID = "id";
+	public static final String NAME = "name";
+	public static final String CITY = "city";
+	public static final String SERVER = "server";
+	public static final String SPECIAL_NAME = "specialName";
+	public static final String LONGITUDE = "longitude";
+	public static final String LATITUDE = "latitude";
 	
 	public Network(int id, String name, String city, String serverUrl, String specialName,
 			double longitude, double latitude) {
@@ -48,6 +59,16 @@ public class Network {
 		mLongitude = longitude;
 		mLatitude = latitude;
 		mCity = city;
+	}
+	
+	public Network(Parcel parcel) {
+		mId = parcel.readInt();
+		mName = parcel.readString();
+		mServerUrl = parcel.readString();
+		mSpecialName = parcel.readString();
+		mLongitude = parcel.readInt();
+		mLatitude = parcel.readInt();
+		mCity = parcel.readString();
 	}
 
 	public String getName() {
@@ -105,4 +126,37 @@ public class Network {
 	public void setSpecialName(String specialName) {
 		mSpecialName = specialName;
 	}
+
+	/* (non-Javadoc)
+	 * @see android.os.Parcelable#describeContents()
+	 */
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	/* (non-Javadoc)
+	 * @see android.os.Parcelable#writeToParcel(android.os.Parcel, int)
+	 */
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(mId);
+		dest.writeString(mName);
+		dest.writeString(mServerUrl);
+		dest.writeString(mSpecialName);
+		dest.writeInt(mLongitude);
+		dest.writeInt(mLatitude);
+		dest.writeString(mCity);
+	}
+	
+    public static final Parcelable.Creator<Network> CREATOR =
+    	new Parcelable.Creator<Network>() {
+            public Network createFromParcel(Parcel in) {
+                return new Network(in);
+            }
+ 
+            public Network[] newArray(int size) {
+                return new Network[size];
+            }
+        };
 }

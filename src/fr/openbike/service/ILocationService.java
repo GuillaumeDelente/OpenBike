@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike;
+package fr.openbike.service;
 
 import android.location.Location;
 

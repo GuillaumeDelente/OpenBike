@@ -24,14 +24,15 @@ import java.util.Vector;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Location;
 import android.net.Uri;
-import fr.openbike.LocationService;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.filter.BikeFilter;
+import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.MinimalStation;
+import fr.openbike.service.LocationService;
 
 public class Utils {
 
@@ -75,13 +76,13 @@ public class Utils {
 	}
 	*/
 
-	static public String whereClauseFromFilter(BikeFilter filter) {
+	static public String whereClauseFromFilter(SharedPreferences preferences) {
 		Vector<String> selection = new Vector<String>();
-		if (filter.isShowOnlyFavorites())
+		if (preferences.getBoolean(FilterPreferencesActivity.FAVORITE_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_FAVORITE + " = 1 )");
-		if (filter.isShowOnlyWithBikes())
+		if (preferences.getBoolean(FilterPreferencesActivity.BIKES_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_BIKES + " != 0 )");
-		if (filter.isShowOnlyWithSlots())
+		if (preferences.getBoolean(FilterPreferencesActivity.SLOTS_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_SLOTS + " != 0 )");
 		int size = selection.size();
 		if (size == 0)

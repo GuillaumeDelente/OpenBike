@@ -23,27 +23,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.location.Location;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
 import fr.openbike.database.OpenBikeDBAdapter;
-import fr.openbike.filter.BikeFilter;
 import fr.openbike.filter.FilterPreferencesActivity;
 import fr.openbike.object.MinimalStation;
 import fr.openbike.object.Network;
+import fr.openbike.service.LocationService;
 
 public class OpenBikeManager {
 	
-	public static String UPDATE_SERVER_URL = "";
 	public static final String SERVER_NETWORKS = "http://openbike.fr/test.xml";
 		//"http://openbikeserver.appspot.com/networks";
 		//"http://192.168.0.1:8888/networks";
-	public static int NETWORK_LATITUDE = 0;
-	public static int NETWORK_LONGITUDE = 0;
-	public static String NETWORK_NAME = "";
-	public static String NETWORK_CITY = "";
-	public static String SPECIAL_STATION = "";
 	public static final String LAST_UPDATE = "last_update";
 	public static final int PROGRESS_DIALOG = 0;
 	public static final int REMOVE_FROM_FAVORITE = 1;
@@ -54,21 +46,11 @@ public class OpenBikeManager {
 	//protected static MyLocationProvider mLocationProvider = null;
 	private static OpenBikeManager mThis;
 	private static SharedPreferences mFilterPreferences = null;
-	private BikeFilter mOpenBikeFilter = null;
-	private static GetAllStationsTask mGetAllStationsTask = null;
-	private static UpdateAllStationsTask mUpdateAllStationsTask = null;
+	//private static GetAllStationsTask mGetAllStationsTask = null;
+	//private static UpdateAllStationsTask mUpdateAllStationsTask = null;
 	//private CreateVisibleStationsTask mCreateVisibleStationsTask = null;
 	private static ShowNetworksTask mShowNetworksTask = null;
 	
-	/*
-	public BikeFilter getOpenBikeFilter() {
-		return mOpenBikeFilter;
-	}*/
-
-	public void setVcubFilter(BikeFilter vcubFilter) {
-		mOpenBikeFilter = vcubFilter;
-	}
-
 	private OpenBikeManager(Activity activity) {
 		//Log.i("OpenBike", "New Manager created");
 		mActivity = activity;
@@ -79,39 +61,23 @@ public class OpenBikeManager {
 		mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) activity);
 		mOpenBikeDBAdapter = OpenBikeDBAdapter.getInstance((Context) activity);
 		mOpenBikeDBAdapter.open();
-		/*
 		if (mFilterPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false))
-			useLocation();
-			*/
-		//initializeFilter();
-		initializeNetwork();		
-		//StationOverlay.initialize((Context) activity);
+				FilterPreferencesActivity.LOCATION_PREFERENCE, false));
+		initializeNetwork();
 	}
-	
-	public static synchronized OpenBikeManager getOpenBikeManagerInstance(Activity activity) {
-		//Log.e("OpenBike", "Getting VcuboidManager instance");
+	/*
+	public static synchronized OpenBikeManager getInstance(Activity activity) {
 		if (mThis == null) {
 			mThis = new OpenBikeManager(activity);
 		} else {
-			setCurrentActivity(activity);
+			mThis.setCurrentActivity(activity);
 			mFilterPreferences = PreferenceManager.getDefaultSharedPreferences((Context) mActivity);
 		}
 		return mThis;
 	}
-/*
-	public static synchronized OpenBikeManager getVcuboidManagerInstance() {
-		if (mThis == null)
-			mThis = new OpenBikeManager(null);
-		return mThis;
-	}
 	*/
-	
-	public OpenBikeDBAdapter getDbAdapter() {
-		return mOpenBikeDBAdapter;
-	}
-	
-	public static void setCurrentActivity(Activity activity) {
+	/*
+	public void setCurrentActivity(Activity activity) {
 		if (mActivity == activity) {
 			return;
 		}
@@ -130,6 +96,7 @@ public class OpenBikeManager {
 			}
 		}
 	}
+	/*
 
 	public void detach() {
 		if (mActivity instanceof IOpenBikeActivity) {
@@ -137,7 +104,7 @@ public class OpenBikeManager {
 		}
 		mActivity = null;
 	}
-
+/*
 	public boolean executeGetAllStationsTask() {
 		//Log.e("OpenBike", "executeGetAllStationsTask");
 		if (mGetAllStationsTask == null) {
@@ -147,7 +114,7 @@ public class OpenBikeManager {
 		}
 		return false;
 	}
-	
+	*/
 	/*
 	public boolean executeCreateVisibleStationsTask(boolean forceDbQuery) {
 		if (mCreateVisibleStationsTask == null) {
@@ -167,7 +134,7 @@ public class OpenBikeManager {
 		return false;
 	}
 	*/
-
+/*
 	public boolean executeUpdateAllStationsTask(boolean showToast) {
 		if (mActivity == null && mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) != 0)
 			return false;
@@ -183,6 +150,7 @@ public class OpenBikeManager {
 		}
 		return false;
 	}
+	*/
 	
 	public boolean executeShowNetworksTask() {
 		if (mActivity == null)
@@ -201,10 +169,8 @@ public class OpenBikeManager {
 	}
 	*/
 	
-	
+	/*
 	public void setFavorite(int id, boolean isChecked) {
-		//TODO:
-		/*
 		mOpenBikeDBAdapter.updateFavorite(id, isChecked);
 		StationOverlay overlay;
 		MinimalStation station;
@@ -220,8 +186,8 @@ public class OpenBikeManager {
 				return;
 			}
 		}
-		*/
 	}
+*/
 	
 	private void initializeNetwork () {
 		int networkId = mFilterPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0);
@@ -234,12 +200,7 @@ public class OpenBikeManager {
 	}
 	
 	private void initializeNetwork (Network network) {
-		UPDATE_SERVER_URL = network.getServerUrl();
-		NETWORK_LATITUDE = network.getLatitude();
-		NETWORK_LONGITUDE = network.getLongitude();
-		NETWORK_NAME = network.getName();
-		NETWORK_CITY = network.getCity();
-		SPECIAL_STATION = network.getSpecialName();
+
 	}
 	
 	public boolean updateNetworkTable(ArrayList<Network> networks) {
@@ -276,9 +237,8 @@ public class OpenBikeManager {
 	}
 	*/
 	
+	/*
 	private void updateDistance(Location location) {
-		//TODO:
-		/*
 		if (mVisibleStations == null)
 			getVisibleStations();
 		StationOverlay overlay;
@@ -294,8 +254,8 @@ public class OpenBikeManager {
 			l.setLongitude((double) point.getLongitudeE6()*1E-6);
 			station.setDistance((int) location.distanceTo(l));
 		}
-		*/
 	}
+	*/
 	
 	
 	// Only at first launch, as we
@@ -401,7 +361,7 @@ public class OpenBikeManager {
 	/******************************************************************/
 	/******* GetAllStationsTask
 	/******************************************************************/
-	
+	/*
 	private class GetAllStationsTask extends AsyncTask<Void, Integer, Boolean> {
 		
 		private int mProgress = 0;
@@ -453,10 +413,7 @@ public class OpenBikeManager {
 
 		@Override
 		protected void onPostExecute(Boolean isListRetrieved) {
-			//TODO:
-			/*
 			if (!isListRetrieved) {
-				mVisibleStations = null;
 				if (mActivity != null)
 					mGetAllStationsTask = null;
 				return;
@@ -464,12 +421,11 @@ public class OpenBikeManager {
 			mFilterPreferences.edit()
 				.putLong(LAST_UPDATE, System.currentTimeMillis()).commit();
 			if (mActivity != null) {
-				executeCreateVisibleStationsTask(true);
 				((IOpenBikeActivity) mActivity).dismissProgressDialog();
+				((IOpenBikeActivity) mActivity).onListUpdated();
 				mGetAllStationsTask = null;
 				//showLocationDialogs();
 			}
-			*/
 		}
 		
 		protected void retrieveTask() {
@@ -491,11 +447,12 @@ public class OpenBikeManager {
 			}
 		}
 	}
+	*/
 
 	/******************************************************************/
 	/*******   UpdateAllStationsTask
 	/******************************************************************/
-	
+	/*
 	private class UpdateAllStationsTask extends AsyncTask<Void, Integer, Boolean> {
 		private int mProgress = 0;
 
@@ -522,12 +479,6 @@ public class OpenBikeManager {
 				publishProgress(RestClient.NETWORK_ERROR);
 				return false;
 			}
-			/*
-			if (!RestClient.updateListFromJson(json,
-					mVisibleStations)) {
-				publishProgress(OpenBikeDBAdapter.JSON_ERROR);
-				return false;
-			}*/
 			publishProgress(50);
 			result = mOpenBikeDBAdapter.updateStations(json);
 			if (result != 1) {
@@ -576,7 +527,7 @@ public class OpenBikeManager {
 			}
 		}
 	}
-	
+	*/
 	/*
 	public static boolean isLocationAvailable() {
 		return (mLocationProvider != null && mLocationProvider.getMyLocation() != null);
@@ -752,7 +703,6 @@ public class OpenBikeManager {
 				}
 				publishProgress(100);
 				return true;
-			
 		}
 
 		@Override

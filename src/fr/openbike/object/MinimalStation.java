@@ -35,6 +35,14 @@ public class MinimalStation {
 	private int mDistance;
 	private boolean mIsOpen;
 	private boolean mIsFavorite;
+
+	public static final String ID = "id";
+	public static final String NAME = "name";
+	public static final String OPEN = "open";
+	public static final String BIKES = "availableBikes";
+	public static final String SLOTS = "freeSlots";
+	public static final String LATITUDE = "latitude";
+	public static final String LONGITUDE = "longitude";
 	
 	public MinimalStation(int id, String name,
 			int longitude, int latitude, int availablesBikes,

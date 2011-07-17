@@ -30,6 +30,11 @@ public class Station extends MinimalStation{
 	private String mAddress;
 	private boolean mHasPayment;
 	private boolean mIsSpecial;
+	
+
+	public static final String ADDRESS = "address";
+	public static final String PAYMENT = "payment";
+	public static final String SPECIAL = "special";
 
 	public Station(int id, String name, String address,
 			double longitude, double latitude, int availablesBikes,

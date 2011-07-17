@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenBike.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.openbike;
+package fr.openbike.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,6 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 public class LocationService extends Service implements ILocationService,
 		LocationListener {
@@ -54,7 +53,6 @@ public class LocationService extends Service implements ILocationService,
 
 	@Override
 	public void onCreate() {
-		Log.d("OpenBike", "Creating service");
 		binder = new LocationServiceBinder(this);
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		enableMyLocation();
@@ -67,7 +65,6 @@ public class LocationService extends Service implements ILocationService,
 
 	// Ajout d'un listener
 	public void addListener(ILocationServiceListener listener) {
-		Log.d("OpenBike", "Adding listener");
 		if (listeners == null) {
 			listeners = new ArrayList<ILocationServiceListener>();
 		}
@@ -84,7 +81,6 @@ public class LocationService extends Service implements ILocationService,
 
 	// Notification des listeners
 	private void fireLocationChanged(Location l) {
-		Log.d("OpenBike", "Fire location changed");
 		if (listeners != null) {
 			for (ILocationServiceListener listener : listeners) {
 				listener.onLocationChanged(l, false);
@@ -119,7 +115,6 @@ public class LocationService extends Service implements ILocationService,
 	}
 
 	public synchronized void enableMyLocation() {
-		Log.d("OpenBike", "MyLocationProvider : enable location");
 		if (!mIsInPause)
 			return;
 		mIsInPause = false;
@@ -158,7 +153,6 @@ public class LocationService extends Service implements ILocationService,
 		// Because we stop updates as often as possible, when
 		// we switch from map to list, a new location is triggered
 		// so check if it's not the same
-		Log.d("OpenBike", "MyLocationProvider : enable location");
 		if (mLastFix != null
 				&& mLastFix.distanceTo(location) < (mIsGpsUsed ? MINIMUM_DISTANCE_GPS
 						: MINIMUM_DISTANCE_NETWORK))
