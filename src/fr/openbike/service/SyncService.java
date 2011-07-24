@@ -71,10 +71,15 @@ public class SyncService extends IntentService {
 	public static final String ACTION_SYNC = "action_sync";
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	public static final String ACTION_RESULT_NETWORK = "action_result_network";
+	public static final String ACTION_RESULT_SYNC = "action_result_sync";
+	public static final String ACTION_START_SYNC = "action_start_sync";
+	public static final String ACTION_START_NETWORK = "action_start_network";
 
-	public static final int STATUS_RUNNING = 0x1;
+	public static final int STATUS_SYNC_STATIONS = 0x1;
 	public static final int STATUS_ERROR = 0x2;
-	public static final int STATUS_FINISHED = 0x3;
+	public static final int STATUS_SYNC_STATIONS_FINISHED = 0x3;
+	public static final int STATUS_SYNC_NETWORKS = 0x4;
+	public static final int STATUS_SYNC_NETWORKS_FINISHED = 0x5;
 
 	private static final int SECOND_IN_MILLIS = (int) DateUtils.SECOND_IN_MILLIS;
 
@@ -107,35 +112,45 @@ public class SyncService extends IntentService {
 
 		final ResultReceiver receiver = intent
 				.getParcelableExtra(EXTRA_STATUS_RECEIVER);
-		final Intent resultIntent = new Intent();
-		if (receiver != null)
-			receiver.send(STATUS_RUNNING, Bundle.EMPTY);
-
+		Bundle bundle = Bundle.EMPTY;
+		int status = STATUS_ERROR;
 		try {
-			if (intent.getAction().equals(ACTION_SYNC))
+			if (intent.getAction().equals(ACTION_SYNC)) {
+				if (receiver != null) {
+					receiver.send(STATUS_SYNC_STATIONS, Bundle.EMPTY);
+				}
 				mRemoteExecutor.executeGet(mPreferences.getString(
 						FilterPreferencesActivity.UPDATE_SERVER_URL, ""),
 						new RemoteBikesHandler(), this);
-			else if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
-				Log.d(TAG, "execution choose network");
-				resultIntent.setAction(ACTION_RESULT_NETWORK);
-				resultIntent
-						.putExtra(
-								EXTRA_RESULT,
-								(ArrayList<Network>) mRemoteExecutor
-										.executeGetForResult(
-												"http://openbikeserver.appspot.com/networks",
-												new RemoteNetworksHandler(),
-												this));
-				Log.d(TAG, "Sending result");
-				sendBroadcast(resultIntent);
+				status = STATUS_SYNC_STATIONS_FINISHED;
+			} else if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
+				if (receiver != null) {
+					receiver.send(STATUS_SYNC_NETWORKS, Bundle.EMPTY);
+				}
+				if (receiver != null) {
+					bundle = new Bundle();
+					bundle
+							.putParcelableArrayList(
+									EXTRA_RESULT,
+									(ArrayList<Network>) mRemoteExecutor
+											.executeGetForResult(
+													"http://openbike.fr/test.xml",
+													new RemoteNetworksHandler(),
+													this));
+					status = STATUS_SYNC_NETWORKS_FINISHED;
+				}
+			}
+			if (receiver != null) {
+				Log.d(TAG, "Sending finish signal to receiver");
+				receiver.send(status, bundle);
+			} else {
+				Log.e(TAG, "Receiver is null when finishing");
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "Problem while syncing", e);
-
 			if (receiver != null) {
 				// Pass back error to surface listener
-				final Bundle bundle = new Bundle();
+				bundle = new Bundle();
 				bundle.putString(Intent.EXTRA_TEXT, e.toString());
 				receiver.send(STATUS_ERROR, bundle);
 			}

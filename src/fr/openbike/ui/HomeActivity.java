@@ -18,22 +18,22 @@ package fr.openbike.ui;
 
 import java.util.ArrayList;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.Editor;
 import android.database.sqlite.SQLiteException;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,30 +41,39 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
+import fr.openbike.IActivityHelper;
 import fr.openbike.R;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.model.Network;
 import fr.openbike.service.SyncService;
+import fr.openbike.utils.ActivityHelper;
+import fr.openbike.utils.DetachableResultReceiver;
 
-public class HomeActivity extends BaseActivity {
+public class HomeActivity extends Activity implements IActivityHelper,
+		DetachableResultReceiver.Receiver {
 
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	private static final String EXTRA_NETWORKS = "extra_networks";
 
-	private BroadcastReceiver mBroadcastReceiver;
 	private AlertDialog mNetworkDialog;
 	private NetworkAdapter mNetworkAdapter;
 	private SharedPreferences mSharedPreferences;
 	private LayoutInflater mLayoutInflater;
+	private ProgressDialog mPdialog = null;
+	private ActivityHelper mActivityHelper = null;
+	protected DetachableResultReceiver mReceiver = null;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_layout);
-		getActivityHelper().setupActionBar(null, 0);
+		mReceiver = DetachableResultReceiver.getInstance(new Handler());
+		mActivityHelper = ActivityHelper.createInstance(this);
+		mActivityHelper.setupActionBar(null, 0);
 		mLayoutInflater = LayoutInflater.from(this);
 		mNetworkAdapter = new NetworkAdapter(this);
+		mPdialog = new ProgressDialog(this);
 		if (savedInstanceState != null) {
 			ArrayList<Network> networks = (ArrayList<Network>) savedInstanceState
 					.getSerializable(EXTRA_NETWORKS);
@@ -86,45 +95,42 @@ public class HomeActivity extends BaseActivity {
 
 	@Override
 	protected void onResume() {
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(SyncService.ACTION_RESULT_NETWORK);
-		registerReceiver(mBroadcastReceiver, filter);
+		mReceiver.setReceiver(this);
 		if (getIntent().getAction().equals(ACTION_CHOOSE_NETWORK)) {
 			showChooseNetwork();
 			return;
 		}
 		if (mSharedPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) 
-				== FilterPreferencesActivity.NO_NETWORK
+				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == FilterPreferencesActivity.NO_NETWORK
 				&& (mNetworkDialog == null || !mNetworkDialog.isShowing())) {
 			showChooseNetwork();
 		}
-		startSync();
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		unregisterReceiver(mBroadcastReceiver);
+		mReceiver.clearReceiver();
 		super.onPause();
 	}
 
 	private void showChooseNetwork() {
 		final Intent intent = new Intent(SyncService.ACTION_CHOOSE_NETWORK,
 				null, this, SyncService.class);
+		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
 		startService(intent);
-		showDialog(R.id.choose_network);
 	}
 
 	private void startSync() {
-		Log.d("OpenBike", "Start Sync");
-		if (mSharedPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
+		if (mSharedPreferences.getInt(
+				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
 			return;
-		final Intent intent = new Intent(SyncService.ACTION_SYNC,
-				null, this, SyncService.class);
+		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
+				SyncService.class);
+		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
 		startService(intent);
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -175,16 +181,6 @@ public class HomeActivity extends BaseActivity {
 					public void onClick(View view) {
 					}
 				});
-		mBroadcastReceiver = new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Log.d("OpenBike", "intent received");
-				ArrayList<Network> networks = intent
-						.getParcelableArrayListExtra(SyncService.EXTRA_RESULT);
-				displayNetworks(networks);
-			}
-		};
 	}
 
 	@Override
@@ -200,9 +196,11 @@ public class HomeActivity extends BaseActivity {
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		final Context context = this;
-		final SharedPreferences.Editor editor = PreferenceManager
-				.getDefaultSharedPreferences(this).edit();
+		final SharedPreferences.Editor editor = mSharedPreferences.edit();
 		switch (id) {
+		case R.id.progress:
+			mPdialog.setCancelable(false);
+			return mPdialog;
 		case R.id.database_error:
 			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
 					R.string.db_error).setMessage(R.string.db_error_summary)
@@ -249,7 +247,9 @@ public class HomeActivity extends BaseActivity {
 												.insertNetwork(network);
 										editor.commit();
 										setCurrentNetwork(editor, network);
-										//startSync();
+										showProgressDialog(R.string.loading,
+												R.string.loading);
+										startSync();
 									} catch (SQLiteException e) {
 										dismissDialog(R.id.choose_network);
 										showDialog(R.id.database_error);
@@ -261,7 +261,8 @@ public class HomeActivity extends BaseActivity {
 									editor
 											.putString(
 													FilterPreferencesActivity.UPDATE_SERVER_URL,
-													network.getServerUrl() + network.getId());
+													network.getServerUrl()
+															+ network.getId());
 									editor
 											.putInt(
 													FilterPreferencesActivity.NETWORK_LATITUDE,
@@ -295,9 +296,6 @@ public class HomeActivity extends BaseActivity {
 										finish();
 									} else {
 										dismissDialog(R.id.choose_network);
-										startActivity(new Intent(context,
-												OpenBikeListActivity.class)
-												.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 									}
 								}
 							}).create();
@@ -306,34 +304,42 @@ public class HomeActivity extends BaseActivity {
 		return super.onCreateDialog(id);
 	}
 
-	@Override
-	public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas) {
-		// TODO Auto-generated method stub
-		return super.onCreateThumbnail(outBitmap, canvas);
+	public void showProgressDialog(int titleRes, int messageRes) {
+		mPdialog.setTitle(titleRes);
+		mPdialog.setMessage(getString(messageRes));
+		if (!mPdialog.isShowing())
+			showDialog(R.id.progress);
+	}
+
+	public void dismissProgressDialog() {
+		if (mPdialog.isShowing())
+			dismissDialog(R.id.progress);
 	}
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
-		getActivityHelper().setupHomeActivity();
+		mActivityHelper.onPostCreate(savedInstanceState);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO
-		// getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
+		mActivityHelper.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO
-		/*
-		 * if (item.getItemId() == R.id.menu_refresh) { triggerRefresh(); return
-		 * true; }
-		 */
-		return super.onOptionsItemSelected(item);
+		switch (item.getItemId()) {
+		case R.id.menu_refresh:
+			startSync();
+			return true;
+		default:
+			return mActivityHelper.onOptionsItemSelected(item)
+					|| super.onOptionsItemSelected(item);
+		}
 	}
 
 	private void displayNetworks(ArrayList<Network> networks) {
@@ -362,6 +368,34 @@ public class HomeActivity extends BaseActivity {
 									.getCheckedItemPosition() != -1);
 		}
 		super.onPrepareDialog(id, dialog);
+	}
+
+	@Override
+	public void onReceiveResult(int resultCode, Bundle resultData) {
+		Log.d("OpenBike", "OnReceiveResult " + resultCode);
+		if (resultCode == SyncService.STATUS_SYNC_NETWORKS) {
+			showDialog(R.id.choose_network);
+		} else if (resultCode == SyncService.STATUS_SYNC_NETWORKS_FINISHED) {
+			ArrayList<Network> networks = resultData
+					.getParcelableArrayList(SyncService.EXTRA_RESULT);
+			displayNetworks(networks);
+		} else if (resultCode == SyncService.STATUS_SYNC_STATIONS) {
+		} else if (resultCode == SyncService.STATUS_SYNC_STATIONS_FINISHED) {
+			dismissProgressDialog();
+		}
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		return mActivityHelper.onKeyDown(keyCode, event)
+				|| super.onKeyDown(keyCode, event);
+	}
+
+	/**
+	 * Returns the {@link ActivityHelper} object associated with this activity.
+	 */
+	public ActivityHelper getActivityHelper() {
+		return mActivityHelper;
 	}
 
 }

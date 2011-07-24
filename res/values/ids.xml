@@ -12,5 +12,7 @@
 	<item type="id" name="progress" />
 	<item type="id" name="remove_from_favorite" />
 	<item type="id" name="welcome" />
+
+    <item type="id" name="menu_refresh_progress" />
 	
 </resources>

@@ -45,6 +45,7 @@ public class ActivityHelper {
 	public static final int ERROR_DATABASE = 1;
 	public static final int REMOVE_FROM_FAVORITE = 2;
 	public static final int PROGRESS_DIALOG = 3;
+	private static boolean LOADING = false;
 
 	/**
 	 * Factory method for creating {@link ActivityHelper} objects for a given
@@ -282,7 +283,7 @@ public class ActivityHelper {
 		actionBar.addView(separator);
 		actionBar.addView(actionButton);
 
-		if (item.getItemId() == R.id.menu_update_all) {
+		if (item.getItemId() == R.id.menu_refresh) {
 			// Refresh buttons should be stateful, and allow for indeterminate
 			// progress indicators,
 			// so add those.
@@ -296,8 +297,7 @@ public class ActivityHelper {
 					buttonWidth - 2 * buttonWidthDiv3, 0);
 			indicator.setLayoutParams(indicatorLayoutParams);
 			indicator.setVisibility(View.GONE);
-			//TODO
-			//indicator.setId(R.id.menu_refresh_progress);
+			indicator.setId(R.id.menu_refresh_progress);
 			actionBar.addView(indicator);
 		}
 
@@ -310,16 +310,28 @@ public class ActivityHelper {
 	 * (where the item ID was menu_refresh).
 	 */
 	public void setRefreshActionButtonCompatState(boolean refreshing) {
-		// TODO
-		/*
-		 * View refreshButton = mActivity.findViewById(R.id.menu_refresh); View
-		 * refreshIndicator =
-		 * mActivity.findViewById(R.id.menu_refresh_progress);
-		 * 
-		 * if (refreshButton != null) { refreshButton.setVisibility(refreshing ?
-		 * View.GONE : View.VISIBLE); } if (refreshIndicator != null) {
-		 * refreshIndicator.setVisibility(refreshing ? View.VISIBLE :
-		 * View.GONE); }
-		 */
+		View refreshButton = mActivity.findViewById(R.id.menu_refresh);
+		View refreshIndicator = mActivity
+				.findViewById(R.id.menu_refresh_progress);
+
+		if (refreshButton != null) {
+			refreshButton.setVisibility(refreshing ? View.GONE : View.VISIBLE);
+		} else {
+			Log.d("OpenBike", "refresh is null");
+		}
+		if (refreshIndicator != null) {
+			refreshIndicator.setVisibility(refreshing ? View.VISIBLE
+					: View.GONE);
+		} else {
+			Log.d("OpenBike", "refreshIndicator is null");
+		}
+	}
+
+	public void setLoading(boolean loading) {
+		LOADING = loading;
+	}
+
+	public boolean isLoading() {
+		return LOADING;
 	}
 }

@@ -17,13 +17,9 @@
  */
 package fr.openbike;
 
+import fr.openbike.utils.ActivityHelper;
 
-public interface IOpenBikeActivity {
-	public void showProgressDialog(String title, String message);
-	public void dismissProgressDialog();
-	public void showUpdateAllStationsOnProgress(boolean animate);
-	public void finishUpdateAllStationsOnProgress(boolean animate);
-	public void onListUpdated();
-	public void showDialog(int id);
-	public void dismissDialog(int id);
+
+public interface IActivityHelper {
+	public ActivityHelper getActivityHelper();
 }

@@ -45,12 +45,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import fr.openbike.IActivityHelper;
 import fr.openbike.R;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.database.StationsProvider;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
+import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.Utils;
 
 /**
@@ -58,7 +60,7 @@ import fr.openbike.utils.Utils;
  * 
  */
 public class StationDetails extends Activity implements
-		ILocationServiceListener {
+		ILocationServiceListener, IActivityHelper {
 
 	public static final int COMPUTE_DISTANCE = -2;
 	public static final int MAPS_NOT_AVAILABLE = 0;
@@ -78,17 +80,20 @@ public class StationDetails extends Activity implements
 	private ImageButton mShowMap = null;
 	private ServiceConnection mConnection = null;
 	private ILocationService mBoundService = null;
-	private SharedPreferences mPreferences = null;
+	private SharedPreferences mSharedPreferences = null;
 	private boolean mIsBound = false;
 	private Uri mUri = null;
 	private int mLatitude;
 	private int mLongitude;
+	private ActivityHelper mActivityHelper = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_details_layout);
-		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		mActivityHelper = ActivityHelper.createInstance(this);
+		mActivityHelper.setupActionBar(null, 0);
+		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
@@ -156,6 +161,12 @@ public class StationDetails extends Activity implements
 		intent.setData(uri);
 		startActivity(intent);
 	}
+	
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+		mActivityHelper.onPostCreate(savedInstanceState);
+	}
 
 	private void showOnMap(String id) {
 		showOnMap(Uri.withAppendedPath(StationsProvider.CONTENT_URI, id));
@@ -163,9 +174,10 @@ public class StationDetails extends Activity implements
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Log.i("OpenBike", "onCreateOptionsMenu");
+		mActivityHelper.onCreateOptionsMenu(menu);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.station_details_menu, menu);
+		super.onCreateOptionsMenu(menu);
 		return true;
 	}
 
@@ -184,7 +196,8 @@ public class StationDetails extends Activity implements
 			startNavigation();
 			return true;
 		default:
-			return super.onOptionsItemSelected(item);
+			return mActivityHelper.onOptionsItemSelected(item)
+					|| super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -263,7 +276,7 @@ public class StationDetails extends Activity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (mPreferences.getBoolean(
+		if (mSharedPreferences.getBoolean(
 				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
 		}
@@ -368,5 +381,14 @@ public class StationDetails extends Activity implements
 		} else {
 			mDistance.setVisibility(View.GONE);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see fr.openbike.IActivityHelper#getActivityHelper()
+	 */
+	@Override
+	public ActivityHelper getActivityHelper() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
