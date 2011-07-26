@@ -104,6 +104,8 @@ public class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 			Cursor stationsCursor, Location location, int distanceFilter) {
 		ArrayList<StationOverlay> overlays = new ArrayList<StationOverlay>(
 				stationsCursor.getCount());
+		if (!stationsCursor.moveToFirst())
+			return overlays;
 		int latitudeColumn = stationsCursor
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE);
 		int longitudeColumn = stationsCursor
@@ -116,22 +118,24 @@ public class StationsOverlay extends BalloonItemizedOverlay<OverlayItem> {
 		StationOverlay overlay;
 		Location stationLocation = new Location("");
 		float distance = 0;
-		while (stationsCursor.moveToNext()) {
+		do {
 			overlay = new StationOverlay(new GeoPoint(stationsCursor
 					.getInt(latitudeColumn), stationsCursor
 					.getInt(longitudeColumn)), String.valueOf(stationsCursor
 					.getInt(bikesColumn)), String.valueOf(stationsCursor
 					.getInt(slotsColumn)), stationsCursor.getInt(idColumn));
 			if (distanceFilter != 0 && location != null) {
-				stationLocation.setLatitude(((double) stationsCursor.getInt(latitudeColumn)) * 1E-6);
-				stationLocation.setLongitude(((double) stationsCursor.getInt(longitudeColumn)) * 1E-6);
+				stationLocation.setLatitude(((double) stationsCursor
+						.getInt(latitudeColumn)) * 1E-6);
+				stationLocation.setLongitude(((double) stationsCursor
+						.getInt(longitudeColumn)) * 1E-6);
 				distance = location.distanceTo(stationLocation);
 				if (distance > distanceFilter) {
 					continue;
 				}
 			}
 			overlays.add(overlay);
-		}
+		} while (stationsCursor.moveToNext());
 		return overlays;
 	}
 

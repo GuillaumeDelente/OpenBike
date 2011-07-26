@@ -19,7 +19,7 @@
     <style name="Theme" parent="android:style/Theme" />
 
     <!-- Variation on the Light theme that turns off the title -->
-    <style name="Theme.IOSched" parent="android:style/Theme.Light">
+    <style name="Theme.OpenBike" parent="android:style/Theme.Light">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
 
@@ -33,11 +33,6 @@
         <item name="actionbarCompatSeparatorStyle">@style/ActionBarCompatSeparator</item>
         <item name="actionbarCompatLogoStyle">@style/ActionBarCompatLogo</item>
         <item name="actionbarCompatTextStyle">@style/ActionBarCompatText</item>
-    </style>
-
-    <!-- Start with the Holographic Light theme -->
-    <style name="Theme.IOSched.Home" parent="style/Theme.IOSched">
-        <item name="android:windowBackground">@null</item>
     </style>
 
     <style name="ActionBarCompat">

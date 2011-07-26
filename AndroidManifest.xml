@@ -6,14 +6,12 @@
 	<application android:icon="@drawable/icon" 
 		android:label="@string/app_name"
 		android:name=".OpenBike"
-        android:theme="@style/Theme.IOSched">
+        android:theme="@style/Theme.OpenBike">
 		<uses-library android:name="com.google.android.maps" />
 		<service android:name=".service.LocationService" />
         <service android:name=".service.SyncService" />
 		<activity android:name=".ui.HomeActivity"
-			android:launchMode="singleTop" 
-			android:theme="@style/Theme.IOSched.Home" 
-			>
+			android:launchMode="singleTop" >
 			
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -24,6 +22,7 @@
 		<activity android:name=".ui.OpenBikeListActivity"
 			android:label="@string/app_name" 
 			android:launchMode="singleTop">
+			
 			<meta-data android:name="android.app.searchable"
 				android:resource="@xml/searchable" />
 
@@ -56,7 +55,7 @@
 		</activity>
 
 		<meta-data android:name="android.app.default_searchable"
-			android:value=".list.OpenBikeListActivity" />
+			android:value=".ui.OpenBikeListActivity" />
 
 		<provider android:name=".database.StationsProvider"
 			android:authorities="fr.openbike.StationsProvider" />

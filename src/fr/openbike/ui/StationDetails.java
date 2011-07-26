@@ -91,8 +91,8 @@ public class StationDetails extends Activity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.station_details_layout);
-		mActivityHelper = ActivityHelper.createInstance(this);
-		mActivityHelper.setupActionBar(null, 0);
+		mActivityHelper = new ActivityHelper(this);
+		mActivityHelper.setupActionBar(getString(R.string.station_details));
 		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);

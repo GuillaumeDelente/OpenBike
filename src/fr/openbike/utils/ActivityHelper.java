@@ -16,6 +16,9 @@
 
 package fr.openbike.utils;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -42,21 +45,10 @@ import fr.openbike.ui.HomeActivity;
  */
 public class ActivityHelper {
 	protected Activity mActivity;
-	public static final int ERROR_DATABASE = 1;
-	public static final int REMOVE_FROM_FAVORITE = 2;
-	public static final int PROGRESS_DIALOG = 3;
-	private static boolean LOADING = false;
+	private static final int[] mVisibleInBar = { R.id.menu_refresh,
+			R.id.menu_search };
 
-	/**
-	 * Factory method for creating {@link ActivityHelper} objects for a given
-	 * activity. Depending on which device the app is running, either a basic
-	 * helper or Honeycomb-specific helper will be returned.
-	 */
-	public static ActivityHelper createInstance(Activity activity) {
-		return new ActivityHelper(activity);
-	}
-
-	protected ActivityHelper(Activity activity) {
+	public ActivityHelper(Activity activity) {
 		mActivity = activity;
 	}
 
@@ -67,7 +59,12 @@ public class ActivityHelper {
 		// TODO: call onPreparePanelMenu here as well
 		for (int i = 0; i < menu.size(); i++) {
 			MenuItem item = menu.getItem(i);
-			addActionButtonCompatFromMenuItem(item);
+			int id = item.getItemId();
+			for (int j = 0; j < mVisibleInBar.length; j++) {
+				if (mVisibleInBar[j] == id) {
+					addActionButtonCompatFromMenuItem(item);
+				}
+			}
 		}
 	}
 
@@ -101,13 +98,6 @@ public class ActivityHelper {
 	}
 
 	/**
-	 * Method, to be called in <code>onPostCreate</code>, that sets up this
-	 * activity as the home activity for the app.
-	 */
-	public void setupHomeActivity() {
-	}
-
-	/**
 	 * Invoke "home" action, returning to
 	 * {@link com.google.android.apps.iosched.ui.HomeActivity}.
 	 */
@@ -136,7 +126,7 @@ public class ActivityHelper {
 	 * home button and title are visible. If color is null, then the default
 	 * colorstrip is visible.
 	 */
-	public void setupActionBar(CharSequence title, int color) {
+	public void setupActionBar(CharSequence title) {
 		final ViewGroup actionBarCompat = getActionBarCompat();
 		if (actionBarCompat == null) {
 			Log.d("OpenBike", "ActionBar is null");
@@ -325,13 +315,5 @@ public class ActivityHelper {
 		} else {
 			Log.d("OpenBike", "refreshIndicator is null");
 		}
-	}
-
-	public void setLoading(boolean loading) {
-		LOADING = loading;
-	}
-
-	public boolean isLoading() {
-		return LOADING;
 	}
 }

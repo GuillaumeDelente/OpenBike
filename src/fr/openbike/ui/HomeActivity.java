@@ -22,7 +22,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -69,8 +68,8 @@ public class HomeActivity extends Activity implements IActivityHelper,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_layout);
 		mReceiver = DetachableResultReceiver.getInstance(new Handler());
-		mActivityHelper = ActivityHelper.createInstance(this);
-		mActivityHelper.setupActionBar(null, 0);
+		mActivityHelper = new ActivityHelper(this);
+		mActivityHelper.setupActionBar(null);
 		mLayoutInflater = LayoutInflater.from(this);
 		mNetworkAdapter = new NetworkAdapter(this);
 		mPdialog = new ProgressDialog(this);
@@ -87,7 +86,8 @@ public class HomeActivity extends Activity implements IActivityHelper,
 
 	@Override
 	protected void onNewIntent(Intent intent) {
-		if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
+		if (intent.getAction() != null
+				&& intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
 			showChooseNetwork();
 		}
 		super.onNewIntent(intent);
@@ -195,7 +195,6 @@ public class HomeActivity extends Activity implements IActivityHelper,
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
-		final Context context = this;
 		final SharedPreferences.Editor editor = mSharedPreferences.edit();
 		switch (id) {
 		case R.id.progress:
