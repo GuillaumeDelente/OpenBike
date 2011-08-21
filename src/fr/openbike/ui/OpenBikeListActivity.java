@@ -69,9 +69,8 @@ import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 import fr.openbike.utils.Utils;
 
-public class OpenBikeListActivity extends ListActivity implements
-		IActivityHelper, ILocationServiceListener,
-		DetachableResultReceiver.Receiver {
+public class OpenBikeListActivity extends ListActivity implements ILocationServiceListener,
+		DetachableResultReceiver.Receiver, IActivityHelper {
 
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
@@ -89,7 +88,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.station_list);
+		setContentView(R.layout.list_layout);
 		mReceiver = DetachableResultReceiver.getInstance(new Handler());
 		mActivityHelper = new ActivityHelper(this);
 		mActivityHelper.setupActionBar(getString(R.string.station_list));
@@ -147,7 +146,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	protected void onResume() {
 		mReceiver.setReceiver(this);
 		boolean useLocation = mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false);
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, false);
 		Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			mActivityHelper
@@ -181,7 +180,7 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	private void startSync() {
 		if (mSharedPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
+				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
 			return;
 		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
 				SyncService.class);
@@ -199,13 +198,8 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
-			menu.setGroupVisible(R.id.menu_group_list_search, true);
-			menu.setGroupVisible(R.id.menu_group_list_view, false);
-		} else {
-			menu.setGroupVisible(R.id.menu_group_list_search, false);
-			menu.setGroupVisible(R.id.menu_group_list_view, true);
-		}
+		mActivityHelper.onPrepareOptionsMenu(menu);
+		super.onCreateOptionsMenu(menu);
 		return true;
 	}
 
@@ -213,14 +207,14 @@ public class OpenBikeListActivity extends ListActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.menu_refresh:
+		case R.id.action_refresh:
 			startSync();
 			return true;
 		case R.id.menu_search:
 			onSearchRequested();
 			return true;
 		case R.id.menu_settings:
-			startActivity(new Intent(this, ListFilterActivity.class));
+			startActivity(new Intent(this, FiltersPreferencesActivity.class));
 			return true;
 		case R.id.menu_map:
 			startActivity(new Intent(this, OpenBikeMapActivity.class)
@@ -318,7 +312,7 @@ public class OpenBikeListActivity extends ListActivity implements
 											.getDefaultSharedPreferences(
 													context)
 											.getInt(
-													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													AbstractPreferencesActivity.NETWORK_PREFERENCE,
 													0) == 0
 									// TODO
 									// ||
@@ -343,7 +337,7 @@ public class OpenBikeListActivity extends ListActivity implements
 											.getDefaultSharedPreferences(
 													context)
 											.getInt(
-													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													AbstractPreferencesActivity.NETWORK_PREFERENCE,
 													0) == 0
 									// TODO
 									// ||
@@ -365,7 +359,7 @@ public class OpenBikeListActivity extends ListActivity implements
 							if (PreferenceManager
 									.getDefaultSharedPreferences(context)
 									.getInt(
-											FilterPreferencesActivity.NETWORK_PREFERENCE,
+											AbstractPreferencesActivity.NETWORK_PREFERENCE,
 											0) == 0
 							// TODO
 							// || !mOpenBikeManager.isStationListRetrieved()
@@ -385,7 +379,7 @@ public class OpenBikeListActivity extends ListActivity implements
 						public void onClick(DialogInterface dialog, int id) {
 							editor
 									.putInt(
-											FilterPreferencesActivity.NETWORK_PREFERENCE,
+											AbstractPreferencesActivity.NETWORK_PREFERENCE,
 											0);
 							editor.commit();
 							startActivity(new Intent(context,
@@ -484,7 +478,7 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public void onLocationChanged(Location location, boolean firstFix) {
 		boolean distanceFiltering = mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
+				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
 		if (distanceFiltering || firstFix) {
 			String query = null;
 			Intent intent = getIntent();
@@ -636,8 +630,8 @@ public class OpenBikeListActivity extends ListActivity implements
 				return null;
 			}
 			final int distanceFilter = mSharedPreferences.getBoolean(
-					FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false) ? mSharedPreferences
-					.getInt(FilterPreferencesActivity.DISTANCE_FILTER, 0)
+					AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false) ? mSharedPreferences
+					.getInt(AbstractPreferencesActivity.DISTANCE_FILTER, 0)
 					: 0;
 			ArrayList<MinimalStation> stationsList = new ArrayList<MinimalStation>(
 					size);
@@ -836,15 +830,18 @@ public class OpenBikeListActivity extends ListActivity implements
 				mAdapter.notifyDataSetChanged();
 		}
 	}
-
-	@Override
-	public ActivityHelper getActivityHelper() {
-		return mActivityHelper;
-	}
-
+	
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/* (non-Javadoc)
+	 * @see fr.openbike.IActivityHelper#getActivityHelper()
+	 */
+	@Override
+	public ActivityHelper getActivityHelper() {
+		return mActivityHelper;
 	}
 }

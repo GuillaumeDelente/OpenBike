@@ -63,9 +63,8 @@ import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 import fr.openbike.utils.Utils;
 
-public class OpenBikeMapActivity extends MapActivity implements
-		IActivityHelper, ILocationServiceListener,
-		DetachableResultReceiver.Receiver {
+public class OpenBikeMapActivity extends MapActivity implements ILocationServiceListener,
+		DetachableResultReceiver.Receiver, IActivityHelper {
 
 	public static String ACTION_DETAIL = "fr.openbike.action.VIEW_STATION";
 	private MapController mMapController;
@@ -158,7 +157,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mStationsOverlay.setCurrentLocation(null);
 		mMyLocationOverlay.setCurrentLocation(null);
 		boolean useLocation = mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false);
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, false);
 		if (useLocation) {
 			doBindService();
 		}
@@ -188,7 +187,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	private void startSync() {
 		if (mSharedPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
+				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
 			return;
 		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
 				SyncService.class);
@@ -212,11 +211,16 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
+		//TODO : change menu depending on current action
+			mActivityHelper.onPrepareOptionsMenu(menu);
+			super.onCreateOptionsMenu(menu);
+		/*
 		if (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
 			menu.setGroupVisible(R.id.menu_group_map_station, true);
 		} else {
 			menu.setGroupVisible(R.id.menu_group_map_station, false);
 		}
+		*/
 		return true;
 	}
 
@@ -224,7 +228,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.menu_refresh:
+		case R.id.action_refresh:
 			startSync();
 			return true;
 		case R.id.menu_settings:
@@ -335,7 +339,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mMyLocationOverlay.setCurrentLocation(location);
 		mStationsOverlay.setCurrentLocation(location);
 		boolean isDistanceFiltering = mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
+				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
 		if (firstFix || isDistanceFiltering) {
 			executePopulateOverlays();
 		} else {
@@ -344,7 +348,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if ((mIsFirstFix && location != null && !OpenBikeMapActivity.ACTION_DETAIL
 				.equals(getIntent().getAction()))
 				|| mSharedPreferences.getBoolean(
-						FilterPreferencesActivity.CENTER_PREFERENCE, false)) {
+						AbstractPreferencesActivity.CENTER_PREFERENCE, false)) {
 			zoomAndCenter(location);
 		}
 		mIsFirstFix = (location == null) ? true : false;
@@ -352,14 +356,14 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	public void onListUpdated() {
 		boolean needUpdate = mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false)
+				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false)
 				|| mSharedPreferences
 						.getBoolean(
-								FilterPreferencesActivity.ENABLE_DISTANCE_FILTER,
+								AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
 								false)
 				|| mSharedPreferences
 						.getBoolean(
-								FilterPreferencesActivity.ENABLE_DISTANCE_FILTER,
+								AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
 								false);
 		if (needUpdate) {
 			executePopulateOverlays();
@@ -399,9 +403,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 		if (geoPoint == null) {
 			mMapController.setZoom(14);
 			mMapController.animateTo(new GeoPoint(mSharedPreferences.getInt(
-					FilterPreferencesActivity.NETWORK_LATITUDE, 0),
+					AbstractPreferencesActivity.NETWORK_LATITUDE, 0),
 					mSharedPreferences.getInt(
-							FilterPreferencesActivity.NETWORK_LONGITUDE, 0)));
+							AbstractPreferencesActivity.NETWORK_LONGITUDE, 0)));
 			return;
 		}
 		mMapController.setZoom(16);
@@ -484,10 +488,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 										: null,
 								mSharedPreferences
 										.getBoolean(
-												FilterPreferencesActivity.ENABLE_DISTANCE_FILTER,
+												AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
 												false) ? mSharedPreferences
 										.getInt(
-												FilterPreferencesActivity.DISTANCE_FILTER,
+												AbstractPreferencesActivity.DISTANCE_FILTER,
 												1000)
 										: 0);
 			}
@@ -581,13 +585,16 @@ public class OpenBikeMapActivity extends MapActivity implements
 	}
 
 	@Override
-	public ActivityHelper getActivityHelper() {
-		return mActivityHelper;
-	}
-
-	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/* (non-Javadoc)
+	 * @see fr.openbike.IActivityHelper#getActivityHelper()
+	 */
+	@Override
+	public ActivityHelper getActivityHelper() {
+		return mActivityHelper;
 	}
 }

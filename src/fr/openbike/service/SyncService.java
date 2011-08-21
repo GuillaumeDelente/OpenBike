@@ -55,7 +55,7 @@ import fr.openbike.io.RemoteBikesHandler;
 import fr.openbike.io.RemoteExecutor;
 import fr.openbike.io.RemoteNetworksHandler;
 import fr.openbike.model.Network;
-import fr.openbike.ui.FilterPreferencesActivity;
+import fr.openbike.ui.AbstractPreferencesActivity;
 
 /**
  * Background {@link Service} that synchronizes data living in
@@ -120,7 +120,7 @@ public class SyncService extends IntentService {
 					receiver.send(STATUS_SYNC_STATIONS, Bundle.EMPTY);
 				}
 				mRemoteExecutor.executeGet(mPreferences.getString(
-						FilterPreferencesActivity.UPDATE_SERVER_URL, ""),
+						AbstractPreferencesActivity.UPDATE_SERVER_URL, ""),
 						new RemoteBikesHandler(), this);
 				status = STATUS_SYNC_STATIONS_FINISHED;
 			} else if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {

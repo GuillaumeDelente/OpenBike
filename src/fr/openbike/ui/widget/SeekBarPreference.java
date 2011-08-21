@@ -28,7 +28,7 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import fr.openbike.R;
-import fr.openbike.ui.FilterPreferencesActivity;
+import fr.openbike.ui.AbstractPreferencesActivity;
 
 public class SeekBarPreference extends DialogPreference implements
 		SeekBar.OnSeekBarChangeListener {
@@ -84,11 +84,11 @@ public class SeekBarPreference extends DialogPreference implements
 
 	private void setValue(int value) {
 		Editor ed = mSharedPreferences.edit();
-		ed.putInt(FilterPreferencesActivity.DISTANCE_FILTER, value);
+		ed.putInt(AbstractPreferencesActivity.DISTANCE_FILTER, value);
 		ed.commit();
 	}
 
 	private int getValue() {
-		return mSharedPreferences.getInt(FilterPreferencesActivity.DISTANCE_FILTER, DEFAULT_DISTANCE);
+		return mSharedPreferences.getInt(AbstractPreferencesActivity.DISTANCE_FILTER, DEFAULT_DISTANCE);
 	}
 }

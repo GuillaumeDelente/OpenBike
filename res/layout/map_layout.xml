@@ -4,7 +4,11 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
 	
-	<include layout="@layout/actionbar" />
+	<com.markupartist.android.widget.ActionBar 
+		xmlns:app="http://schemas.android.com/apk/res/fr.openbike"
+    	android:id="@+id/actionbar"
+    	app:title="@string/station_map"
+    	style="@style/ActionBar" />
 	
 	<com.google.android.maps.MapView
 		android:id="@+id/map_view" 

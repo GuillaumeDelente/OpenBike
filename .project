@@ -36,4 +36,11 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>net.sourceforge.metrics.nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>com_markupartist_android_widget_actionbar_src</name>
+			<type>2</type>
+			<locationURI>_android_com_markupartist_android_widget_actionbar_3506d044/src</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

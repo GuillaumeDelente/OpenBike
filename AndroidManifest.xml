@@ -37,12 +37,16 @@
 		<activity android:name=".ui.OpenBikeMapActivity"
 			android:launchMode="singleTop" 
 			/>
-		<activity android:name=".ui.ListFilterActivity"
+		<activity android:name=".ui.FiltersPreferencesActivity"
 			android:label="@string/configuration_title" />
-
+			
+<!--
 		<activity android:name=".ui.MapFilterActivity"
 			android:label="@string/configuration_title" />
 		<activity android:name=".ui.StationMapFilterActivity"
+			android:label="@string/configuration_title" />
+		-->
+		<activity android:name=".ui.SettingsPreferencesActivity"
 			android:label="@string/configuration_title" />
 		<activity android:name=".ui.StationDetails" 
 			android:launchMode="singleTop"

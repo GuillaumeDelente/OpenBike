@@ -38,7 +38,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 import fr.openbike.model.Network;
 import fr.openbike.model.Station;
-import fr.openbike.ui.FilterPreferencesActivity;
+import fr.openbike.ui.AbstractPreferencesActivity;
 
 public class OpenBikeDBAdapter {
 
@@ -273,7 +273,7 @@ public class OpenBikeDBAdapter {
 				+ " = ? AND " + KEY_NETWORK + " = ?;", new String[] {
 				String.valueOf(id),
 				String.valueOf(mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) }) > 0;
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) }) > 0;
 	}
 
 	/*
@@ -293,14 +293,14 @@ public class OpenBikeDBAdapter {
 		String nWhere;
 		Log.d("OpenBike", "Getting stations for network "
 				+ mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0));
 		if (where == null)
 			nWhere = KEY_NETWORK + " = ?";
 		else
 			nWhere = where + " AND " + KEY_NETWORK + " = ?";
 		return mDb.query(STATIONS_TABLE, projection, nWhere,
 				new String[] { String.valueOf(mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) },
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) },
 				null, null, orderBy);
 	}
 
@@ -324,7 +324,7 @@ public class OpenBikeDBAdapter {
 				+ table
 				+ " match ? AND vs.network = "
 				+ String.valueOf(mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0));
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0));
 
 		Cursor cursor = mDb.rawQuery(s, new String[] { query
 		// ,
@@ -364,7 +364,7 @@ public class OpenBikeDBAdapter {
 				+ table
 				+ " MATCH ? AND vs.network = "
 				+ mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
 		Cursor cursor = mDb.rawQuery(s, new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
@@ -421,7 +421,7 @@ public class OpenBikeDBAdapter {
 								String
 										.valueOf(mPreferences
 												.getInt(
-														FilterPreferencesActivity.NETWORK_PREFERENCE,
+														AbstractPreferencesActivity.NETWORK_PREFERENCE,
 														0)) }, null, null,
 						null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
@@ -452,7 +452,7 @@ public class OpenBikeDBAdapter {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM "
 				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
 				new String[] { String.valueOf(mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) });
 		cursor.moveToNext();
 		int count = cursor.getInt(0);
 		cursor.close();
@@ -466,7 +466,7 @@ public class OpenBikeDBAdapter {
 				+ KEY_NAME + ", " + KEY_SLOTS + " FROM " + STATIONS_TABLE
 				+ " WHERE " + KEY_NETWORK + " = ?", new String[] { String
 				.valueOf(mPreferences.getInt(
-						FilterPreferencesActivity.NETWORK_PREFERENCE, 0)) });
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) });
 		return cursor;
 	}
 

@@ -5,215 +5,219 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
   	android:background = "#333333"
-    > 
+    >
     
-	<include layout="@layout/actionbar" />
+    <com.markupartist.android.widget.ActionBar 
+		xmlns:app="http://schemas.android.com/apk/res/fr.openbike"
+    	android:id="@+id/actionbar"
+    	app:title="@string/station_details"
+    	style="@style/ActionBar" />
     
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/banner"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:background="@drawable/row_bg"
-    android:paddingRight="5dip">
-   <LinearLayout
-        android:layout_width="0dip"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_gravity="center_vertical" >
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            
-    <TextView android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold"
-        android:shadowColor="#BB000000"
-        android:shadowRadius="2.75"
-        android:layout_gravity="center_vertical"
-        /> 
-</LinearLayout> 
-</LinearLayout> 
-    <CheckBox
-        android:id="@+id/favorite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        style="?android:attr/starStyle" />
-         
-</LinearLayout> 
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/scroller"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:fillViewport="true" >
-    
-            <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            
-    <TextView 
-		android:id = "@+id/distance" 
-		android:layout_width = "wrap_content"
-		android:layout_height = "wrap_content" 
-		android:textSize = "16dip"
-		android:padding = "5dp" 
-		android:layout_gravity="right"
-		android:visibility="gone"
-		android:textColor = "#cccccc" />
-		
-		<LinearLayout
-			android:id = "@+id/open_layout"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding = "10dp" >
-            
-            <LinearLayout
-            	android:layout_width="fill_parent"
-            	android:layout_height="wrap_content"
-            	android:orientation="vertical"
-            	android:gravity="center"
-           		android:layout_weight="1">
-            
-	<ImageView 
-		android:id = "@+id/bike_sign"
-		android:src = "@drawable/bike_sign"
-   		android:layout_width="wrap_content"
-   		android:layout_height="wrap_content"
-   		/>
-   
-    <TextView 
-		android:id = "@+id/bikes"
-		android:background = "@drawable/empty_sign"
-		android:layout_width = "wrap_content"
-		android:layout_height = "wrap_content" 
-		android:gravity="center"
-		android:textSize = "16dip"
-		android:textStyle="bold"
-		android:textColor="#ffffff"
-		android:padding = "5dp" />
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:id="@+id/banner"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal"
+	    android:background="@drawable/row_bg"
+	    android:paddingRight="5dip">
+	   <LinearLayout
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:orientation="vertical"
+	        android:layout_gravity="center_vertical" >
+	
+	        <LinearLayout
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:orientation="horizontal">
+	            
+	    <TextView android:id="@+id/name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="fill_parent"
+	        android:singleLine="true"
+	        android:ellipsize="end"
+	        android:textAppearance="?android:attr/textAppearanceMedium"
+	        android:textStyle="bold"
+	        android:shadowColor="#BB000000"
+	        android:shadowRadius="2.75"
+	        android:layout_gravity="center_vertical"
+	        /> 
+	</LinearLayout> 
+	</LinearLayout> 
+	    <CheckBox
+	        android:id="@+id/favorite"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_vertical"
+	        style="?android:attr/starStyle" />
+	         
+	</LinearLayout> 
+	
+	<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:id="@+id/scroller"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:fillViewport="true" >
+	    
+	            <LinearLayout
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:orientation="vertical">
+	            
+	    <TextView 
+			android:id = "@+id/distance" 
+			android:layout_width = "wrap_content"
+			android:layout_height = "wrap_content" 
+			android:textSize = "16dip"
+			android:padding = "5dp" 
+			android:layout_gravity="right"
+			android:visibility="gone"
+			android:textColor = "#cccccc" />
+			
+			<LinearLayout
+				android:id = "@+id/open_layout"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:gravity="center"
+	            android:orientation="horizontal"
+	            android:padding = "10dp" >
+	            
+	            <LinearLayout
+	            	android:layout_width="fill_parent"
+	            	android:layout_height="wrap_content"
+	            	android:orientation="vertical"
+	            	android:gravity="center"
+	           		android:layout_weight="1">
+	            
+		<ImageView 
+			android:id = "@+id/bike_sign"
+			android:src = "@drawable/bike_sign"
+	   		android:layout_width="wrap_content"
+	   		android:layout_height="wrap_content"
+	   		/>
+	   
+	    <TextView 
+			android:id = "@+id/bikes"
+			android:background = "@drawable/empty_sign"
+			android:layout_width = "wrap_content"
+			android:layout_height = "wrap_content" 
+			android:gravity="center"
+			android:textSize = "16dip"
+			android:textStyle="bold"
+			android:textColor="#ffffff"
+			android:padding = "5dp" />
+					</LinearLayout>
+			
+	            <LinearLayout
+	            	android:layout_width="fill_parent"
+	            	android:layout_height="wrap_content"
+	            	android:orientation="vertical"
+	            	android:gravity="center"
+	           		android:layout_weight="1">
+	            
+					<ImageView 
+						android:id = "@+id/parking_sign"
+						android:src = "@drawable/parking_sign"
+				   		android:layout_width="wrap_content"
+				   		android:layout_height="wrap_content"
+				   		/>
+				   
+				    <TextView 
+						android:id = "@+id/slots"
+						android:background = "@drawable/empty_sign"
+						android:layout_width = "wrap_content"
+						android:layout_height = "wrap_content"
+						android:gravity="center"
+						android:textSize = "16dip"
+						android:textStyle="bold"
+						android:textColor="#ffffff"
+						android:padding = "5dp" 
+						/>
 				</LinearLayout>
-		
-            <LinearLayout
-            	android:layout_width="fill_parent"
-            	android:layout_height="wrap_content"
-            	android:orientation="vertical"
-            	android:gravity="center"
-           		android:layout_weight="1">
-            
-				<ImageView 
-					android:id = "@+id/parking_sign"
-					android:src = "@drawable/parking_sign"
-			   		android:layout_width="wrap_content"
-			   		android:layout_height="wrap_content"
-			   		/>
-			   
-			    <TextView 
-					android:id = "@+id/slots"
-					android:background = "@drawable/empty_sign"
-					android:layout_width = "wrap_content"
-					android:layout_height = "wrap_content"
-					android:gravity="center"
-					android:textSize = "16dip"
-					android:textStyle="bold"
-					android:textColor="#ffffff"
-					android:padding = "5dp" 
-					/>
-			</LinearLayout>
-		</LinearLayout>
-		
-					 <LinearLayout
-			 	android:id = "@+id/closed_layout"
-            	android:layout_width="fill_parent"
-            	android:layout_height="wrap_content"
-            	android:orientation="vertical"
-            	android:gravity="center"
-            	android:padding = "10dip"
-           		android:visibility = "gone"
-           		>
-            
-				<ImageView 
-					android:id = "@+id/closed_sign"
-					android:src = "@drawable/closed_sign"
-			   		android:layout_width="wrap_content"
-			   		android:layout_height="wrap_content"
-			   		/>
-			   
-			    <TextView 
-					android:background = "@drawable/empty_sign_yellow"
-					android:layout_width = "wrap_content"
-					android:layout_height = "wrap_content"
-					android:text = "@string/closed"
-					android:gravity="center"
-					android:textSize = "16dip"
-					android:textStyle="bold"
-					android:textColor="#000000"
-					android:padding = "5dp" 
-					/>
 			</LinearLayout>
 			
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_margin="5dp"
-            android:gravity="center"
-            >
+						 <LinearLayout
+				 	android:id = "@+id/closed_layout"
+	            	android:layout_width="fill_parent"
+	            	android:layout_height="wrap_content"
+	            	android:orientation="vertical"
+	            	android:gravity="center"
+	            	android:padding = "10dip"
+	           		android:visibility = "gone"
+	           		>
+	            
+					<ImageView 
+						android:id = "@+id/closed_sign"
+						android:src = "@drawable/closed_sign"
+				   		android:layout_width="wrap_content"
+				   		android:layout_height="wrap_content"
+				   		/>
+				   
+				    <TextView 
+						android:background = "@drawable/empty_sign_yellow"
+						android:layout_width = "wrap_content"
+						android:layout_height = "wrap_content"
+						android:text = "@string/closed"
+						android:gravity="center"
+						android:textSize = "16dip"
+						android:textStyle="bold"
+						android:textColor="#000000"
+						android:padding = "5dp" 
+						/>
+				</LinearLayout>
+				
+	        <LinearLayout
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:orientation="horizontal"
+	            android:layout_margin="5dp"
+	            android:gravity="center"
+	            >
+			
+	<ImageButton
+		    android:id="@+id/show_map"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:src="@drawable/icon_show_map" />
+	<ImageButton
+		    android:id="@+id/show_google_maps"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:src="@drawable/icon_maps" />
+	<ImageButton
+		    android:id="@+id/navigate"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:src="@drawable/icon_navigation" />
+	       </LinearLayout> 
+	       
+	 	<TextView 
+			android:id = "@+id/address" 
+			android:layout_width = "wrap_content"
+			android:layout_height = "wrap_content" 
+			android:textSize = "20dip"
+			android:padding = "5dp" 
+			android:textColor = "#cccccc" 
+		/>
 		
-<ImageButton
-	    android:id="@+id/show_map"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/icon_show_map" />
-<ImageButton
-	    android:id="@+id/show_google_maps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/icon_maps" />
-<ImageButton
-	    android:id="@+id/navigate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/icon_navigation" />
-       </LinearLayout> 
-       
- 	<TextView 
-		android:id = "@+id/address" 
-		android:layout_width = "wrap_content"
-		android:layout_height = "wrap_content" 
-		android:textSize = "20dip"
-		android:padding = "5dp" 
-		android:textColor = "#cccccc" 
-	/>
-	
-	 <TextView 
-		android:id = "@+id/cc" 
-		android:layout_width = "wrap_content"
-		android:layout_height = "wrap_content" 
-		android:textSize = "20dip"
-		android:padding = "5dp" 
-		android:textColor = "#cccccc" 
-	/>
-	
-	<TextView 
-		android:id = "@+id/special" 
-		android:layout_width = "wrap_content"
-		android:layout_height = "wrap_content" 
-		android:textSize = "20dip"
-		android:padding = "5dp" 
-		android:textColor = "#cccccc" 
-	/>
-	</LinearLayout>
+		 <TextView 
+			android:id = "@+id/cc" 
+			android:layout_width = "wrap_content"
+			android:layout_height = "wrap_content" 
+			android:textSize = "20dip"
+			android:padding = "5dp" 
+			android:textColor = "#cccccc" 
+		/>
+		
+		<TextView 
+			android:id = "@+id/special" 
+			android:layout_width = "wrap_content"
+			android:layout_height = "wrap_content" 
+			android:textSize = "20dip"
+			android:padding = "5dp" 
+			android:textColor = "#cccccc" 
+		/>
+		</LinearLayout>
 	</ScrollView>
 </LinearLayout>

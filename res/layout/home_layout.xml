@@ -3,25 +3,28 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <include layout="@layout/actionbar" />
+    
+    <com.markupartist.android.widget.ActionBar
+    	android:id="@+id/actionbar"
+    	style="@style/ActionBar" />
 
 	<fr.openbike.ui.widget.DashboardLayout
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent"
-		android:background="#FFFFFFFF">
+		android:background="#F1F1F1">
 
 		<Button android:id="@+id/home_btn_list" style="@style/DashboardButton"
-			android:text="@string/btn_list" android:drawableTop="@drawable/home_btn_list" />
+			android:text="@string/btn_list" android:drawableTop="@drawable/home_button_list_selector" />
 		<Button android:id="@+id/home_btn_map" style="@style/DashboardButton"
-			android:text="@string/btn_map" android:drawableTop="@drawable/home_btn_map" />
+			android:text="@string/btn_map" android:drawableTop="@drawable/home_button_map_selector" />
 		<Button android:id="@+id/home_btn_favorite" style="@style/DashboardButton"
-			android:text="@string/btn_favorite" android:drawableTop="@drawable/home_btn_favorite" />
+			android:text="@string/btn_favorite" android:drawableTop="@drawable/home_button_starred_selector" />
 		<Button android:id="@+id/home_btn_filters" style="@style/DashboardButton"
-			android:text="@string/btn_filters" android:drawableTop="@drawable/home_btn_filters" />
+			android:text="@string/btn_filters" android:drawableTop="@drawable/home_button_filters_selector" />
 		<Button android:id="@+id/home_btn_search" style="@style/DashboardButton"
-			android:text="@string/btn_search" android:drawableTop="@drawable/home_btn_search" />
+			android:text="@string/btn_search" android:drawableTop="@drawable/home_button_search_selector" />
 		<Button android:id="@+id/home_btn_settings" style="@style/DashboardButton"
-			android:text="@string/btn_settings" android:drawableTop="@drawable/home_btn_settings" />
+			android:text="@string/btn_settings" android:drawableTop="@drawable/home_button_prefs_selector" />
 
 	</fr.openbike.ui.widget.DashboardLayout>
 </LinearLayout>

@@ -22,7 +22,6 @@
 				android:defaultValue="false"
 				/>
 		<CheckBoxPreference
-			android:dependency="use_location"
             android:key="enable_distance_filter"
 			android:title="@string/enable_distance_filter_title" 
             android:summary="@string/enable_distance_filter_summary"

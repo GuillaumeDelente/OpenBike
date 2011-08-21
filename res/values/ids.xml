@@ -1,7 +1,4 @@
 <resources>
-	<item type="id" name="actionbar_compat" />
-	<item type="id" name="actionbar_compat_logo" />
-	<item type="id" name="actionbar_compat_text" />
 	<item type="id" name="database_error" />
 	<item type="id" name="choose_network" />
 	<item type="id" name="network_error" />
@@ -12,7 +9,5 @@
 	<item type="id" name="progress" />
 	<item type="id" name="remove_from_favorite" />
 	<item type="id" name="welcome" />
-
-    <item type="id" name="menu_refresh_progress" />
 	
 </resources>

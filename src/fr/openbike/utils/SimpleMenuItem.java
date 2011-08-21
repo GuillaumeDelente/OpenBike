@@ -100,6 +100,10 @@ public class SimpleMenuItem implements MenuItem {
 
         return null;
     }
+    
+    public int getIconResId() {
+    	return mIconResId;
+    }
 
     public MenuItem setEnabled(boolean enabled) {
         mEnabled = enabled;

@@ -23,7 +23,7 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import fr.openbike.R;
 
-public class MapFilterActivity extends FilterPreferencesActivity {
+public class MapFilterActivity extends AbstractPreferencesActivity {
 	
 	protected CheckBoxPreference mDistanceFilterCb;
 	
@@ -39,13 +39,13 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 	@Override
 	protected void onResume() {
 		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(FilterPreferencesActivity.ENABLE_DISTANCE_FILTER);
+				.findPreference(AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER);
 		getPreferenceScreen().findPreference(
-				FilterPreferencesActivity.DISTANCE_FILTER).setSummary(
+				AbstractPreferencesActivity.DISTANCE_FILTER).setSummary(
 				getString(R.string.distance_filter_summary)
 						+ " "
 						+ getPreferenceScreen().getSharedPreferences().getInt(
-								FilterPreferencesActivity.DISTANCE_FILTER, 1000)
+								AbstractPreferencesActivity.DISTANCE_FILTER, 1000)
 						+ "m");
 		super.onResume();
 	}
@@ -53,8 +53,8 @@ public class MapFilterActivity extends FilterPreferencesActivity {
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
-			if (!sharedPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE,
+		if (key.equals(AbstractPreferencesActivity.LOCATION_PREFERENCE)) {
+			if (!sharedPreferences.getBoolean(AbstractPreferencesActivity.LOCATION_PREFERENCE,
 					false)) {
 				mDistanceFilterCb.setChecked(false);
 			}

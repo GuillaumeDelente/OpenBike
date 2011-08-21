@@ -277,7 +277,7 @@ public class StationDetails extends Activity implements
 	protected void onResume() {
 		super.onResume();
 		if (mSharedPreferences.getBoolean(
-				FilterPreferencesActivity.LOCATION_PREFERENCE, false)) {
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
 		}
 		mStation = managedQuery(mUri, null, null, null, null);
@@ -307,7 +307,7 @@ public class StationDetails extends Activity implements
 								: R.string.no));
 		mSpecial
 				.setText(PreferenceManager.getDefaultSharedPreferences(this)
-						.getString(FilterPreferencesActivity.SPECIAL_STATION,
+						.getString(AbstractPreferencesActivity.SPECIAL_STATION,
 								"")
 						+ " : "
 						+ getString(mStation.getInt(mStation
@@ -388,7 +388,13 @@ public class StationDetails extends Activity implements
 	 */
 	@Override
 	public ActivityHelper getActivityHelper() {
-		// TODO Auto-generated method stub
-		return null;
+		return mActivityHelper;
+	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		mActivityHelper.onPrepareOptionsMenu(menu);
+		super.onCreateOptionsMenu(menu);
+		return true;
 	}
 }

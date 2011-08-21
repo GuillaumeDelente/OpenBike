@@ -32,7 +32,7 @@ import android.net.Uri;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.model.MinimalStation;
 import fr.openbike.service.LocationService;
-import fr.openbike.ui.FilterPreferencesActivity;
+import fr.openbike.ui.AbstractPreferencesActivity;
 
 public class Utils {
 
@@ -78,11 +78,11 @@ public class Utils {
 
 	static public String whereClauseFromFilter(SharedPreferences preferences) {
 		Vector<String> selection = new Vector<String>();
-		if (preferences.getBoolean(FilterPreferencesActivity.FAVORITE_FILTER, false))
+		if (preferences.getBoolean(AbstractPreferencesActivity.FAVORITE_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_FAVORITE + " = 1 )");
-		if (preferences.getBoolean(FilterPreferencesActivity.BIKES_FILTER, false))
+		if (preferences.getBoolean(AbstractPreferencesActivity.BIKES_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_BIKES + " != 0 )");
-		if (preferences.getBoolean(FilterPreferencesActivity.SLOTS_FILTER, false))
+		if (preferences.getBoolean(AbstractPreferencesActivity.SLOTS_FILTER, false))
 			selection.add("(" + OpenBikeDBAdapter.KEY_SLOTS + " != 0 )");
 		int size = selection.size();
 		if (size == 0)

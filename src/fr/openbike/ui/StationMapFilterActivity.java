@@ -22,7 +22,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import fr.openbike.R;
 
-public class StationMapFilterActivity extends FilterPreferencesActivity {
+public class StationMapFilterActivity extends AbstractPreferencesActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +35,11 @@ public class StationMapFilterActivity extends FilterPreferencesActivity {
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(FilterPreferencesActivity.LOCATION_PREFERENCE)) {
-			if (!sharedPreferences.getBoolean(FilterPreferencesActivity.LOCATION_PREFERENCE,
+		if (key.equals(AbstractPreferencesActivity.LOCATION_PREFERENCE)) {
+			if (!sharedPreferences.getBoolean(AbstractPreferencesActivity.LOCATION_PREFERENCE,
 					false)) {
 				sharedPreferences.edit().putBoolean(
-						FilterPreferencesActivity.ENABLE_DISTANCE_FILTER, false).commit();
+						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false).commit();
 			}
 		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);

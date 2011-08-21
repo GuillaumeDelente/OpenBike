@@ -48,8 +48,7 @@ import fr.openbike.service.SyncService;
 import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 
-public class HomeActivity extends Activity implements IActivityHelper,
-		DetachableResultReceiver.Receiver {
+public class HomeActivity extends Activity implements DetachableResultReceiver.Receiver, IActivityHelper {
 
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	private static final String EXTRA_NETWORKS = "extra_networks";
@@ -101,7 +100,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 			return;
 		}
 		if (mSharedPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == FilterPreferencesActivity.NO_NETWORK
+				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == AbstractPreferencesActivity.NO_NETWORK
 				&& (mNetworkDialog == null || !mNetworkDialog.isShowing())) {
 			showChooseNetwork();
 		}
@@ -123,7 +122,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 
 	private void startSync() {
 		if (mSharedPreferences.getInt(
-				FilterPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
+				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
 			return;
 		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
 				SyncService.class);
@@ -164,7 +163,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 				new View.OnClickListener() {
 					public void onClick(View view) {
 						startActivity(new Intent(HomeActivity.this,
-								FilterPreferencesActivity.class));
+								FiltersPreferencesActivity.class));
 					}
 				});
 
@@ -172,7 +171,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 				new View.OnClickListener() {
 					public void onClick(View view) {
 						startActivity(new Intent(HomeActivity.this,
-								FilterPreferencesActivity.class));
+								SettingsPreferencesActivity.class));
 					}
 				});
 
@@ -221,7 +220,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 										int item) {
 									editor
 											.putInt(
-													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													AbstractPreferencesActivity.NETWORK_PREFERENCE,
 													((Network) ((AlertDialog) dialog)
 															.getListView()
 															.getAdapter()
@@ -259,28 +258,28 @@ public class HomeActivity extends Activity implements IActivityHelper,
 										Network network) {
 									editor
 											.putString(
-													FilterPreferencesActivity.UPDATE_SERVER_URL,
+													AbstractPreferencesActivity.UPDATE_SERVER_URL,
 													network.getServerUrl()
 															+ network.getId());
 									editor
 											.putInt(
-													FilterPreferencesActivity.NETWORK_LATITUDE,
+													AbstractPreferencesActivity.NETWORK_LATITUDE,
 													network.getLatitude());
 									editor
 											.putInt(
-													FilterPreferencesActivity.NETWORK_LONGITUDE,
+													AbstractPreferencesActivity.NETWORK_LONGITUDE,
 													network.getLongitude());
 									editor
 											.putString(
-													FilterPreferencesActivity.NETWORK_NAME,
+													AbstractPreferencesActivity.NETWORK_NAME,
 													network.getName());
 									editor
 											.putString(
-													FilterPreferencesActivity.NETWORK_CITY,
+													AbstractPreferencesActivity.NETWORK_CITY,
 													network.getCity());
 									editor
 											.putString(
-													FilterPreferencesActivity.SPECIAL_STATION,
+													AbstractPreferencesActivity.SPECIAL_STATION,
 													network.getSpecialName());
 									editor.commit();
 								}
@@ -290,7 +289,7 @@ public class HomeActivity extends Activity implements IActivityHelper,
 										int id) {
 									if (preferences
 											.getInt(
-													FilterPreferencesActivity.NETWORK_PREFERENCE,
+													AbstractPreferencesActivity.NETWORK_PREFERENCE,
 													0) == 0) {
 										finish();
 									} else {
@@ -328,11 +327,18 @@ public class HomeActivity extends Activity implements IActivityHelper,
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		mActivityHelper.onPrepareOptionsMenu(menu);
+		super.onCreateOptionsMenu(menu);
+		return true;
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_refresh:
+		case R.id.action_refresh:
 			startSync();
 			return true;
 		default:
@@ -384,15 +390,10 @@ public class HomeActivity extends Activity implements IActivityHelper,
 		}
 	}
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		return mActivityHelper.onKeyDown(keyCode, event)
-				|| super.onKeyDown(keyCode, event);
-	}
-
 	/**
 	 * Returns the {@link ActivityHelper} object associated with this activity.
 	 */
+	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
 	}
