@@ -22,17 +22,21 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.Editor;
 import android.database.sqlite.SQLiteException;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,15 +44,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 import fr.openbike.IActivityHelper;
 import fr.openbike.R;
 import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.model.Network;
+import fr.openbike.service.ILocationService;
+import fr.openbike.service.ILocationServiceListener;
+import fr.openbike.service.LocationService;
 import fr.openbike.service.SyncService;
 import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 
-public class HomeActivity extends Activity implements DetachableResultReceiver.Receiver, IActivityHelper {
+public class HomeActivity extends Activity implements ILocationServiceListener,
+		DetachableResultReceiver.Receiver, IActivityHelper {
 
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	private static final String EXTRA_NETWORKS = "extra_networks";
@@ -60,6 +69,9 @@ public class HomeActivity extends Activity implements DetachableResultReceiver.R
 	private ProgressDialog mPdialog = null;
 	private ActivityHelper mActivityHelper = null;
 	protected DetachableResultReceiver mReceiver = null;
+	private boolean mIsBound = false;
+	private ILocationService mBoundService = null;
+	private ServiceConnection mConnection = null;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -81,6 +93,20 @@ public class HomeActivity extends Activity implements DetachableResultReceiver.R
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		setListeners();
+		mConnection = new ServiceConnection() {
+			public void onServiceConnected(ComponentName className,
+					IBinder service) {
+				mBoundService = ((LocationService.LocationServiceBinder) service)
+						.getService();
+				mBoundService.addListener(HomeActivity.this);
+			}
+
+			public void onServiceDisconnected(ComponentName className) {
+				mBoundService = null;
+				Toast.makeText(HomeActivity.this, "Disconnected",
+						Toast.LENGTH_SHORT).show();
+			}
+		};
 	}
 
 	@Override
@@ -104,7 +130,18 @@ public class HomeActivity extends Activity implements DetachableResultReceiver.R
 				&& (mNetworkDialog == null || !mNetworkDialog.isShowing())) {
 			showChooseNetwork();
 		}
+		if (mSharedPreferences.getBoolean(
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
+			doBindService();
+		}
 		super.onResume();
+	}
+
+	@Override
+	protected void onStop() {
+		if (mIsBound)
+			doUnbindService();
+		super.onStop();
 	}
 
 	@Override
@@ -327,7 +364,7 @@ public class HomeActivity extends Activity implements DetachableResultReceiver.R
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		mActivityHelper.onPrepareOptionsMenu(menu);
@@ -396,6 +433,32 @@ public class HomeActivity extends Activity implements DetachableResultReceiver.R
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
+	}
+
+	void doBindService() {
+		bindService(new Intent(this, LocationService.class), mConnection,
+				Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (mIsBound) {
+			// Detach our existing connection.
+			unbindService(mConnection);
+			mIsBound = false;
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * fr.openbike.service.ILocationServiceListener#onLocationChanged(android
+	 * .location.Location, boolean)
+	 */
+	@Override
+	public void onLocationChanged(Location l, boolean alert) {
+		// Nothing
 	}
 
 }

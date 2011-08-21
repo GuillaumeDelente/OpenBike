@@ -20,18 +20,16 @@ package fr.openbike.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import fr.openbike.R;
 
 public class SettingsPreferencesActivity extends AbstractPreferencesActivity {
 
-	protected CheckBoxPreference mDistanceFilterCb;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mActivityHelper.setupActionBar(getString(R.string.btn_settings));
 		addPreferencesFromResource(R.xml.location_preferences);
 		addPreferencesFromResource(R.xml.other_preferences);
 		PreferenceScreen preferenceScreen = getPreferenceScreen();
@@ -48,20 +46,7 @@ public class SettingsPreferencesActivity extends AbstractPreferencesActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-	}
-
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-			String key) {
-		if (key.equals(AbstractPreferencesActivity.LOCATION_PREFERENCE)) {
-			if (!sharedPreferences.getBoolean(
-					AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
-				mDistanceFilterCb.setChecked(false);
-			}
-		}
-		super.onSharedPreferenceChanged(sharedPreferences, key);
-	}
-	
+	}	
 
 	@Override
 	public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,

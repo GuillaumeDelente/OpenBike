@@ -19,7 +19,7 @@
     <style name="Theme" parent="android:style/Theme" />
 
     <!-- Variation on the Light theme that turns off the title -->
-    <style name="Theme.OpenBike" parent="android:style/Theme.Light">
+    <style name="Theme.OpenBike" parent="android:style/Theme.NoTitleBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
 

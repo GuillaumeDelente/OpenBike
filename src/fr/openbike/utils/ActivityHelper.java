@@ -200,4 +200,8 @@ public class ActivityHelper {
 			actionBar.stopRefreshAnimation();
 		}
 	}
+	
+	public void clearActions() {
+		getActionBarCompat().removeAllActions();
+	}
 }

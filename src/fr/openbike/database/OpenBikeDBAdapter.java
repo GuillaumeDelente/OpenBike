@@ -32,6 +32,7 @@ import android.database.DatabaseUtils.InsertHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
@@ -155,41 +156,58 @@ public class OpenBikeDBAdapter {
 		final int virtualNetworkColumn = virtualInsertHelper
 				.getColumnIndex(KEY_NETWORK);
 
-		final int networkId = jsonArray.getJSONObject(0).getInt(Station.NETWORK);
+		final int networkId = jsonArray.getJSONObject(0)
+				.getInt(Station.NETWORK);
 		final int size = jsonArray.length();
-		for (int i = 0; i < size; i++) {
-			JSONObject jsonStation = jsonArray.getJSONObject(i);
-			stationsInsertHelper.prepareForInsert();
-			stationsInsertHelper.bind(idColumn, jsonStation.getInt(Station.ID));
-			stationsInsertHelper.bind(nameColumn, jsonStation
-					.getString(Station.NAME));
-			stationsInsertHelper.bind(openColumn, jsonStation
-					.getBoolean(Station.OPEN));
-			stationsInsertHelper.bind(bikesColumn, jsonStation
-					.getInt(Station.BIKES));
-			stationsInsertHelper.bind(slotsColumn, jsonStation
-					.getInt(Station.SLOTS));
-			stationsInsertHelper.bind(addressColumn, jsonStation
-					.getString(Station.ADDRESS));
-			stationsInsertHelper.bind(latitudeColumn, (int) (jsonStation
-					.getDouble(Station.LATITUDE) * 1E6));
-			stationsInsertHelper.bind(longitudeColumn, (int) (jsonStation
-					.getDouble(Station.LONGITUDE) * 1E6));
-			stationsInsertHelper.bind(paymentColumn, jsonStation
-					.getBoolean(Station.PAYMENT));
-			stationsInsertHelper.bind(specialColumn, jsonStation
-					.getBoolean(Station.SPECIAL));
-			stationsInsertHelper.bind(networkColumn, networkId);
-			stationsInsertHelper.bind(favoriteColumn, 0);
-			stationsInsertHelper.execute();
 
-			virtualInsertHelper.prepareForInsert();
-			virtualInsertHelper.bind(virtualIdColumn, jsonStation
-					.getInt(Station.ID));
-			virtualInsertHelper.bind(virtualNameColumn, jsonStation
-					.getString(Station.NAME));
-			virtualInsertHelper.bind(virtualNetworkColumn, networkId);
-			virtualInsertHelper.execute();
+		final String sql = "INSERT INTO " + STATIONS_TABLE
+				+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+
+		final String sql_virtual = "INSERT INTO " + STATIONS_VIRTUAL_TABLE
+				+ " VALUES (?,?,?);";
+
+		try {
+			mDb.beginTransaction();
+			SQLiteStatement insert = mDb.compileStatement(sql);
+			SQLiteStatement insert_virtual = mDb.compileStatement(sql_virtual);
+			insert.bindLong(networkColumn, networkId);
+			insert.bindLong(favoriteColumn, 0); // Favorite
+			insert_virtual.bindLong(virtualNetworkColumn, networkId);
+			int id;
+			String name;
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONObject jsonStation = jsonArray.getJSONObject(i);
+				id = jsonStation.getInt(Station.ID);
+				name = jsonStation.getString(Station.NAME);
+				insert.bindLong(idColumn, id);
+				insert.bindString(nameColumn, name);
+				insert.bindLong(openColumn, jsonStation
+						.getBoolean(Station.OPEN) ? 1 : 0);
+				insert.bindLong(bikesColumn, jsonStation.getInt(Station.BIKES));
+				insert.bindLong(slotsColumn, jsonStation.getInt(Station.SLOTS));
+				insert.bindString(addressColumn, jsonStation
+						.getString(Station.ADDRESS));
+				insert.bindLong(latitudeColumn, (int) (jsonStation
+						.getDouble(Station.LATITUDE) * 1E6));
+				insert.bindLong(longitudeColumn, (int) (jsonStation
+						.getDouble(Station.LONGITUDE) * 1E6));
+				insert.bindLong(paymentColumn, jsonStation
+						.getBoolean(Station.PAYMENT) ? 1 : 0);
+				insert.bindLong(specialColumn, jsonStation
+						.getBoolean(Station.SPECIAL) ? 1 : 0);
+				insert.executeInsert();
+
+				insert_virtual.bindLong(virtualIdColumn, id);
+				insert_virtual.bindString(virtualNameColumn, name);
+				insert_virtual.executeInsert();
+			}
+			mDb.setTransactionSuccessful();
+		} catch (JSONException e) {
+			throw e;
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+			mDb.endTransaction();
 		}
 	}
 
@@ -229,7 +247,8 @@ public class OpenBikeDBAdapter {
 		try {
 			mDb.beginTransaction();
 			ContentValues contentValues = new ContentValues();
-			final int networkId = jsonArray.getJSONObject(0).getInt(Station.NETWORK);
+			final int networkId = jsonArray.getJSONObject(0).getInt(
+					Station.NETWORK);
 			for (int i = 0; i < size; i++) {
 				jsonStation = jsonArray.getJSONObject(i);
 				contentValues.put(OpenBikeDBAdapter.KEY_BIKES, jsonStation
@@ -364,7 +383,8 @@ public class OpenBikeDBAdapter {
 				+ table
 				+ " MATCH ? AND vs.network = "
 				+ mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) + ";";
+						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)
+				+ ";";
 		Cursor cursor = mDb.rawQuery(s, new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
@@ -410,20 +430,13 @@ public class OpenBikeDBAdapter {
 	 * cursor .getInt(SPECIAL_COLUMN) != 0); return result; }
 	 */
 	public Cursor getStation(int id, String[] columns) throws SQLException {
-		Cursor cursor = mDb
-				.query(
-						true,
-						STATIONS_TABLE,
-						columns,
-						BaseColumns._ID + " = ? AND " + KEY_NETWORK + " = ?",
-						new String[] {
-								String.valueOf(id),
-								String
-										.valueOf(mPreferences
-												.getInt(
-														AbstractPreferencesActivity.NETWORK_PREFERENCE,
-														0)) }, null, null,
-						null, null);
+		Cursor cursor = mDb.query(true, STATIONS_TABLE, columns,
+				BaseColumns._ID + " = ? AND " + KEY_NETWORK + " = ?",
+				new String[] {
+						String.valueOf(id),
+						String.valueOf(mPreferences.getInt(
+								AbstractPreferencesActivity.NETWORK_PREFERENCE,
+								0)) }, null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
 		}

@@ -20,41 +20,59 @@ package fr.openbike.ui;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.util.Log;
 import fr.openbike.R;
 
 public class FiltersPreferencesActivity extends AbstractPreferencesActivity {
-	
+
 	protected CheckBoxPreference mDistanceFilterCb;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-	    addPreferencesFromResource(R.xml.filter_preferences);
+		mActivityHelper.setupActionBar(getString(R.string.btn_filters));
+		addPreferencesFromResource(R.xml.filter_preferences);
+		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
+				.findPreference(
+						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER);
+		getPreferenceScreen().getSharedPreferences()
+				.registerOnSharedPreferenceChangeListener(this);
 	}
 
 	@Override
 	protected void onResume() {
-		mDistanceFilterCb = (CheckBoxPreference) getPreferenceScreen()
-				.findPreference(AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER);
+		Log.d("OpenBike", "onResume");
+		SharedPreferences prefs = getPreferenceScreen().getSharedPreferences();
+		mDistanceFilterCb.setEnabled(prefs.getBoolean(
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, false));
+		mDistanceFilterCb
+				.setSummary(mDistanceFilterCb.isEnabled() ? R.string.enable_distance_filter_summary
+						: R.string.enable_location_before);
 		getPreferenceScreen().findPreference(
 				AbstractPreferencesActivity.DISTANCE_FILTER).setSummary(
 				getString(R.string.distance_filter_summary)
 						+ " "
-						+ getPreferenceScreen().getSharedPreferences().getInt(
-								AbstractPreferencesActivity.DISTANCE_FILTER, 1000)
-						+ "m");
+						+ prefs.getInt(
+								AbstractPreferencesActivity.DISTANCE_FILTER,
+								1000) + "m");
 		super.onResume();
 	}
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
-		if (key.equals(AbstractPreferencesActivity.LOCATION_PREFERENCE)) {
-			if (!sharedPreferences.getBoolean(AbstractPreferencesActivity.LOCATION_PREFERENCE,
-					false)) {
-				mDistanceFilterCb.setChecked(false);
-			}
-		}
 		super.onSharedPreferenceChanged(sharedPreferences, key);
+		Log.d("OpenBike", "Preferences changed");
+		if (key.equals(AbstractPreferencesActivity.DISTANCE_FILTER)) {
+			getPreferenceScreen()
+					.findPreference(AbstractPreferencesActivity.DISTANCE_FILTER)
+					.setSummary(
+							getString(R.string.distance_filter_summary)
+									+ " "
+									+ sharedPreferences
+											.getInt(
+													AbstractPreferencesActivity.DISTANCE_FILTER,
+													1000) + "m");
+		}
 	}
 }

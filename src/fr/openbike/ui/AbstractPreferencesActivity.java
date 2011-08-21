@@ -29,18 +29,22 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
+import fr.openbike.IActivityHelper;
 import fr.openbike.R;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
+import fr.openbike.utils.ActivityHelper;
+import fr.openbike.utils.DetachableResultReceiver;
 
 abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener,
-		ILocationServiceListener {
+		ILocationServiceListener, DetachableResultReceiver.Receiver, IActivityHelper {
 
 	// protected BikeFilter mActualFilter;
 	// protected BikeFilter mModifiedFilter;
@@ -51,6 +55,8 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	private ILocationService mBoundService = null;
 	private boolean mIsBound = false;
 	private Location mLastLocation = null;
+	protected ActivityHelper mActivityHelper = null;
+	protected DetachableResultReceiver mReceiver = null;
 
 	public static final String NETWORK_PREFERENCE = "network";
 	public static final String REPORT_BUG_PREFERENCE = "report_bug";
@@ -73,6 +79,7 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.preference_screen);
 		mConnection = new ServiceConnection() {
 			public void onServiceConnected(ComponentName className,
 					IBinder service) {
@@ -86,13 +93,21 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 				Toast.makeText(AbstractPreferencesActivity.this, "Disconnected",
 						Toast.LENGTH_SHORT).show();
 			}
-		};
+		};		
+		mReceiver = DetachableResultReceiver.getInstance(new Handler());
+		mActivityHelper = new ActivityHelper(this);
+	}
+	
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+		mActivityHelper.onPostCreate(savedInstanceState);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// mActualFilter = BikeFilter.getInstance(this);
+		mReceiver.setReceiver(this);
 		SharedPreferences preferences = getPreferenceScreen().getSharedPreferences();
 		if (preferences.getBoolean(
 				AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
@@ -100,19 +115,11 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		}
 	}
 
-	/*
-	 * @Override public void onPause() {
-	 * getPreferenceScreen().getSharedPreferences()
-	 * .unregisterOnSharedPreferenceChangeListener(this); if
-	 * (mModifiedFilter.equals(mActualFilter)) { setResult(RESULT_CANCELED); //
-	 * Log.e("OpenBike", "Exiting Preferences : Filter not changed"); } else {
-	 * // Log.e("OpenBike", "Exiting Preferences : Filter Changed");
-	 * setResult(RESULT_OK); mModifiedFilter.setNeedDbQuery(mActualFilter);
-	 * mOpenBikeManager.setVcubFilter(mModifiedFilter); // TODO: //
-	 * mOpenBikeManager.executeCreateVisibleStationsTask(false); //
-	 * Log.e("OpenBike", "Only Favorites ? "); // +
-	 * mModifiedFilter.isShowOnlyFavorites()); } super.onPause(); }
-	 */
+	@Override
+	protected void onPause() {
+		mReceiver.clearReceiver();
+		super.onPause();
+	}
 
 	@Override
 	protected void onStop() {
@@ -209,4 +216,19 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		}
 		mLastLocation = location;
 	}
+	
+
+	@Override
+	public void onReceiveResult(int resultCode, Bundle resultData) {
+		//We are not interested in anything
+	}
+
+	/**
+	 * Returns the {@link ActivityHelper} object associated with this activity.
+	 */
+	@Override
+	public ActivityHelper getActivityHelper() {
+		return mActivityHelper;
+	}
+
 }

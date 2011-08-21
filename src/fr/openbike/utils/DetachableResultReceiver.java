@@ -35,6 +35,8 @@ public class DetachableResultReceiver extends ResultReceiver {
 
 	private Receiver mReceiver;
 	private boolean mIsSync = false;
+	private Bundle mBundleData = null;
+	private int mResultCode = 0;
 	private static DetachableResultReceiver mThis = null;
 
 	public static DetachableResultReceiver getInstance(Handler handler) {
@@ -55,6 +57,10 @@ public class DetachableResultReceiver extends ResultReceiver {
 		mReceiver = receiver;
 		((IActivityHelper) receiver).getActivityHelper()
 				.setRefreshActionButtonCompatState(mIsSync);
+		if (mBundleData != null) {
+			mReceiver.onReceiveResult(mResultCode, mBundleData);
+			mBundleData = null;
+		}
 	}
 
 	public interface Receiver {
@@ -82,8 +88,10 @@ public class DetachableResultReceiver extends ResultReceiver {
 				((IActivityHelper) mReceiver).getActivityHelper()
 						.setRefreshActionButtonCompatState(false);
 			}
+		} else if (mReceiver == null) {
+			mResultCode = resultCode;
+			mBundleData = resultData;
 		}
-
 		if (mReceiver != null) {
 			mReceiver.onReceiveResult(resultCode, resultData);
 		}

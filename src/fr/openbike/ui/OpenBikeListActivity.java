@@ -78,8 +78,8 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 	private boolean mIsBound = false;
 	private CreateListAdaptorTask mCreateListAdaptorTask = null;
 	private UpdateDistanceTask mUpdateDistanceTask = null;
-	private ILocationService mBoundService = null;
 	private SharedPreferences mSharedPreferences = null;
+	private ILocationService mBoundService = null;
 	private ServiceConnection mConnection = null;
 	private OpenBikeDBAdapter mDBAdapter = null;
 	private ActivityHelper mActivityHelper = null;
@@ -137,8 +137,11 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 	protected void onNewIntent(Intent intent) {
 		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 			showStationDetails(intent.getData());
+			finish();
 		} else {
 			setIntent(intent);
+			mActivityHelper.clearActions();
+			mActivityHelper.onPostCreate(null);
 		}
 	}
 
@@ -191,7 +194,9 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		mActivityHelper.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
+		String action = getIntent().getAction();
+		if (action == null || !action.equals(Intent.ACTION_SEARCH))
+			getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!--  Dashboard -->
-    <string name="btn_list">Liste</string>
-    <string name="btn_map">Carte</string>
-    <string name="btn_favorite">Favoris</string>
-    <string name="btn_filters">Filtres</string>
-    <string name="btn_settings">Préférences</string>
-    <string name="btn_search">Rechercher</string>
-	
+	<string name="btn_list">Liste</string>
+	<string name="btn_map">Carte</string>
+	<string name="btn_favorite">Favoris</string>
+	<string name="btn_filters">Filtres</string>
+	<string name="btn_settings">Préférences</string>
+	<string name="btn_search">Rechercher</string>
+
 	<!--  Titles -->
-    <string name="station_list">Liste des stations</string>
-    <string name="station_map">Carte des stations</string>
-    <string name="station_details">Détail d\'une station</string>
-	
+	<string name="station_list">Liste des stations</string>
+	<string name="station_map">Carte des stations</string>
+	<string name="station_details">Détail d\'une station</string>
+
 	<!--  Menu -->
-    <string name="app_name">OpenBike</string>
+	<string name="app_name">OpenBike</string>
 	<string name="clear_db">Vider la DB</string>
 	<string name="update_all">Rafraichir les données</string>
 	<string name="map">Carte</string>
@@ -29,10 +29,10 @@
 	<string name="search">Rechercher une station</string>
 	<string name="menu_search">search</string>
 	<string name="menu_back_title">Retour</string>
-	
+
 	<!-- Titles -->
 	<string name="configuration_title">OpenBike - Configuration</string>
-	
+
 	<!--  Dialogs -->
 	<string name="yes">Oui</string>
 	<string name="no">Non</string>
@@ -41,38 +41,47 @@
 	<string name="gps_disabled">GPS désactivé</string>
 	<string name="location_disabled">Localisation désactivée</string>
 	<string name="updating">Rafraichissement...</string>
-	<string name="should_enable_location">La géolocalisation de votre appareil est désactivée. Vous 
-	n\'aurez accès à votre position que si vous modifiez ce réglage.</string>
-	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.</string>
+	<string name="should_enable_location">La géolocalisation de votre appareil est
+		désactivée. Vous
+		n\'aurez accès à votre position que si vous modifiez ce réglage.</string>
+	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.
+	</string>
 	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
 	<string name="network_error">Erreur de connexion</string>
-	<string name="network_error_summary">Le serveur n\'a pu être contacté. 
-	Vérifiez que vous êtes connectés à Internet avant de recommencer.</string>
+	<string name="network_error_summary">Le serveur n\'a pu être contacté.
+		Vérifiez que vous êtes connectés à Internet avant de recommencer.</string>
 	<string name="db_error">Erreur d\'enregistrement</string>
 	<string name="db_error_summary">Une erreur est survenue lors de l\'enregistrement
-	des données dans la base.</string>
+		des données dans la base.</string>
 	<string name="json_error">Erreur de lecture</string>
 	<string name="json_error_summary">Une erreur est survenue lors de la lecture de
-	la réponse du serveur.</string>		
+		la réponse du serveur.</string>
 	<string name="url_error">Erreur</string>
-	<string name="url_error_summary">La ville à afficher n\'a pas été enregistrée correctement, 
-	merci de la choisir dans la liste suivante.</string>	
+	<string name="url_error_summary">La ville à afficher n\'a pas été enregistrée
+		correctement,
+		merci de la choisir dans la liste suivante.</string>
 	<string name="retrieve_all">Initialisation</string>
 	<string name="retrieve_networks">Récupération de la liste des villes</string>
 	<string name="querying_server_summary">Contact du serveur en cours.</string>
-	<string name="saving_db_summary">Données reçues, sauvegarde dans la base de donnée en cours.</string>
+	<string name="saving_db_summary">Données reçues, sauvegarde dans la base de donnée
+		en cours.</string>
 	<string name="remove_favorite">Supprimer le favoris</string>
-	<string name="remove_favorite_sure">Êtes-vous certain de vouloir enlever cette station des favoris ?</string>
+	<string name="remove_favorite_sure">Êtes-vous certain de vouloir enlever cette station
+		des favoris ?</string>
 	<string name="position_updated">Votre position à été mise à jour.</string>
 	<string name="already_uptodate">Les données sont à jour.</string>
-	<string name="crash_toast_text">OpenBike a crashé mais un rapport a été envoyé au développeur pour 
-	réparer le bug au plus vite !</string>
+	<string name="crash_toast_text">OpenBike a crashé mais un rapport a été envoyé au
+		développeur pour
+		réparer le bug au plus vite !</string>
 	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
-	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans Menu->Configuration 
-	et jouez avec les réglages pour activer la géolocalisation et les filtres.</string>
+	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans
+		Menu->Configuration
+		et jouez avec les réglages pour activer la géolocalisation et les
+		filtres.</string>
 	<string name="choose_network_title">Choisissez votre ville</string>
-	<string name="choose_network">Veuillez choisir votre ville parmis la liste suivante. 
-	Si elle n\'y figure pas, demandez son ajout ici.</string>
+	<string name="choose_network">Veuillez choisir votre ville parmis la liste
+		suivante.
+		Si elle n\'y figure pas, demandez son ajout ici.</string>
 	<string name="loading">Chargement</string>
 	<string name="showing_load">Affichage des stations en cours...</string>
 
@@ -83,51 +92,62 @@
 	<string name="favorite_filter_title">Favoris seulement</string>
 	<string name="favorite_filter_summary">Affiche seulement vos stations favorites.</string>
 	<string name="bikes_filter_title">Vélos seulement</string>
-	<string name="bikes_filter_summary">Affiche seulement les stations avec au moins un vélo.</string>
+	<string name="bikes_filter_summary">Affiche seulement les stations avec au moins un
+		vélo.</string>
 	<string name="slots_filter_title">Emplacements seulement</string>
-	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un emplacement.</string>
+	<string name="slots_filter_summary">Affiche seulement les stations avec au moins un
+		emplacement.</string>
 	<string name="enable_distance_filter_title">Filtrer par distance</string>
-	<string name="enable_distance_filter_summary">N\'afficher que les stations les plus proches.</string>
+	<string name="enable_distance_filter_summary">N\'afficher que les stations les plus proches.
+	</string>
 	<string name="distance_filter_title">Distance</string>
 	<string name="distance_filter_summary">Dans un rayon de</string>
 	<string name="location">Paramètres de localisation</string>
 	<string name="use_location_title">Activer la géolocalisation</string>
 	<string name="use_location_summary">Utilise votre position</string>
 	<string name="center_on_location_title">Centrer sur ma position</string>
-	<string name="center_on_location_summary">La carte est centrée sur votre position dès que celle-ci change.</string>
+	<string name="center_on_location_summary">La carte est centrée sur votre position dès que
+		celle-ci change.</string>
 	<string name="general_preferences_title">Configuration générale</string>
 	<string name="other_preferences_title">Autre</string>
 	<string name="reporting_title">Rapports de bug</string>
-	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash.</string>
+	<string name="reporting_summary">Envoie un rapport au développeur lors d\'un crash.
+	</string>
 	<string name="not_available">Non disponible</string>
-	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.</string>
-	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre appareil.</string>
+	<string name="maps_not_available_summary">Google Maps n\'est pas installé sur votre appareil.
+	</string>
+	<string name="navigation_not_available_summary">Google Navigation n\'est pas installé sur votre
+		appareil.</string>
 	<string name="network_title">Changer de ville</string>
 	<string name="report_bug_title">Signaler un bug</string>
 	<string name="report_bug_summary">Envoyer un mail au développeur</string>
-	
-	<!--  Autre -->	
-    <plurals name="bike">
-        <item quantity="one">1 vélo</item>
-        <item quantity="other">%d vélos</item>
-    </plurals>
-    <plurals name="slot">
-        <item quantity="one">1 place</item>
-        <item quantity="other">%d places</item>
-    </plurals>
-    <string name="slot_">place</string>
-    <string name="slots_">places</string>
-    <string name="bike_">vélo</string>
-    <string name="bikes_">vélos</string>
+	<string name="distance_filter_preferences_title">Filtrage par distance</string>
+	<string name="enable_location_before">Activez la géolocalisation dans les préférences de
+		l\'application pour profiter de ce filtre.</string>
+
+	<!--  Autre -->
+	<plurals name="bike">
+		<item quantity="one">1 vélo</item>
+		<item quantity="other">%d vélos</item>
+	</plurals>
+	<plurals name="slot">
+		<item quantity="one">1 place</item>
+		<item quantity="other">%d places</item>
+	</plurals>
+	<string name="slot_">place</string>
+	<string name="slots_">places</string>
+	<string name="bike_">vélo</string>
+	<string name="bikes_">vélos</string>
 	<string name="address">Adresse</string>
 	<string name="cc">Carte bancaire</string>
 	<string name="upper_at">À</string>
 	<string name="at">à</string>
-	<string name="no_stations">Aucune station à afficher. Changez les filtres pour élargir la recherche.</string>
+	<string name="no_stations">Aucune station à afficher. Changez les filtres pour
+		élargir la recherche.</string>
 	<string name="loading_list">Création de la liste en cours...</string>
 	<string name="closed">En maintenance</string>
 	<string name="special">Station spéciale</string>
 	<string name="search_results">Résultats de la recherche</string>
-	
-	
+
+
 </resources>
