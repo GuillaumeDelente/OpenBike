@@ -35,6 +35,8 @@ import fr.openbike.service.LocationService;
 import fr.openbike.ui.AbstractPreferencesActivity;
 
 public class Utils {
+	
+	public static final String FAVORITE_WHERE_CLAUSE = OpenBikeDBAdapter.KEY_FAVORITE + " = 1";
 
 	static public void sortStationsByDistance(
 			List<? extends MinimalStation> list) {

@@ -11,7 +11,8 @@
 	<!--  Titles -->
 	<string name="station_list">Liste des stations</string>
 	<string name="station_map">Carte des stations</string>
-	<string name="station_details">Détail d\'une station</string>
+	<string name="station_details">Détails d\'une station</string>
+	<string name="favorite_stations">Stations favorites</string>
 
 	<!--  Menu -->
 	<string name="app_name">OpenBike</string>
@@ -144,6 +145,8 @@
 	<string name="at">à</string>
 	<string name="no_stations">Aucune station à afficher. Changez les filtres pour
 		élargir la recherche.</string>
+	<string name="no_results">Aucun résultat.</string>
+	<string name="no_favorites">Aucunes stations favorites.</string>
 	<string name="loading_list">Création de la liste en cours...</string>
 	<string name="closed">En maintenance</string>
 	<string name="special">Station spéciale</string>

@@ -175,7 +175,7 @@ public class OpenBikeDBAdapter {
 			insert_virtual.bindLong(virtualNetworkColumn, networkId);
 			int id;
 			String name;
-			for (int i = 0; i < jsonArray.length(); i++) {
+			for (int i = 0; i < size; i++) {
 				JSONObject jsonStation = jsonArray.getJSONObject(i);
 				id = jsonStation.getInt(Station.ID);
 				name = jsonStation.getString(Station.NAME);

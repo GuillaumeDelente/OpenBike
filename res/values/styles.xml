@@ -37,38 +37,4 @@
         <item name="android:background">@null</item>
     </style>
 
-    <style name="ListItemTitle">
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@android:color/primary_text_dark</item>
-    </style>
-
-    <style name="ListItemSubtitle">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@android:color/primary_text_dark</item>
-    </style>
-
-    <style name="ListItemContainerBase">
-        <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
-    </style>
-
-    <!-- a simple list item is one whose container and content are the same view -->
-    <style name="SimpleListItem" parent="style/ListItemContainerBase">
-        <item name="android:paddingLeft">10dp</item>
-        <item name="android:paddingRight">10dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
-    </style>
-
-    <!-- used for more complex list items, e.g. those with stars aligned to the top-right -->
-
-    <style name="ListItemContainer" parent="style/ListItemContainerBase" />
-
-    <style name="ListItemContent">
-        <item name="android:paddingLeft">10dp</item>
-        <item name="android:paddingRight">10dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
-    </style>
-
 </resources>

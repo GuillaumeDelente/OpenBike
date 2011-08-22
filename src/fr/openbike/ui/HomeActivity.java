@@ -84,6 +84,8 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		mLayoutInflater = LayoutInflater.from(this);
 		mNetworkAdapter = new NetworkAdapter(this);
 		mPdialog = new ProgressDialog(this);
+		mPdialog.setTitle(R.id.loading);
+		mPdialog.setMessage(getString(R.id.loading));
 		if (savedInstanceState != null) {
 			ArrayList<Network> networks = (ArrayList<Network>) savedInstanceState
 					.getSerializable(EXTRA_NETWORKS);
@@ -192,7 +194,8 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 				new View.OnClickListener() {
 					public void onClick(View view) {
 						startActivity(new Intent(HomeActivity.this,
-								OpenBikeListActivity.class));
+								OpenBikeListActivity.class)
+								.setAction(OpenBikeListActivity.ACTION_FAVORITE));
 					}
 				});
 
@@ -215,6 +218,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		findViewById(R.id.home_btn_search).setOnClickListener(
 				new View.OnClickListener() {
 					public void onClick(View view) {
+						getActivityHelper().goSearch();
 					}
 				});
 	}
@@ -282,8 +286,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 												.insertNetwork(network);
 										editor.commit();
 										setCurrentNetwork(editor, network);
-										showProgressDialog(R.string.loading,
-												R.string.loading);
+										showProgressDialog();
 										startSync();
 									} catch (SQLiteException e) {
 										dismissDialog(R.id.choose_network);
@@ -339,9 +342,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		return super.onCreateDialog(id);
 	}
 
-	public void showProgressDialog(int titleRes, int messageRes) {
-		mPdialog.setTitle(titleRes);
-		mPdialog.setMessage(getString(messageRes));
+	public void showProgressDialog() {
 		if (!mPdialog.isShowing())
 			showDialog(R.id.progress);
 	}
@@ -400,10 +401,8 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 						.addView(emptyView);
 				((AlertDialog) dialog).getListView().setEmptyView(emptyView);
 			}
-			Log.d("OpenBike", "Enabled : "
-					+ ((AlertDialog) dialog).getListView()
-							.getCheckedItemPosition());
-
+			if (mNetworkAdapter != null)
+				mNetworkAdapter.notifyDataSetChanged();
 			((AlertDialog) dialog).getButton(Dialog.BUTTON_POSITIVE)
 					.setEnabled(
 							((AlertDialog) dialog).getListView()

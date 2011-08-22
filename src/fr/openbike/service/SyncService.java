@@ -116,6 +116,7 @@ public class SyncService extends IntentService {
 		int status = STATUS_ERROR;
 		try {
 			if (intent.getAction().equals(ACTION_SYNC)) {
+				Log.d("OpenBike", "SyncService !");
 				if (receiver != null) {
 					receiver.send(STATUS_SYNC_STATIONS, Bundle.EMPTY);
 				}

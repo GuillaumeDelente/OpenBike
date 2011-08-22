@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import fr.openbike.R;
 import fr.openbike.model.Network;
 
 /**
@@ -57,7 +58,8 @@ public class NetworkAdapter extends BaseAdapter {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
 		if (convertView == null) {
-			convertView = mInflater.inflate(android.R.layout.simple_list_item_single_choice, null);
+			convertView = mInflater.inflate(R.layout.simple_list_item_single_choice, null);
+
 			holder = new ViewHolder();
 			holder.text = (TextView) convertView.findViewById(android.R.id.text1);
 			convertView.setTag(holder);

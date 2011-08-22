@@ -49,6 +49,7 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -69,8 +70,11 @@ import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 import fr.openbike.utils.Utils;
 
-public class OpenBikeListActivity extends ListActivity implements ILocationServiceListener,
-		DetachableResultReceiver.Receiver, IActivityHelper {
+public class OpenBikeListActivity extends ListActivity implements
+		ILocationServiceListener, DetachableResultReceiver.Receiver,
+		IActivityHelper {
+
+	public static final String ACTION_FAVORITE = "fr.openbike.action_favorite";
 
 	private OpenBikeArrayAdaptor mAdapter = null;
 	private ProgressDialog mPdialog = null;
@@ -83,25 +87,26 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 	private ServiceConnection mConnection = null;
 	private OpenBikeDBAdapter mDBAdapter = null;
 	private ActivityHelper mActivityHelper = null;
+	private ListView mListView = null;
 	protected DetachableResultReceiver mReceiver = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.list_layout);
-		mReceiver = DetachableResultReceiver.getInstance(new Handler());
-		mActivityHelper = new ActivityHelper(this);
-		mActivityHelper.setupActionBar(getString(R.string.station_list));
 		if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
 			showStationDetails(getIntent().getData());
 			finish();
 		}
+		mReceiver = DetachableResultReceiver.getInstance(new Handler());
+		mActivityHelper = new ActivityHelper(this);
+		mActivityHelper.setupActionBar(getString(R.string.station_list));
+		mListView = getListView();
 		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
-		final ListView listView = getListView();
-		listView.setOnItemClickListener(new OnItemClickListener() {
+		mListView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				showStationDetails(String
@@ -109,7 +114,7 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 								.getTag()).favorite.getTag()));
 			}
 		});
-		registerForContextMenu(listView);
+		registerForContextMenu(mListView);
 		mConnection = new ServiceConnection() {
 			public void onServiceConnected(ComponentName className,
 					IBinder service) {
@@ -141,7 +146,7 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 		} else {
 			setIntent(intent);
 			mActivityHelper.clearActions();
-			mActivityHelper.onPostCreate(null);
+			mActivityHelper.onPostCreate(null); // Change menu based on current action
 		}
 	}
 
@@ -151,12 +156,25 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 		boolean useLocation = mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.LOCATION_PREFERENCE, false);
 		Intent intent = getIntent();
-		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+		String action = intent.getAction();
+		if (Intent.ACTION_SEARCH.equals(action)) {
+			((TextView) findViewById(R.id.empty)).setText(R.string.no_results);
 			mActivityHelper
 					.setActionBarTitle(getString(R.string.search_results));
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			showResults(query);
+		} else if (ACTION_FAVORITE.equals(action)) {
+			((TextView) findViewById(R.id.empty)).setText(R.string.no_favorites);
+			mActivityHelper
+					.setActionBarTitle(getString(R.string.favorite_stations));
+			if (useLocation) {
+				// Create the list when receiving location
+				doBindService();
+			} else {
+				executeCreateListAdaptorTask(null, null);
+			}
 		} else {
+			((TextView) findViewById(R.id.empty)).setText(R.string.no_stations);
 			mActivityHelper.setActionBarTitle(getString(R.string.station_list));
 			if (useLocation) {
 				// Create the list when receiving location
@@ -298,7 +316,7 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 			return super.onContextItemSelected(item);
 		}
 	}
-	
+
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		final Context context = this;
@@ -472,12 +490,12 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 
 	public void setEmptyList() {
 		findViewById(R.id.loading).setVisibility(View.GONE);
-		getListView().setEmptyView(findViewById(R.id.empty));
+		mListView.setEmptyView(findViewById(R.id.empty));
 	}
 
 	public void setLoadingList() {
 		findViewById(R.id.empty).setVisibility(View.GONE);
-		getListView().setEmptyView(findViewById(R.id.loading));
+		mListView.setEmptyView(findViewById(R.id.loading));
 	}
 
 	@Override
@@ -611,8 +629,8 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
-			mStations = mQuery == null ? createStationList()
-					: createSearchList();
+			mStations = Intent.ACTION_SEARCH.equals(getIntent().getAction()) ? createSearchList()
+					: createStationList();
 			if (isCancelled())
 				return false;
 			if (mStations != null) {
@@ -642,19 +660,22 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 					size);
 			if (isCancelled())
 				return null;
-			Cursor cursor = mOpenBikeDBAdapter.getFilteredStationsCursor(
-					new String[] { BaseColumns._ID,
-							OpenBikeDBAdapter.KEY_BIKES,
-							OpenBikeDBAdapter.KEY_NETWORK,
-							OpenBikeDBAdapter.KEY_SLOTS,
-							OpenBikeDBAdapter.KEY_OPEN,
-							OpenBikeDBAdapter.KEY_LATITUDE,
-							OpenBikeDBAdapter.KEY_LONGITUDE,
-							OpenBikeDBAdapter.KEY_NAME,
-							OpenBikeDBAdapter.KEY_FAVORITE }, Utils
-							.whereClauseFromFilter(mSharedPreferences),
-					mCurrentLocation == null ? OpenBikeDBAdapter.KEY_NAME
-							: null);
+			Cursor cursor = mOpenBikeDBAdapter
+					.getFilteredStationsCursor(
+							new String[] { BaseColumns._ID,
+									OpenBikeDBAdapter.KEY_BIKES,
+									OpenBikeDBAdapter.KEY_NETWORK,
+									OpenBikeDBAdapter.KEY_SLOTS,
+									OpenBikeDBAdapter.KEY_OPEN,
+									OpenBikeDBAdapter.KEY_LATITUDE,
+									OpenBikeDBAdapter.KEY_LONGITUDE,
+									OpenBikeDBAdapter.KEY_NAME,
+									OpenBikeDBAdapter.KEY_FAVORITE },
+							ACTION_FAVORITE.equals(getIntent().getAction()) ? Utils.FAVORITE_WHERE_CLAUSE
+									: Utils
+											.whereClauseFromFilter(mSharedPreferences),
+							mCurrentLocation == null ? OpenBikeDBAdapter.KEY_NAME
+									: null);
 			MinimalStation minimalStation;
 			Location stationLocation = null;
 			int distanceToStation = 0;
@@ -835,14 +856,16 @@ public class OpenBikeListActivity extends ListActivity implements ILocationServi
 				mAdapter.notifyDataSetChanged();
 		}
 	}
-	
+
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		// TODO Auto-generated method stub
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.openbike.IActivityHelper#getActivityHelper()
 	 */
 	@Override
