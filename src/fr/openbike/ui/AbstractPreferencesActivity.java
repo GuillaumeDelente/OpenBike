@@ -44,7 +44,8 @@ import fr.openbike.utils.DetachableResultReceiver;
 
 abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener,
-		ILocationServiceListener, DetachableResultReceiver.Receiver, IActivityHelper {
+		ILocationServiceListener, DetachableResultReceiver.Receiver,
+		IActivityHelper {
 
 	// protected BikeFilter mActualFilter;
 	// protected BikeFilter mModifiedFilter;
@@ -90,14 +91,14 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 
 			public void onServiceDisconnected(ComponentName className) {
 				mBoundService = null;
-				Toast.makeText(AbstractPreferencesActivity.this, "Disconnected",
-						Toast.LENGTH_SHORT).show();
+				Toast.makeText(AbstractPreferencesActivity.this,
+						"Disconnected", Toast.LENGTH_SHORT).show();
 			}
-		};		
+		};
 		mReceiver = DetachableResultReceiver.getInstance(new Handler());
 		mActivityHelper = new ActivityHelper(this);
 	}
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -108,7 +109,8 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	protected void onResume() {
 		super.onResume();
 		mReceiver.setReceiver(this);
-		SharedPreferences preferences = getPreferenceScreen().getSharedPreferences();
+		SharedPreferences preferences = getPreferenceScreen()
+				.getSharedPreferences();
 		if (preferences.getBoolean(
 				AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
@@ -136,49 +138,18 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-		case LocationService.ENABLE_GPS:
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled)).setMessage(
-					getString(R.string.should_enable_gps) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
-		case LocationService.NO_LOCATION_PROVIDER:
-			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.location_disabled)).setMessage(
-					getString(R.string.should_enable_location) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
+		default:
+			Dialog dialog = getActivityHelper().onCreateDialog(id);
+			if (dialog != null)
+				return dialog;
 		}
 		return super.onCreateDialog(id);
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		getActivityHelper().onPrepareDialog(id, dialog);
+		super.onPrepareDialog(id, dialog);
 	}
 
 	@Override
@@ -216,11 +187,10 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		}
 		mLastLocation = location;
 	}
-	
 
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
-		//We are not interested in anything
+		// We are not interested in anything
 	}
 
 	/**

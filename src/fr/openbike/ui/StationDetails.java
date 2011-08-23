@@ -93,7 +93,8 @@ public class StationDetails extends Activity implements
 		setContentView(R.layout.station_details_layout);
 		mActivityHelper = new ActivityHelper(this);
 		mActivityHelper.setupActionBar(getString(R.string.station_details));
-		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		mSharedPreferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
 		mName = (TextView) findViewById(R.id.name);
 		mFavorite = (CheckBox) findViewById(R.id.favorite);
 		mDistance = (TextView) findViewById(R.id.distance);
@@ -161,7 +162,7 @@ public class StationDetails extends Activity implements
 		intent.setData(uri);
 		startActivity(intent);
 	}
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -250,8 +251,18 @@ public class StationDetails extends Activity implements
 									dialog.cancel();
 								}
 							}).create();
+		default:
+			Dialog dialog = getActivityHelper().onCreateDialog(id);
+			if (dialog != null)
+				return dialog;
 		}
 		return super.onCreateDialog(id);
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		getActivityHelper().onPrepareDialog(id, dialog);
+		super.onPrepareDialog(id, dialog);
 	}
 
 	@Override
@@ -383,14 +394,16 @@ public class StationDetails extends Activity implements
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.openbike.IActivityHelper#getActivityHelper()
 	 */
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
 	}
-	
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		mActivityHelper.onPrepareOptionsMenu(menu);

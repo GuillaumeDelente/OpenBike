@@ -146,7 +146,8 @@ public class OpenBikeListActivity extends ListActivity implements
 		} else {
 			setIntent(intent);
 			mActivityHelper.clearActions();
-			mActivityHelper.onPostCreate(null); // Change menu based on current action
+			mActivityHelper.onPostCreate(null); // Change menu based on current
+												// action
 		}
 	}
 
@@ -164,7 +165,8 @@ public class OpenBikeListActivity extends ListActivity implements
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			showResults(query);
 		} else if (ACTION_FAVORITE.equals(action)) {
-			((TextView) findViewById(R.id.empty)).setText(R.string.no_favorites);
+			((TextView) findViewById(R.id.empty))
+					.setText(R.string.no_favorites);
 			mActivityHelper
 					.setActionBarTitle(getString(R.string.favorite_stations));
 			if (useLocation) {
@@ -224,6 +226,12 @@ public class OpenBikeListActivity extends ListActivity implements
 		mActivityHelper.onPrepareOptionsMenu(menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		getActivityHelper().onPrepareDialog(id, dialog);
+		super.onPrepareDialog(id, dialog);
 	}
 
 	@Override
@@ -323,134 +331,6 @@ public class OpenBikeListActivity extends ListActivity implements
 		final SharedPreferences.Editor editor = PreferenceManager
 				.getDefaultSharedPreferences(this).edit();
 		switch (id) {
-		case R.id.network_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.network_error)).setMessage(
-					(getString(R.string.network_error_summary)))
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									if (PreferenceManager
-											.getDefaultSharedPreferences(
-													context)
-											.getInt(
-													AbstractPreferencesActivity.NETWORK_PREFERENCE,
-													0) == 0
-									// TODO
-									// ||
-									// !mOpenBikeManager.isStationListRetrieved()
-									) {
-										mAdapter = null;
-										finish();
-									} else {
-										dialog.cancel();
-									}
-								}
-							}).create();
-		case R.id.json_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.json_error)).setMessage(
-					(getString(R.string.json_error_summary)))
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									if (PreferenceManager
-											.getDefaultSharedPreferences(
-													context)
-											.getInt(
-													AbstractPreferencesActivity.NETWORK_PREFERENCE,
-													0) == 0
-									// TODO
-									// ||
-									// !mOpenBikeManager.isStationListRetrieved()
-									) {
-										mAdapter = null;
-										finish();
-									} else {
-										dialog.cancel();
-									}
-								}
-							}).create();
-		case R.id.database_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.db_error)).setMessage(
-					(getString(R.string.db_error_summary))).setPositiveButton(
-					"Ok", new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							if (PreferenceManager
-									.getDefaultSharedPreferences(context)
-									.getInt(
-											AbstractPreferencesActivity.NETWORK_PREFERENCE,
-											0) == 0
-							// TODO
-							// || !mOpenBikeManager.isStationListRetrieved()
-							) {
-								mAdapter = null;
-								finish();
-							} else {
-								dialog.cancel();
-							}
-						}
-					}).create();
-		case R.id.url_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.url_error)).setMessage(
-					(getString(R.string.url_error_summary))).setPositiveButton(
-					"Ok", new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							editor
-									.putInt(
-											AbstractPreferencesActivity.NETWORK_PREFERENCE,
-											0);
-							editor.commit();
-							startActivity(new Intent(context,
-									OpenBikeListActivity.class)
-									.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-						}
-					}).create();
-		case R.id.enable_gps:
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled)).setMessage(
-					getString(R.string.should_enable_gps) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
-		case R.id.no_location_provider:
-			// Log.i("OpenBike", "onPrepareDialog : NO_LOCATION_PROVIDER");
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.location_disabled)).setMessage(
-					getString(R.string.should_enable_location) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
 		case R.id.progress:
 			mPdialog.setCancelable(false);
 			return mPdialog;
@@ -484,6 +364,10 @@ public class OpenBikeListActivity extends ListActivity implements
 							dialog.cancel();
 						}
 					}).create();
+		default:
+			Dialog dialog = getActivityHelper().onCreateDialog(id);
+			if (dialog != null)
+				return dialog;
 		}
 		return super.onCreateDialog(id);
 	}

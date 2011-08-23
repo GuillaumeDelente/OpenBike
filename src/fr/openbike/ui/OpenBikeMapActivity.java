@@ -63,8 +63,9 @@ import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
 import fr.openbike.utils.Utils;
 
-public class OpenBikeMapActivity extends MapActivity implements ILocationServiceListener,
-		DetachableResultReceiver.Receiver, IActivityHelper {
+public class OpenBikeMapActivity extends MapActivity implements
+		ILocationServiceListener, DetachableResultReceiver.Receiver,
+		IActivityHelper {
 
 	public static String ACTION_DETAIL = "fr.openbike.action.VIEW_STATION";
 	private MapController mMapController;
@@ -211,16 +212,15 @@ public class OpenBikeMapActivity extends MapActivity implements ILocationService
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		//TODO : change menu depending on current action
-			mActivityHelper.onPrepareOptionsMenu(menu);
-			super.onCreateOptionsMenu(menu);
+		// TODO : change menu depending on current action
+		mActivityHelper.onPrepareOptionsMenu(menu);
+		super.onCreateOptionsMenu(menu);
 		/*
-		if (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
-			menu.setGroupVisible(R.id.menu_group_map_station, true);
-		} else {
-			menu.setGroupVisible(R.id.menu_group_map_station, false);
-		}
-		*/
+		 * if
+		 * (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
+		 * menu.setGroupVisible(R.id.menu_group_map_station, true); } else {
+		 * menu.setGroupVisible(R.id.menu_group_map_station, false); }
+		 */
 		return true;
 	}
 
@@ -256,82 +256,21 @@ public class OpenBikeMapActivity extends MapActivity implements ILocationService
 	@Override
 	public Dialog onCreateDialog(int id) {
 		switch (id) {
-		case R.id.network_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.network_error)).setMessage(
-					(getString(R.string.network_error_summary)))
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
-		case R.id.json_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.json_error)).setMessage(
-					(getString(R.string.json_error_summary)))
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
-		case R.id.database_error:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.db_error)).setMessage(
-					(getString(R.string.db_error_summary))).setPositiveButton(
-					"Ok", new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					}).create();
-		case R.id.enable_gps:
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.gps_disabled)).setMessage(
-					getString(R.string.should_enable_gps) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
-		case R.id.no_location_provider:
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					getString(R.string.location_disabled)).setMessage(
-					getString(R.string.should_enable_location) + "\n"
-							+ getString(R.string.show_location_parameters))
-					.setPositiveButton(getString(R.string.yes),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									Intent gpsOptionsIntent = new Intent(
-											android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-									startActivity(gpsOptionsIntent);
-								}
-							}).setNegativeButton(getString(R.string.no),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							}).create();
 		case R.id.progress:
 			mPdialog.setCancelable(false);
 			return mPdialog;
+		default:
+			Dialog dialog = getActivityHelper().onCreateDialog(id);
+			if (dialog != null)
+				return dialog;
 		}
 		return super.onCreateDialog(id);
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		getActivityHelper().onPrepareDialog(id, dialog);
+		super.onPrepareDialog(id, dialog);
 	}
 
 	@Override
@@ -357,14 +296,12 @@ public class OpenBikeMapActivity extends MapActivity implements ILocationService
 	public void onListUpdated() {
 		boolean needUpdate = mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false)
-				|| mSharedPreferences
-						.getBoolean(
-								AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
-								false)
-				|| mSharedPreferences
-						.getBoolean(
-								AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
-								false);
+				|| mSharedPreferences.getBoolean(
+						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
+						false)
+				|| mSharedPreferences.getBoolean(
+						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
+						false);
 		if (needUpdate) {
 			executePopulateOverlays();
 		} else {
@@ -378,9 +315,9 @@ public class OpenBikeMapActivity extends MapActivity implements ILocationService
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LATITUDE));
 		int longitude = station.getInt(station
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE));
-		mStationsOverlay.setItems(mStationsOverlay
-				.getOverlaysFromCursor(station, mIsBound ? mBoundService
-						.getCurrentLocation() : null, 0));
+		mStationsOverlay.setItems(mStationsOverlay.getOverlaysFromCursor(
+				station, mIsBound ? mBoundService.getCurrentLocation() : null,
+				0));
 		zoomAndCenter(new GeoPoint(latitude, longitude));
 		mMapView.invalidate();
 	}
@@ -590,7 +527,9 @@ public class OpenBikeMapActivity extends MapActivity implements ILocationService
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.openbike.IActivityHelper#getActivityHelper()
 	 */
 	@Override

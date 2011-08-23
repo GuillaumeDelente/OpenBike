@@ -240,16 +240,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		case R.id.progress:
 			mPdialog.setCancelable(false);
 			return mPdialog;
-		case R.id.database_error:
-			return new AlertDialog.Builder(this).setCancelable(false).setTitle(
-					R.string.db_error).setMessage(R.string.db_error_summary)
-					.setPositiveButton(R.string.Ok, new OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					}).create();
 		case R.id.choose_network:
 			final SharedPreferences preferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
@@ -338,6 +328,10 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 								}
 							}).create();
 			return mNetworkDialog;
+		default:
+			Dialog dialog = getActivityHelper().onCreateDialog(id);
+			if (dialog != null)
+				return dialog;
 		}
 		return super.onCreateDialog(id);
 	}
@@ -407,6 +401,9 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 					.setEnabled(
 							((AlertDialog) dialog).getListView()
 									.getCheckedItemPosition() != -1);
+			break;
+		default:
+			getActivityHelper().onPrepareDialog(id, dialog);
 		}
 		super.onPrepareDialog(id, dialog);
 	}
@@ -420,7 +417,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 			ArrayList<Network> networks = resultData
 					.getParcelableArrayList(SyncService.EXTRA_RESULT);
 			displayNetworks(networks);
-		} else if (resultCode == SyncService.STATUS_SYNC_STATIONS) {
 		} else if (resultCode == SyncService.STATUS_SYNC_STATIONS_FINISHED) {
 			dismissProgressDialog();
 		}

@@ -44,19 +44,23 @@
 	<string name="updating">Rafraichissement...</string>
 	<string name="should_enable_location">La géolocalisation de votre appareil est
 		désactivée. Vous
-		n\'aurez accès à votre position que si vous modifiez ce réglage.</string>
+		n\'aurez accès à votre position que si vous modifiez
+		ce réglage. @string/show_location_parameters</string>
 	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.
+		@string/show_location_parameters
 	</string>
 	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
 	<string name="network_error">Erreur de connexion</string>
 	<string name="network_error_summary">Le serveur n\'a pu être contacté.
-		Vérifiez que vous êtes connectés à Internet avant de recommencer.</string>
+		Vérifiez que vous
+		êtes connectés à Internet avant de recommencer.</string>
 	<string name="db_error">Erreur d\'enregistrement</string>
 	<string name="db_error_summary">Une erreur est survenue lors de l\'enregistrement
 		des données dans la base.</string>
 	<string name="json_error">Erreur de lecture</string>
 	<string name="json_error_summary">Une erreur est survenue lors de la lecture de
-		la réponse du serveur.</string>
+		la
+		réponse du serveur.</string>
 	<string name="url_error">Erreur</string>
 	<string name="url_error_summary">La ville à afficher n\'a pas été enregistrée
 		correctement,
@@ -77,7 +81,8 @@
 	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
 	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans
 		Menu->Configuration
-		et jouez avec les réglages pour activer la géolocalisation et les
+		et jouez avec les réglages pour activer la
+		géolocalisation et les
 		filtres.</string>
 	<string name="choose_network_title">Choisissez votre ville</string>
 	<string name="choose_network">Veuillez choisir votre ville parmis la liste
