@@ -25,4 +25,5 @@ import android.location.Location;
  */
 public interface ILocationServiceListener {
 	public void onLocationChanged(Location l, boolean alert); 
+	public void onLocationProvidersChanged(int id); 
 }

@@ -89,9 +89,6 @@ public class OpenBikeArrayAdaptor extends ArrayAdapter<MinimalStation> {
 			viewHolder.favorite.setOnCheckedChangeListener(null);
 		}
 		MinimalStation station = getItem(position);
-		if (station == null) {
-			//TODO: handle error
-		}
 		viewHolder.name.setText(station.getName());
 		if (!station.isOpen()) {
 			viewHolder.closed.setVisibility(View.VISIBLE);

@@ -24,6 +24,8 @@ import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,7 +40,12 @@ import com.markupartist.android.widget.ActionBar.Action;
 import com.markupartist.android.widget.ActionBar.IntentAction;
 
 import fr.openbike.R;
+import fr.openbike.service.SyncService;
+import fr.openbike.ui.AbstractPreferencesActivity;
+import fr.openbike.ui.FiltersPreferencesActivity;
 import fr.openbike.ui.HomeActivity;
+import fr.openbike.ui.OpenBikeListActivity;
+import fr.openbike.ui.OpenBikeMapActivity;
 
 /**
  * A class that handles some common activity-related functionality in the app,
@@ -50,6 +57,7 @@ public class ActivityHelper {
 	protected Activity mActivity;
 	private Animation mRefreshAnimation = null;
 	private AlertDialog mErrorDialog = null;
+	public static final long MIN_UPDATE_TIME = 2 * 1000 * 60;
 
 	private static final int[] mVisibleInBar = { R.id.action_refresh,
 			R.id.menu_search };
@@ -100,11 +108,32 @@ public class ActivityHelper {
 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.action_refresh:
+			startSync();
+			return true;
 		case R.id.menu_search:
 			goSearch();
 			return true;
+		case R.id.menu_filters:
+			mActivity.startActivity(new Intent(mActivity,
+					FiltersPreferencesActivity.class));
+			return true;
+		case R.id.menu_map:
+			mActivity.startActivity(new Intent(mActivity,
+					OpenBikeMapActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return true;
+		case R.id.menu_list:
+			mActivity.startActivity(new Intent(mActivity,
+					OpenBikeListActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return true;
 		}
 		return false;
+	}
+
+	public void onResume() {
+		startSyncIfNeeded();
 	}
 
 	/**
@@ -286,5 +315,33 @@ public class ActivityHelper {
 			((AlertDialog) dialog).setMessage(mActivity
 					.getString(R.string.should_enable_gps));
 		}
+	}
+
+	public void startSyncIfNeeded() {
+		DetachableResultReceiver receiver = DetachableResultReceiver
+				.getInstance(new Handler());
+		if (System.currentTimeMillis()
+				- PreferenceManager.getDefaultSharedPreferences(mActivity)
+						.getLong(AbstractPreferencesActivity.LAST_UPDATE, 0) > MIN_UPDATE_TIME
+				&& !receiver.isSync()) {
+			startSync();
+			return;
+		}
+	}
+
+	public void startSync() {
+		if (PreferenceManager.getDefaultSharedPreferences(mActivity).getInt(
+				AbstractPreferencesActivity.NETWORK_PREFERENCE,
+				AbstractPreferencesActivity.NO_NETWORK) == AbstractPreferencesActivity.NO_NETWORK) {
+			mActivity.startActivity(new Intent(mActivity, HomeActivity.class)
+					.setAction(HomeActivity.ACTION_CHOOSE_NETWORK).setFlags(
+							Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return;
+		}
+		final Intent intent = new Intent(SyncService.ACTION_SYNC, null,
+				mActivity, SyncService.class);
+		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER,
+				DetachableResultReceiver.getInstance(new Handler()));
+		mActivity.startService(intent);
 	}
 }

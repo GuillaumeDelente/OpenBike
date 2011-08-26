@@ -29,14 +29,14 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
+import fr.openbike.R;
 
 public class LocationService extends Service implements ILocationService,
 		LocationListener {
 
 	private LocationServiceBinder binder;
 	private List<ILocationServiceListener> listeners = null;
-	public static final int ENABLE_GPS = -4;
-	public static final int NO_LOCATION_PROVIDER = -5;
 	public static final int DISTANCE_UNAVAILABLE = -1;
 	public static final int MINIMUM_DISTANCE_NETWORK = 50;
 	public static final int MINIMUM_DISTANCE_GPS = 10;
@@ -56,6 +56,7 @@ public class LocationService extends Service implements ILocationService,
 		binder = new LocationServiceBinder(this);
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		enableMyLocation();
+		listeners = new ArrayList<ILocationServiceListener>();
 	}
 
 	@Override
@@ -65,37 +66,48 @@ public class LocationService extends Service implements ILocationService,
 
 	// Ajout d'un listener
 	public void addListener(ILocationServiceListener listener) {
-		if (listeners == null) {
-			listeners = new ArrayList<ILocationServiceListener>();
-		}
+		Log.d("OpenBike", "listener added");
 		listeners.add(listener);
 		listener.onLocationChanged(mLastFix, true);
+		if (!mIsGpsAvailable && !mIsNetworkAvailable && mAskForLocation) {
+			listener.onLocationProvidersChanged(R.id.no_location_provider);
+			mAskForLocation = false;
+		} else if (!mIsGpsAvailable && mIsNetworkAvailable && mAskForGps) {
+			listener.onLocationProvidersChanged(R.id.enable_gps);
+			mAskForGps = false;
+		}
 	}
 
 	// Suppression d'un listener
 	public void removeListener(ILocationServiceListener listener) {
-		if (listeners != null) {
-			listeners.remove(listener);
-		}
+		listeners.remove(listener);
 	}
 
 	// Notification des listeners
 	private void fireLocationChanged(Location l) {
-		if (listeners != null) {
-			for (ILocationServiceListener listener : listeners) {
-				listener.onLocationChanged(l, false);
-			}
+		for (ILocationServiceListener listener : listeners) {
+			listener.onLocationChanged(l, false);
 		}
 	}
 
 	private void fireShowNoLocationProvider() {
-		//TODO
+		int size = listeners.size();
+		if (size != 0) {
+			ILocationServiceListener listener = listeners.get(size - 1);
+			listener.onLocationProvidersChanged(R.id.no_location_provider);
+			mAskForLocation = false;
+		}
 	}
-	
+
 	private void fireShowAskForGps() {
-		//TODO
+		int size = listeners.size();
+		if (size != 0) {
+			ILocationServiceListener listener = listeners.get(size - 1);
+			listener.onLocationProvidersChanged(R.id.enable_gps);
+			mAskForGps = false;
+		}
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		disableMyLocation();
@@ -183,17 +195,14 @@ public class LocationService extends Service implements ILocationService,
 		} else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
 			mIsNetworkAvailable = false;
 		}
-		if (!mIsNetworkAvailable && !mIsGpsAvailable
-				&& (mLastFix != null || mAskForLocation)) {
+		if (!mIsNetworkAvailable && !mIsGpsAvailable) {
 			mLastFix = null;
 			fireLocationChanged(null);
-			if (mAskForLocation) {
-				fireShowNoLocationProvider();
-				mAskForLocation = false;
-			}
-		} else if (mAskForGps && !mIsGpsAvailable && mIsNetworkAvailable) {
+		}
+		if (!mIsGpsAvailable && !mIsNetworkAvailable && mAskForLocation) {
+			fireShowNoLocationProvider();
+		} else if (!mIsGpsAvailable && mIsNetworkAvailable && mAskForGps) {
 			fireShowAskForGps();
-			mAskForGps = false;
 		}
 	}
 
@@ -202,28 +211,31 @@ public class LocationService extends Service implements ILocationService,
 		// Log.i("OpenBike", "onProviderEnabled : " + provider);
 		if (provider.equals(LocationManager.GPS_PROVIDER)) {
 			mIsGpsAvailable = true;
+			mAskForGps = true;
+			mAskForLocation = true;
 		}
 		if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
 			mIsNetworkAvailable = true;
+			mAskForLocation = true;
 		}
 	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 	}
-	
-	public class LocationServiceBinder extends Binder { 
-		  
-	    private ILocationService service = null; 
-	  
-	    public LocationServiceBinder(ILocationService service) { 
-	        super(); 
-	        this.service = service; 
-	    } 
-	 
-	    public ILocationService getService() { 
-	        return service; 
-	    } 
+
+	public class LocationServiceBinder extends Binder {
+
+		private ILocationService service = null;
+
+		public LocationServiceBinder(ILocationService service) {
+			super();
+			this.service = service;
+		}
+
+		public ILocationService getService() {
+			return service;
+		}
 	}
 
 	@Override

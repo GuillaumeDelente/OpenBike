@@ -38,9 +38,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,9 +75,9 @@ public class StationDetails extends Activity implements
 	private TextView mCreditCard = null;
 	private TextView mSpecial = null;
 	private CheckBox mFavorite = null;
-	private ImageButton mNavigate = null;
-	private ImageButton mGoogleMaps = null;
-	private ImageButton mShowMap = null;
+	private Button mNavigate = null;
+	private Button mGoogleMaps = null;
+	private Button mShowMap = null;
 	private ServiceConnection mConnection = null;
 	private ILocationService mBoundService = null;
 	private SharedPreferences mSharedPreferences = null;
@@ -101,9 +101,9 @@ public class StationDetails extends Activity implements
 		mCreditCard = (TextView) findViewById(R.id.cc);
 		mSpecial = (TextView) findViewById(R.id.special);
 		mAddress = (TextView) findViewById(R.id.address);
-		mNavigate = (ImageButton) findViewById(R.id.navigate);
-		mGoogleMaps = (ImageButton) findViewById(R.id.show_google_maps);
-		mShowMap = (ImageButton) findViewById(R.id.show_map);
+		mNavigate = (Button) findViewById(R.id.navigate);
+		mGoogleMaps = (Button) findViewById(R.id.show_google_maps);
+		mShowMap = (Button) findViewById(R.id.show_map);
 		mGoogleMaps.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
@@ -409,5 +409,13 @@ public class StationDetails extends Activity implements
 		mActivityHelper.onPrepareOptionsMenu(menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged(int)
+	 */
+	@Override
+	public void onLocationProvidersChanged(int id) {
+		showDialog(id);
 	}
 }

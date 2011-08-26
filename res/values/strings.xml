@@ -24,8 +24,9 @@
 	<string name="add_to_favorite">Ajouter aux favoris</string>
 	<string name="remove_from_favorite">Supprimer des favoris</string>
 	<string name="show_on_map">Montrer sur la carte</string>
-	<string name="show_on_google_maps">Afficher sur Maps</string>
-	<string name="navigate_to">Naviguer vers</string>
+	<string name="show_on_google_maps">Afficher sur Google Maps</string>
+	<string name="google_maps">Google Maps</string>
+	<string name="navigate_to">Itinéraire</string>
 	<string name="show_details">Afficher plus d\'informations</string>
 	<string name="search">Rechercher une station</string>
 	<string name="menu_search">search</string>
@@ -45,7 +46,7 @@
 	<string name="should_enable_location">La géolocalisation de votre appareil est
 		désactivée. Vous
 		n\'aurez accès à votre position que si vous modifiez
-		ce réglage. @string/show_location_parameters</string>
+		ce réglage. Afficher les paramètres de localisation ?</string>
 	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.
 		@string/show_location_parameters
 	</string>
@@ -85,9 +86,6 @@
 		géolocalisation et les
 		filtres.</string>
 	<string name="choose_network_title">Choisissez votre ville</string>
-	<string name="choose_network">Veuillez choisir votre ville parmis la liste
-		suivante.
-		Si elle n\'y figure pas, demandez son ajout ici.</string>
 	<string name="loading">Chargement</string>
 	<string name="showing_load">Affichage des stations en cours...</string>
 

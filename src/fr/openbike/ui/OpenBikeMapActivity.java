@@ -21,12 +21,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -57,7 +55,6 @@ import fr.openbike.database.OpenBikeDBAdapter;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
-import fr.openbike.service.SyncService;
 import fr.openbike.ui.StationsOverlay.StationOverlay;
 import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
@@ -169,6 +166,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				executePopulateOverlays();
 			}
 		}
+		mActivityHelper.onResume();
 		super.onResume();
 	}
 
@@ -186,16 +184,6 @@ public class OpenBikeMapActivity extends MapActivity implements
 		super.onStop();
 	}
 
-	private void startSync() {
-		if (mSharedPreferences.getInt(
-				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
-			return;
-		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
-				SyncService.class);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
-		startService(intent);
-	}
-
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -205,22 +193,23 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		mActivityHelper.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
+		getMenuInflater().inflate(R.menu.map_menu, menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		// TODO : change menu depending on current action
 		mActivityHelper.onPrepareOptionsMenu(menu);
+		if (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
+			menu.setGroupVisible(R.id.map_menu_global, false);
+			menu.setGroupVisible(R.id.map_menu_detail, true);
+		} else {
+			menu.setGroupVisible(R.id.map_menu_global, true);
+			menu.setGroupVisible(R.id.map_menu_detail, false);
+		}
+
 		super.onCreateOptionsMenu(menu);
-		/*
-		 * if
-		 * (OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent().getAction())) {
-		 * menu.setGroupVisible(R.id.menu_group_map_station, true); } else {
-		 * menu.setGroupVisible(R.id.menu_group_map_station, false); }
-		 */
 		return true;
 	}
 
@@ -228,24 +217,9 @@ public class OpenBikeMapActivity extends MapActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.action_refresh:
-			startSync();
-			return true;
-		case R.id.menu_settings:
-			startActivity(new Intent(this,
-					OpenBikeMapActivity.ACTION_DETAIL.equals(getIntent()
-							.getAction()) ? StationMapFilterActivity.class
-							: MapFilterActivity.class));
-			return true;
-		case R.id.menu_map:
-			startActivity(new Intent(this, OpenBikeMapActivity.class).setFlags(
-					Intent.FLAG_ACTIVITY_CLEAR_TOP).setClass(this,
-					OpenBikeMapActivity.class));
-			return true;
-		case R.id.menu_list:
-			startActivity(new Intent(this, OpenBikeListActivity.class)
-					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP).setClass(this,
-							OpenBikeListActivity.class));
+		case R.id.menu_show_global_map:
+			startActivity(new Intent(this, OpenBikeMapActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 			return true;
 		default:
 			return mActivityHelper.onOptionsItemSelected(item)
@@ -535,5 +509,17 @@ public class OpenBikeMapActivity extends MapActivity implements
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged
+	 * (int)
+	 */
+	@Override
+	public void onLocationProvidersChanged(int id) {
+		showDialog(id);
 	}
 }

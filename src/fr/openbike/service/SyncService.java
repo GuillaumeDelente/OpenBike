@@ -124,20 +124,20 @@ public class SyncService extends IntentService {
 						AbstractPreferencesActivity.UPDATE_SERVER_URL, ""),
 						new RemoteBikesHandler(), this);
 				status = STATUS_SYNC_STATIONS_FINISHED;
+				PreferenceManager.getDefaultSharedPreferences(this).edit()
+						.putLong(AbstractPreferencesActivity.LAST_UPDATE,
+								System.currentTimeMillis()).commit();
 			} else if (intent.getAction().equals(ACTION_CHOOSE_NETWORK)) {
 				if (receiver != null) {
 					receiver.send(STATUS_SYNC_NETWORKS, Bundle.EMPTY);
 				}
 				if (receiver != null) {
 					bundle = new Bundle();
-					bundle
-							.putParcelableArrayList(
-									EXTRA_RESULT,
-									(ArrayList<Network>) mRemoteExecutor
-											.executeGetForResult(
-													"http://openbike.fr/test.xml",
-													new RemoteNetworksHandler(),
-													this));
+					bundle.putParcelableArrayList(EXTRA_RESULT,
+							(ArrayList<Network>) mRemoteExecutor
+									.executeGetForResult(
+											"http://openbike.fr/test.xml",
+											new RemoteNetworksHandler(), this));
 					status = STATUS_SYNC_NETWORKS_FINISHED;
 				}
 			}

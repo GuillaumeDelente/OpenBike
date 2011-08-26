@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-  	android:background = "#333333"
+  	android:background = "#FFFFFFFF"
     >
     
     <com.markupartist.android.widget.ActionBar 
@@ -175,48 +175,54 @@
 	            android:gravity="center"
 	            >
 			
-	<ImageButton
+	<Button
 		    android:id="@+id/show_map"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:src="@drawable/icon_show_map" />
-	<ImageButton
+	        android:drawableTop="@drawable/icon_maps"
+	        android:text="@string/map"
+	        android:textSize="12sp" />
+	<Button
 		    android:id="@+id/show_google_maps"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:src="@drawable/icon_maps" />
-	<ImageButton
+	        android:drawableTop="@drawable/icon_show_map"
+	        android:text="@string/google_maps"
+	        android:textSize="12sp" />
+	<Button
 		    android:id="@+id/navigate"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:src="@drawable/icon_navigation" />
+	        android:drawableTop="@drawable/icon_navigation"
+	        android:text="@string/navigate_to"
+	        android:textSize="12sp"/>
 	       </LinearLayout> 
 	       
-	 	<TextView 
+	 	<TextView
 			android:id = "@+id/address" 
 			android:layout_width = "wrap_content"
 			android:layout_height = "wrap_content" 
-			android:textSize = "20dip"
+			android:textSize = "15sp"
 			android:padding = "5dp" 
-			android:textColor = "#cccccc" 
+			android:textColor="#000000"
 		/>
 		
 		 <TextView 
 			android:id = "@+id/cc" 
 			android:layout_width = "wrap_content"
 			android:layout_height = "wrap_content" 
-			android:textSize = "20dip"
+			android:textSize = "15sp"
 			android:padding = "5dp" 
-			android:textColor = "#cccccc" 
+			android:textColor="#000000"
 		/>
 		
 		<TextView 
 			android:id = "@+id/special" 
 			android:layout_width = "wrap_content"
 			android:layout_height = "wrap_content" 
-			android:textSize = "20dip"
-			android:padding = "5dp" 
-			android:textColor = "#cccccc" 
+			android:textSize = "15sp"
+			android:padding = "5dp"
+			android:textColor="#000000"
 		/>
 		</LinearLayout>
 	</ScrollView>

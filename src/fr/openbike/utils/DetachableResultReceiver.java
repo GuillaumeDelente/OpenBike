@@ -24,7 +24,6 @@ import android.os.ResultReceiver;
 import android.util.Log;
 import fr.openbike.IActivityHelper;
 import fr.openbike.R;
-import fr.openbike.service.LocationService;
 import fr.openbike.service.SyncService;
 
 /**
@@ -65,6 +64,10 @@ public class DetachableResultReceiver extends ResultReceiver {
 		}
 	}
 
+	public boolean isSync() {
+		return mIsSync;
+	}
+
 	public interface Receiver {
 		public void onReceiveResult(int resultCode, Bundle resultData);
 	}
@@ -92,11 +95,11 @@ public class DetachableResultReceiver extends ResultReceiver {
 						.setRefreshActionButtonCompatState(false);
 				((Activity) mReceiver).showDialog(R.id.network_error);
 			}
-		} else if (resultCode == LocationService.ENABLE_GPS) {
+		} else if (resultCode == R.id.enable_gps) {
 			if (mReceiver != null) {
 				((Activity) mReceiver).showDialog(R.id.enable_gps);
 			}
-		} else if (resultCode == LocationService.NO_LOCATION_PROVIDER) {
+		} else if (resultCode == R.id.no_location_provider) {
 			if (mReceiver != null) {
 				((Activity) mReceiver).showDialog(R.id.no_location_provider);
 			}

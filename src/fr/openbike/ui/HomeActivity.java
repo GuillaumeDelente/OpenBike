@@ -28,7 +28,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences.Editor;
 import android.database.sqlite.SQLiteException;
 import android.location.Location;
@@ -127,14 +126,18 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 			showChooseNetwork();
 			return;
 		}
-		if (mSharedPreferences.getInt(
-				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == AbstractPreferencesActivity.NO_NETWORK
-				&& (mNetworkDialog == null || !mNetworkDialog.isShowing())) {
-			showChooseNetwork();
-		}
+		/*
+		 * if (mSharedPreferences.getInt(
+		 * AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) ==
+		 * AbstractPreferencesActivity.NO_NETWORK && (mNetworkDialog == null ||
+		 * !mNetworkDialog.isShowing())) { showChooseNetwork(); }
+		 */
 		if (mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.LOCATION_PREFERENCE, false)) {
 			doBindService();
+		}
+		if (mNetworkDialog == null || !mNetworkDialog.isShowing()) {
+			mActivityHelper.onResume();
 		}
 		super.onResume();
 	}
@@ -155,16 +158,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 	private void showChooseNetwork() {
 		final Intent intent = new Intent(SyncService.ACTION_CHOOSE_NETWORK,
 				null, this, SyncService.class);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
-		startService(intent);
-	}
-
-	private void startSync() {
-		if (mSharedPreferences.getInt(
-				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
-			return;
-		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
-				SyncService.class);
 		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
 		startService(intent);
 	}
@@ -277,7 +270,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 										editor.commit();
 										setCurrentNetwork(editor, network);
 										showProgressDialog();
-										startSync();
+										getActivityHelper().startSync();
 									} catch (SQLiteException e) {
 										dismissDialog(R.id.choose_network);
 										showDialog(R.id.database_error);
@@ -320,7 +313,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 									if (preferences
 											.getInt(
 													AbstractPreferencesActivity.NETWORK_PREFERENCE,
-													0) == 0) {
+													AbstractPreferencesActivity.NO_NETWORK) == AbstractPreferencesActivity.NO_NETWORK) {
 										finish();
 									} else {
 										dismissDialog(R.id.choose_network);
@@ -370,9 +363,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_refresh:
-			startSync();
-			return true;
 		default:
 			return mActivityHelper.onOptionsItemSelected(item)
 					|| super.onOptionsItemSelected(item);
@@ -456,4 +446,16 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		// Nothing
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged
+	 * (int)
+	 */
+	@Override
+	public void onLocationProvidersChanged(int id) {
+		Log.d("OpenBike", "onLocationProvidersChanged");
+		showDialog(id);
+	}
 }

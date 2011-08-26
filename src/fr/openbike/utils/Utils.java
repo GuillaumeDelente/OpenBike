@@ -110,7 +110,6 @@ public class Utils {
 	}
 
 	public static int computeDistance(int latitude, int longitude, Location from) {
-		//TODO
 		if (from == null) {
 			return LocationService.DISTANCE_UNAVAILABLE;
 		}

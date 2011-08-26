@@ -17,7 +17,6 @@
  */
 package fr.openbike.ui;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -74,6 +73,7 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	public static final String NETWORK_NAME = "network_name";
 	public static final String NETWORK_CITY = "network_city";
 	public static final String SPECIAL_STATION = "special_station";
+	public static final String LAST_UPDATE = "last_update";
 
 	public static final int NO_NETWORK = 0;
 
@@ -199,6 +199,14 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
+	}
+	
+	/* (non-Javadoc)
+	 * @see fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged(int)
+	 */
+	@Override
+	public void onLocationProvidersChanged(int id) {
+		showDialog(id);
 	}
 
 }

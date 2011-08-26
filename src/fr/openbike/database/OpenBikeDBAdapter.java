@@ -292,7 +292,8 @@ public class OpenBikeDBAdapter {
 				+ " = ? AND " + KEY_NETWORK + " = ?;", new String[] {
 				String.valueOf(id),
 				String.valueOf(mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) }) > 0;
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK)) }) > 0;
 	}
 
 	/*
@@ -310,17 +311,15 @@ public class OpenBikeDBAdapter {
 	public Cursor getFilteredStationsCursor(String[] projection, String where,
 			String orderBy) {
 		String nWhere;
-		Log.d("OpenBike", "Getting stations for network "
-				+ mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0));
 		if (where == null)
 			nWhere = KEY_NETWORK + " = ?";
 		else
 			nWhere = where + " AND " + KEY_NETWORK + " = ?";
 		return mDb.query(STATIONS_TABLE, projection, nWhere,
 				new String[] { String.valueOf(mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) },
-				null, null, orderBy);
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK)) }, null, null,
+				orderBy);
 	}
 
 	// Search results
@@ -333,7 +332,7 @@ public class OpenBikeDBAdapter {
 		}
 		query += "*";
 
-		// FIXME: Put network id as argument in rawQuery(), doesn't work
+		// TODO: Put network id as argument in rawQuery(), doesn't work
 		String s = "SELECT vs._id, ob.availableBikes, ob.freeSlots, ob.isOpen, "
 				+ "ob.latitude, ob.longitude, ob.name, ob.isFavorite "
 				+ "FROM virtual_stations vs "
@@ -343,21 +342,10 @@ public class OpenBikeDBAdapter {
 				+ table
 				+ " match ? AND vs.network = "
 				+ String.valueOf(mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0));
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK));
 
-		Cursor cursor = mDb.rawQuery(s, new String[] { query
-		// ,
-				// String.valueOf(mPreferences.getInt(FilterPreferencesActivity.NETWORK_PREFERENCE,
-				// 0))
-				});
-
-		/*
-		 * if (cursor == null) { return null; } /* else if
-		 * (!cursor.moveToFirst()) { cursor.close(); return null;
-		 * 
-		 * }
-		 */
-
+		Cursor cursor = mDb.rawQuery(s, new String[] { query });
 		return cursor;
 	}
 
@@ -383,8 +371,8 @@ public class OpenBikeDBAdapter {
 				+ table
 				+ " MATCH ? AND vs.network = "
 				+ mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)
-				+ ";";
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK) + ";";
 		Cursor cursor = mDb.rawQuery(s, new String[] { query });
 		/*
 		 * Cursor cursor = mDb.query(STATIONS_VIRTUAL_TABLE, new String[] {
@@ -436,7 +424,8 @@ public class OpenBikeDBAdapter {
 						String.valueOf(id),
 						String.valueOf(mPreferences.getInt(
 								AbstractPreferencesActivity.NETWORK_PREFERENCE,
-								0)) }, null, null, null, null);
+								AbstractPreferencesActivity.NO_NETWORK)) },
+				null, null, null, null);
 		if ((cursor.getCount() == 0) || !cursor.moveToFirst()) {
 			throw new SQLException("No Station found with ID " + id);
 		}
@@ -465,23 +454,26 @@ public class OpenBikeDBAdapter {
 		Cursor cursor = mDb.rawQuery("SELECT COUNT(*) AS count FROM "
 				+ STATIONS_TABLE + " WHERE " + KEY_NETWORK + " = ?",
 				new String[] { String.valueOf(mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) });
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK)) });
 		cursor.moveToNext();
 		int count = cursor.getInt(0);
 		cursor.close();
 		return count;
 	}
 
-	// FIXME : to remove
+	//For debug purpose
+	/*
 	public Cursor getStations() throws SQLException {
 		Cursor cursor = mDb.rawQuery("SELECT " + BaseColumns._ID + ", "
 				+ KEY_LATITUDE + ", " + KEY_LONGITUDE + ", " + KEY_BIKES + ", "
 				+ KEY_NAME + ", " + KEY_SLOTS + " FROM " + STATIONS_TABLE
 				+ " WHERE " + KEY_NETWORK + " = ?", new String[] { String
 				.valueOf(mPreferences.getInt(
-						AbstractPreferencesActivity.NETWORK_PREFERENCE, 0)) });
+						AbstractPreferencesActivity.NETWORK_PREFERENCE,
+						AbstractPreferencesActivity.NO_NETWORK)) });
 		return cursor;
-	}
+	}*/
 
 	private static class OpenBikeDBOpenHelper extends SQLiteOpenHelper {
 		public OpenBikeDBOpenHelper(Context context, String name,

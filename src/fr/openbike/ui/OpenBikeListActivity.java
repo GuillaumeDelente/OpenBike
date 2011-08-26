@@ -64,7 +64,6 @@ import fr.openbike.model.MinimalStation;
 import fr.openbike.service.ILocationService;
 import fr.openbike.service.ILocationServiceListener;
 import fr.openbike.service.LocationService;
-import fr.openbike.service.SyncService;
 import fr.openbike.ui.OpenBikeArrayAdaptor.ViewHolder;
 import fr.openbike.utils.ActivityHelper;
 import fr.openbike.utils.DetachableResultReceiver;
@@ -147,7 +146,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			setIntent(intent);
 			mActivityHelper.clearActions();
 			mActivityHelper.onPostCreate(null); // Change menu based on current
-												// action
+			// action
 		}
 	}
 
@@ -185,6 +184,7 @@ public class OpenBikeListActivity extends ListActivity implements
 				executeCreateListAdaptorTask(null, null);
 			}
 		}
+		mActivityHelper.onResume();
 		super.onResume();
 	}
 
@@ -201,22 +201,12 @@ public class OpenBikeListActivity extends ListActivity implements
 		super.onPause();
 	}
 
-	private void startSync() {
-		if (mSharedPreferences.getInt(
-				AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) == 0)
-			return;
-		final Intent intent = new Intent(SyncService.ACTION_SYNC, null, this,
-				SyncService.class);
-		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER, mReceiver);
-		startService(intent);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		mActivityHelper.onCreateOptionsMenu(menu);
 		String action = getIntent().getAction();
-		if (action == null || !action.equals(Intent.ACTION_SEARCH))
-			getMenuInflater().inflate(R.menu.refresh_menu_items, menu);
+		if (!Intent.ACTION_SEARCH.equals(action))
+			getMenuInflater().inflate(R.menu.list_menu, menu);
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
@@ -224,6 +214,11 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		mActivityHelper.onPrepareOptionsMenu(menu);
+		if (ACTION_FAVORITE.equals(getIntent().getAction())) {
+			menu.setGroupVisible(R.id.menu_group_global, false);
+		} else {
+			menu.setGroupVisible(R.id.menu_group_global, true);
+		}
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
@@ -238,19 +233,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.action_refresh:
-			startSync();
-			return true;
-		case R.id.menu_search:
-			onSearchRequested();
-			return true;
-		case R.id.menu_settings:
-			startActivity(new Intent(this, FiltersPreferencesActivity.class));
-			return true;
-		case R.id.menu_map:
-			startActivity(new Intent(this, OpenBikeMapActivity.class)
-					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-			return true;
 		default:
 			return mActivityHelper.onOptionsItemSelected(item)
 					|| super.onOptionsItemSelected(item);
@@ -327,9 +309,6 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
-		final Context context = this;
-		final SharedPreferences.Editor editor = PreferenceManager
-				.getDefaultSharedPreferences(this).edit();
 		switch (id) {
 		case R.id.progress:
 			mPdialog.setCancelable(false);
@@ -359,7 +338,7 @@ public class OpenBikeListActivity extends ListActivity implements
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.welcome_message_title)).setMessage(
 					(getString(R.string.welcome_message))).setPositiveButton(
-					"Ok", new DialogInterface.OnClickListener() {
+					R.string.Ok, new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
 							dialog.cancel();
 						}
@@ -727,8 +706,7 @@ public class OpenBikeListActivity extends ListActivity implements
 						.setDistance((int) mLocation
 								.distanceTo(stationLocation));
 			}
-			// FIXME:
-			// Use mAdapter.sort
+			// TODO: Use mAdapter.sort
 			Utils.sortStationsByDistance(mAdapter.getList());
 			return null;
 		}
@@ -755,5 +733,17 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged
+	 * (int)
+	 */
+	@Override
+	public void onLocationProvidersChanged(int id) {
+		showDialog(id);
 	}
 }
