@@ -5,7 +5,7 @@
 	android:layout_height="wrap_content">
 	
 	<com.markupartist.android.widget.ActionBar 
-		xmlns:app="http://schemas.android.com/apk/res/fr.openbike"
+		xmlns:app="http://schemas.android.com/apk/res/fr.openbike.android"
     	android:id="@+id/actionbar"
     	app:title="@string/station_list"
     	style="@style/ActionBar" />

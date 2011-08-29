@@ -5,7 +5,7 @@
 	android:layout_height="fill_parent">
 	
 	<com.markupartist.android.widget.ActionBar 
-		xmlns:app="http://schemas.android.com/apk/res/fr.openbike"
+		xmlns:app="http://schemas.android.com/apk/res/fr.openbike.android"
     	android:id="@+id/actionbar"
     	app:title="@string/station_map"
     	style="@style/ActionBar" />
@@ -16,10 +16,10 @@
 		android:layout_height="fill_parent" 
 		android:enabled="true"
 		android:clickable="true" 
-		android:apiKey="0h_KAeN3vGJwQQXLeR9tOYIEmPoEOtlFMn0zJoA" />
+		android:apiKey="0h_KAeN3vGJydyk5VUtVXr8aAuOQKuHGNDtZYlA" />
 
 </LinearLayout>
 	<!--
 		debug : android:apiKey="0h_KAeN3vGJwQQXLeR9tOYIEmPoEOtlFMn0zJoA"
-		release : android:apiKey="0h_KAeN3vGJzmQh2O3WgTG5G90qPAbc6xwQ7KCQ"
+		release : android:apiKey="0h_KAeN3vGJydyk5VUtVXr8aAuOQKuHGNDtZYlA"
 	-->

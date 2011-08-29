@@ -7,7 +7,7 @@
                 android:key = "use_location"
                 android:title = "@string/use_location_title"
                 android:summary = "@string/use_location_summary"
-                android:defaultValue="false"
+                android:defaultValue="true"
                 />           
     </PreferenceCategory>
 </PreferenceScreen>

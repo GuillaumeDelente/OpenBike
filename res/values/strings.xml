@@ -31,6 +31,7 @@
 	<string name="search">Rechercher une station</string>
 	<string name="menu_search">search</string>
 	<string name="menu_back_title">Retour</string>
+	<string name="about">À propos</string>
 
 	<!-- Titles -->
 	<string name="configuration_title">OpenBike - Configuration</string>
@@ -48,7 +49,7 @@
 		n\'aurez accès à votre position que si vous modifiez
 		ce réglage. Afficher les paramètres de localisation ?</string>
 	<string name="should_enable_gps">Activer le GPS rendra votre position plus précise.
-		@string/show_location_parameters
+		Afficher les paramètres ?
 	</string>
 	<string name="show_location_parameters">Afficher les paramètres de localisation ?</string>
 	<string name="network_error">Erreur de connexion</string>

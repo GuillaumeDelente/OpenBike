@@ -8,7 +8,7 @@
     	android:id="@+id/actionbar"
     	style="@style/ActionBar" />
 
-	<fr.openbike.ui.widget.DashboardLayout
+	<fr.openbike.android.ui.widget.DashboardLayout
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent"
 		android:background="#F1F1F1">
@@ -26,5 +26,5 @@
 		<Button android:id="@+id/home_btn_settings" style="@style/DashboardButton"
 			android:text="@string/btn_settings" android:drawableTop="@drawable/home_button_prefs_selector" />
 
-	</fr.openbike.ui.widget.DashboardLayout>
+	</fr.openbike.android.ui.widget.DashboardLayout>
 </LinearLayout>

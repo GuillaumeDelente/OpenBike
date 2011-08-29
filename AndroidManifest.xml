@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="fr.openbike" android:versionCode="8" android:versionName="Beta 2.1">
+	package="fr.openbike.android" android:versionCode="9" android:versionName="2">
 	<supports-screens android:smallScreens="true"
 		android:normalScreens="true" android:largeScreens="true" />
 	<application android:icon="@drawable/icon" 
 		android:label="@string/app_name"
-		android:name=".OpenBike"
+		android:name="fr.openbike.android.OpenBike"
         android:theme="@style/Theme.OpenBike">
 		<uses-library android:name="com.google.android.maps" />
 		<service android:name=".service.LocationService" />
         <service android:name=".service.SyncService" />
+        
+        <meta-data android:name="android.app.default_searchable"
+                        android:value=".ui.OpenBikeListActivity" />
+        
 		<activity android:name=".ui.HomeActivity"
 			android:launchMode="singleTop" >
 			
@@ -48,6 +52,9 @@
 		-->
 		<activity android:name=".ui.SettingsPreferencesActivity"
 			android:label="@string/configuration_title" />
+		<activity android:name=".ui.AboutActivity" 
+			android:launchMode="singleTop"
+			/>
 		<activity android:name=".ui.StationDetails" 
 			android:launchMode="singleTop"
 			>
@@ -68,4 +75,5 @@
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest> 

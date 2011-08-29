@@ -2,8 +2,8 @@
 <resources>
     <color name="actionbar_separator">#FFFFFF</color>
     <color name="actionbar_title">#FFFFFF</color>
-    <color name="actionbar_background_start">#4f8cff</color>
-    <color name="actionbar_background_end">#286ae3</color>
+    <color name="actionbar_background_start">#6586cb</color>
+    <color name="actionbar_background_end">#5775b2</color>
     <color name="actionbar_background_item_pressed_start">#FF7F00</color>
     <color name="actionbar_background_item_pressed_end">#EE7600</color>
 </resources>
