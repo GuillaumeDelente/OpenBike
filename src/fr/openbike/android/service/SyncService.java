@@ -67,7 +67,7 @@ public class SyncService extends IntentService {
 
 	private static final String TAG = "OpenBike";
 
-	public static final String EXTRA_STATUS_RECEIVER = "fr.openbike.extra.STATUS_RECEIVER";
+	public static final String EXTRA_STATUS_RECEIVER = "fr.openbike.android.extra.STATUS_RECEIVER";
 	public static final String EXTRA_RESULT = "extra_result";
 	public static final String ACTION_SYNC = "action_sync";
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";

@@ -23,7 +23,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -36,6 +35,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,10 +47,10 @@ import fr.openbike.android.IActivityHelper;
 import fr.openbike.android.R;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 import fr.openbike.android.model.Network;
-import fr.openbike.android.service.ILocationService;
 import fr.openbike.android.service.ILocationServiceListener;
 import fr.openbike.android.service.LocationService;
 import fr.openbike.android.service.SyncService;
+import fr.openbike.android.service.LocationService.LocationBinder;
 import fr.openbike.android.utils.ActivityHelper;
 import fr.openbike.android.utils.DetachableResultReceiver;
 
@@ -67,9 +67,26 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 	private ProgressDialog mPdialog = null;
 	private ActivityHelper mActivityHelper = null;
 	protected DetachableResultReceiver mReceiver = null;
-	private boolean mIsBound = false;
-	private ILocationService mBoundService = null;
-	private ServiceConnection mConnection = null;
+	private boolean mBound = false;
+	private LocationService mService = null;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocationBinder binder = (LocationBinder) service;
+			mService = binder.getService();
+			mBound = true;
+			mService.addListener(HomeActivity.this);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -93,22 +110,14 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		setListeners();
-		mConnection = new ServiceConnection() {
-			public void onServiceConnected(ComponentName className,
-					IBinder service) {
-				mBoundService = ((LocationService.LocationServiceBinder) service)
-						.getService();
-				mBoundService.addListener(HomeActivity.this);
-			}
-
-			public void onServiceDisconnected(ComponentName className) {
-				mBoundService = null;
-			}
-		};
-		PreferenceManager.setDefaultValues(this, R.xml.filter_preferences, false);
+		PreferenceManager.setDefaultValues(this, R.xml.filter_preferences,
+				false);
 		PreferenceManager.setDefaultValues(this, R.xml.map_preferences, false);
-		PreferenceManager.setDefaultValues(this, R.xml.other_preferences, false);
-		PreferenceManager.setDefaultValues(this, R.xml.location_preferences, false);
+		PreferenceManager
+				.setDefaultValues(this, R.xml.other_preferences, false);
+		PreferenceManager.setDefaultValues(this, R.xml.location_preferences,
+				false);
+		startService(new Intent(this, LocationService.class));
 	}
 
 	@Override
@@ -126,25 +135,30 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 			showChooseNetwork();
 			return;
 		}
-		/*
-		 * if (mSharedPreferences.getInt(
-		 * AbstractPreferencesActivity.NETWORK_PREFERENCE, 0) ==
-		 * AbstractPreferencesActivity.NO_NETWORK && (mNetworkDialog == null ||
-		 * !mNetworkDialog.isShowing())) { showChooseNetwork(); }
-		 */
-		if (mSharedPreferences.getBoolean(
-				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
-			doBindService();
-		}
 		if (mNetworkDialog == null || !mNetworkDialog.isShowing()) {
 			mActivityHelper.onResume();
 		}
 	}
 
 	@Override
+	protected void onStart() {
+		if (mSharedPreferences.getBoolean(
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
+			Intent intent = new Intent(this, LocationService.class);
+			bindService(intent, mConnection, 0);
+		}
+		super.onStart();
+	}
+
+	@Override
 	protected void onStop() {
-		if (mIsBound)
-			doUnbindService();
+		Log.d("OpenBike", "onStop home");
+		if (mBound) {
+			Log.d("OpenBike", "unbind home");
+			mService.removeListener(HomeActivity.this);
+			unbindService(mConnection);
+			mBound = false;
+		}
 		super.onStop();
 	}
 
@@ -317,9 +331,10 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 															: 0);
 									editor.commit();
 									/*
-									ErrorReporter.getInstance().putCustomData(
-											"Network",
-											String.valueOf(network.getId()));*/
+									 * ErrorReporter.getInstance().putCustomData(
+									 * "Network",
+									 * String.valueOf(network.getId()));
+									 */
 								}
 							}).setNegativeButton(getString(R.string.cancel),
 							new DialogInterface.OnClickListener() {
@@ -437,39 +452,11 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		return mActivityHelper;
 	}
 
-	void doBindService() {
-		bindService(new Intent(this, LocationService.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-
-	void doUnbindService() {
-		if (mIsBound) {
-			// Detach our existing connection.
-			unbindService(mConnection);
-			mIsBound = false;
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * fr.openbike.service.ILocationServiceListener#onLocationChanged(android
-	 * .location.Location, boolean)
-	 */
 	@Override
 	public void onLocationChanged(Location l, boolean alert) {
 		// Nothing
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged
-	 * (int)
-	 */
 	@Override
 	public void onLocationProvidersChanged(int id) {
 		showDialog(id);
@@ -477,7 +464,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 
 	@Override
 	public void onStationsUpdated() {
-		//String a = null;
-		//a.length();
+		// String a = null;
+		// a.length();
 	}
 }

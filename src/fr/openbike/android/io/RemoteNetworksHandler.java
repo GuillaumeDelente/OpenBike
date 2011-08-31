@@ -39,11 +39,6 @@ public class RemoteNetworksHandler extends JSONHandler {
 			throws JSONException, IOException {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see fr.openbike.io.JSONHandler#parseForResult(org.json.JSONArray)
-	 */
 	@Override
 	public Object parseForResult(JSONArray jsonArray) throws JSONException,
 			IOException {
@@ -61,9 +56,6 @@ public class RemoteNetworksHandler extends JSONHandler {
 		return networks;
 	}
 
-	/* (non-Javadoc)
-	 * @see fr.openbike.io.JSONHandler#parse(org.json.JSONObject, fr.openbike.database.OpenBikeDBAdapter)
-	 */
 	@Override
 	public void parse(JSONObject json, OpenBikeDBAdapter dbAdapter)
 			throws JSONException, IOException {

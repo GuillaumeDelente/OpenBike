@@ -24,7 +24,6 @@ import java.util.List;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -51,9 +50,9 @@ import com.google.android.maps.Overlay;
 import fr.openbike.android.IActivityHelper;
 import fr.openbike.android.R;
 import fr.openbike.android.database.OpenBikeDBAdapter;
-import fr.openbike.android.service.ILocationService;
 import fr.openbike.android.service.ILocationServiceListener;
 import fr.openbike.android.service.LocationService;
+import fr.openbike.android.service.LocationService.LocationBinder;
 import fr.openbike.android.ui.StationsOverlay.StationOverlay;
 import fr.openbike.android.ui.widget.SeekBarPreference;
 import fr.openbike.android.utils.ActivityHelper;
@@ -75,15 +74,32 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private ActivityHelper mActivityHelper = null;
 	protected DetachableResultReceiver mReceiver = null;
 	private boolean mNeedZoom = true;
-
 	private SharedPreferences mSharedPreferences = null;
 	private MapView mMapView = null;
 	private UpdateOverlays mUpdateOverlays = null;
 	private PopulateOverlays mPopulateOverlays = null;
 	private int mShowingBalloon = -1;
-	private ServiceConnection mConnection = null;
-	private ILocationService mBoundService = null;
-	private boolean mIsBound = false;
+	private boolean mForceTask = false;
+	private LocationService mService = null;
+	private boolean mBound = false;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocationBinder binder = (LocationBinder) service;
+			mService = binder.getService();
+			mBound = true;
+			mService.addListener(OpenBikeMapActivity.this);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -118,39 +134,27 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		if (savedInstanceState != null)
 			mNeedZoom = false;
-		mConnection = new ServiceConnection() {
-			public void onServiceConnected(ComponentName className,
-					IBinder service) {
-				mBoundService = ((LocationService.LocationServiceBinder) service)
-						.getService();
-				mBoundService.addListener(OpenBikeMapActivity.this);
-			}
-
-			public void onServiceDisconnected(ComponentName className) {
-				mBoundService = null;
-			}
-		};
+		startService(new Intent(this, LocationService.class));
 	}
 
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
+		if (ACTION_DETAIL.equals(getIntent().getAction())
+				&& !ACTION_DETAIL.equals(intent.getAction())) {
+			mForceTask = true;
+		}
 		setIntent(intent);
 	}
 
-	void doBindService() {
-		bindService(new Intent(this, LocationService.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-
-	void doUnbindService() {
-		if (mIsBound) {
-			// Detach our existing connection.
-			mBoundService.removeListener(this);
-			unbindService(mConnection);
-			mIsBound = false;
+	@Override
+	protected void onStart() {
+		if (mSharedPreferences.getBoolean(
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
+			Intent intent = new Intent(this, LocationService.class);
+			bindService(intent, mConnection, 0);
 		}
+		super.onStart();
 	}
 
 	@Override
@@ -161,17 +165,14 @@ public class OpenBikeMapActivity extends MapActivity implements
 		Intent intent = getIntent();
 		mStationsOverlay.setCurrentLocation(null);
 		mMyLocationOverlay.setCurrentLocation(null);
-		boolean useLocation = mSharedPreferences.getBoolean(
-				AbstractPreferencesActivity.LOCATION_PREFERENCE, true);
-		if (useLocation) {
-			doBindService();
-		}
-		String action = intent.getAction();
-		if (ACTION_DETAIL.equals(action)) {
+		if (ACTION_DETAIL.equals(intent.getAction())) {
 			setStation(intent.getData());
 		} else {
-			if (!useLocation) {
+			if (!mSharedPreferences.getBoolean(
+					AbstractPreferencesActivity.LOCATION_PREFERENCE, true)
+					|| mForceTask) {
 				executePopulateOverlays();
+				mForceTask = false;
 			}
 			if (mNeedZoom) {
 				zoomAndCenter(new GeoPoint(mSharedPreferences.getInt(
@@ -198,8 +199,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	protected void onStop() {
-		if (mIsBound) {
-			doUnbindService();
+		if (mBound) {
+			mService.removeListener(OpenBikeMapActivity.this);
+			mBound = false;
+			unbindService(mConnection);
 		}
 		super.onStop();
 	}
@@ -282,7 +285,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 		mStationsOverlay.setCurrentLocation(location);
 		boolean isDistanceFiltering = mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
-		if (firstFix || isDistanceFiltering) {
+		if ((firstFix || isDistanceFiltering)
+				&& !ACTION_DETAIL.equals(getIntent().getAction())) {
 			executePopulateOverlays();
 		} else {
 			if (mStationsOverlay.isBalloonShowing()) {
@@ -324,8 +328,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		int longitude = station.getInt(station
 				.getColumnIndex(OpenBikeDBAdapter.KEY_LONGITUDE));
 		mStationsOverlay.setItems(mStationsOverlay.getOverlaysFromCursor(
-				station, mIsBound ? mBoundService.getCurrentLocation() : null,
-				0));
+				station, mBound ? mService.getMyLocation() : null, 0));
 		zoomAndCenter(new GeoPoint(latitude, longitude));
 		mMapView.invalidate();
 	}
@@ -422,24 +425,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 				cursor.close();
 				return CANCELLED;
 			}
-			// FIXME
-			if (mIsBound && mBoundService == null) {
-				Log.e("OpenBike", "mBoundService is null !");
-			} else {
-				mOverlays = mStationsOverlay
-						.getOverlaysFromCursor(
-								cursor,
-								mIsBound ? mBoundService.getCurrentLocation()
-										: null,
-								mSharedPreferences
-										.getBoolean(
-												AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
-												false) ? mSharedPreferences
-										.getInt(
-												AbstractPreferencesActivity.DISTANCE_FILTER,
-												SeekBarPreference.DEFAULT_DISTANCE)
-										: 0);
-			}
+			mOverlays = mStationsOverlay.getOverlaysFromCursor(cursor,
+					mBound ? mService.getMyLocation() : null,
+					mSharedPreferences.getBoolean(
+							AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
+							false) ? mSharedPreferences.getInt(
+							AbstractPreferencesActivity.DISTANCE_FILTER,
+							SeekBarPreference.DEFAULT_DISTANCE) : 0);
 			cursor.close();
 			return OK;
 		}
@@ -540,23 +532,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see fr.openbike.IActivityHelper#getActivityHelper()
-	 */
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged
-	 * (int)
-	 */
 	@Override
 	public void onLocationProvidersChanged(int id) {
 		showDialog(id);

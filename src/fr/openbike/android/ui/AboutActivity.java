@@ -47,9 +47,6 @@ public class AboutActivity extends Activity implements IActivityHelper {
 		super.onResume();
 	}
 
-	/* (non-Javadoc)
-	 * @see fr.openbike.IActivityHelper#getActivityHelper()
-	 */
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;

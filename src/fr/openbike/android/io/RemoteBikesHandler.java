@@ -60,11 +60,6 @@ public class RemoteBikesHandler extends JSONHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see fr.openbike.io.JSONHandler#parseForResult(org.json.JSONArray)
-	 */
 	@Override
 	public Object parseForResult(JSONArray json) throws JSONException,
 			IOException {

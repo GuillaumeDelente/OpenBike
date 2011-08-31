@@ -28,13 +28,13 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import fr.openbike.android.R;
 
-public class LocationService extends Service implements ILocationService,
-		LocationListener {
+public class LocationService extends Service implements LocationListener {
 
-	private LocationServiceBinder binder;
 	private List<ILocationServiceListener> listeners = null;
 	public static final int DISTANCE_UNAVAILABLE = -1;
 	public static final int MINIMUM_DISTANCE_NETWORK = 50;
@@ -49,23 +49,62 @@ public class LocationService extends Service implements ILocationService,
 	private boolean mIsInPause = true;
 	private LocationManager mLocationManager = null;
 	private Location mLastFix = null;
+	private final IBinder mBinder = new LocationBinder();
+	private Runnable mStopServiceRunnable = null;
+	private Handler mDelayedHandler = null;
+
+	/**
+	 * Class used for the client Binder. Because we know this service always
+	 * runs in the same process as its clients, we don't need to deal with IPC.
+	 */
+	public class LocationBinder extends Binder {
+		public LocationService getService() {
+			// Return this instance of LocalService so clients can call public
+			// methods
+			return LocationService.this;
+		}
+	}
+
+	@Override
+	public void onStart(Intent intent, int startId) {
+		Log.d("OpenBike", "starting location service via intent");
+		super.onStart(intent, startId);
+	}
 
 	@Override
 	public void onCreate() {
-		binder = new LocationServiceBinder(this);
+		Log.d("OpenBike", "LocationService onCreate");
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		enableMyLocation();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				enableMyLocation();
+			}
+		}).run();
 		listeners = new ArrayList<ILocationServiceListener>();
+		mStopServiceRunnable = new Runnable() {
+
+			@Override
+			public void run() {
+				Log.d("OpenBike", "handler running");
+				stopSelf();
+			}
+		};
+		mDelayedHandler = new Handler();
 	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return binder;
+		return mBinder;
 	}
 
 	// Ajout d'un listener
 	public void addListener(ILocationServiceListener listener) {
+		Log.d("OpenBike", "adding Listener");
+		listeners.add(listener);
 		listener.onLocationChanged(mLastFix, true);
+		mDelayedHandler.removeCallbacks(mStopServiceRunnable);
 		if (!mIsGpsAvailable && !mIsNetworkAvailable && mAskForLocation) {
 			listener.onLocationProvidersChanged(R.id.no_location_provider);
 			mAskForLocation = false;
@@ -78,10 +117,16 @@ public class LocationService extends Service implements ILocationService,
 	// Suppression d'un listener
 	public void removeListener(ILocationServiceListener listener) {
 		listeners.remove(listener);
+		Log.d("OpenBike", "removeListener");
+		if (listeners.isEmpty()) {
+			Log.d("OpenBike", "isEmpty");
+			mDelayedHandler.postDelayed(mStopServiceRunnable, 2000);
+		}
 	}
 
 	// Notification des listeners
 	private void fireLocationChanged(Location l) {
+		Log.d("OpenBike", "fire location changed");
 		for (ILocationServiceListener listener : listeners) {
 			listener.onLocationChanged(l, false);
 		}
@@ -167,16 +212,16 @@ public class LocationService extends Service implements ILocationService,
 						: MINIMUM_DISTANCE_NETWORK))
 			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-			// Log.i("OpenBike", "GPS Fix");
+			Log.i("OpenBike", "GPS Fix" + location);
 			mLastFix = location;
 			fireLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER)
 				&& !mIsGpsUsed) {
-			// Log.i("OpenBike", "Network Fix");
+			Log.i("OpenBike", "Network Fix " + location);
 			if (mLastFix == null || !mIsGpsUsed) {
-				// Log.i("OpenBike", "is first or the only one");
+				Log.d("OpenBike", "is first or the only one " + location);
 				mLastFix = location;
 				fireLocationChanged(location);
 			}
@@ -219,24 +264,5 @@ public class LocationService extends Service implements ILocationService,
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-	}
-
-	public class LocationServiceBinder extends Binder {
-
-		private ILocationService service = null;
-
-		public LocationServiceBinder(ILocationService service) {
-			super();
-			this.service = service;
-		}
-
-		public ILocationService getService() {
-			return service;
-		}
-	}
-
-	@Override
-	public Location getCurrentLocation() {
-		return mLastFix;
 	}
 }

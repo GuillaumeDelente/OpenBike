@@ -19,7 +19,6 @@ package fr.openbike.android.ui;
 
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -32,11 +31,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import fr.openbike.android.IActivityHelper;
 import fr.openbike.android.R;
-import fr.openbike.android.service.ILocationService;
 import fr.openbike.android.service.ILocationServiceListener;
 import fr.openbike.android.service.LocationService;
+import fr.openbike.android.service.LocationService.LocationBinder;
 import fr.openbike.android.utils.ActivityHelper;
 import fr.openbike.android.utils.DetachableResultReceiver;
 
@@ -44,18 +44,6 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 		implements OnSharedPreferenceChangeListener, OnClickListener,
 		ILocationServiceListener, DetachableResultReceiver.Receiver,
 		IActivityHelper {
-
-	// protected BikeFilter mActualFilter;
-	// protected BikeFilter mModifiedFilter;
-	protected Preference mNetworkPreference;
-	protected Preference mReportBugPreference;
-	protected Dialog mConfirmDialog;
-	private ServiceConnection mConnection = null;
-	private ILocationService mBoundService = null;
-	private boolean mIsBound = false;
-	private Location mLastLocation = null;
-	protected ActivityHelper mActivityHelper = null;
-	protected DetachableResultReceiver mReceiver = null;
 
 	public static final String NETWORK_PREFERENCE = "network";
 	public static final String REPORT_BUG_PREFERENCE = "report_bug";
@@ -77,24 +65,42 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 
 	public static final int NO_NETWORK = 0;
 
+	protected Preference mNetworkPreference;
+	protected Preference mReportBugPreference;
+	protected Dialog mConfirmDialog;
+	private Location mLastLocation = null;
+	protected ActivityHelper mActivityHelper = null;
+	protected DetachableResultReceiver mReceiver = null;
+	private SharedPreferences mSharedPreferences = null;
+	private boolean mBound = false;
+	private LocationService mService = null;
+	
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocationBinder binder = (LocationBinder) service;
+			mService = binder.getService();
+			mBound = true;
+			mService.addListener(AbstractPreferencesActivity.this);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.preference_screen);
-		mConnection = new ServiceConnection() {
-			public void onServiceConnected(ComponentName className,
-					IBinder service) {
-				mBoundService = ((LocationService.LocationServiceBinder) service)
-						.getService();
-				mBoundService.addListener(AbstractPreferencesActivity.this);
-			}
-
-			public void onServiceDisconnected(ComponentName className) {
-				mBoundService = null;
-			}
-		};
 		mReceiver = DetachableResultReceiver.getInstance(new Handler());
 		mActivityHelper = new ActivityHelper(this);
+		mSharedPreferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
 	}
 
 	@Override
@@ -107,12 +113,16 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	protected void onResume() {
 		super.onResume();
 		mReceiver.setReceiver(this);
-		SharedPreferences preferences = getPreferenceScreen()
-				.getSharedPreferences();
-		if (preferences.getBoolean(
+	}
+
+	@Override
+	protected void onStart() {
+		if (mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
-			doBindService();
+			Intent intent = new Intent(this, LocationService.class);
+			bindService(intent, mConnection, 0);
 		}
+		super.onStart();
 	}
 
 	@Override
@@ -123,7 +133,11 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 
 	@Override
 	protected void onStop() {
-		doUnbindService();
+		if (mBound) {
+			unbindService(mConnection);
+			mService.removeListener(AbstractPreferencesActivity.this);
+			mBound = false;
+		}
 		super.onStop();
 	}
 
@@ -157,25 +171,13 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 			// Log.i("OpenBike", "Location changed");
 			if (sharedPreferences.getBoolean(
 					AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
-				doBindService();
+				Intent intent = new Intent(this, LocationService.class);
+				bindService(intent, mConnection, 0);
 			} else {
-				doUnbindService();
+				mService.removeListener(AbstractPreferencesActivity.this);
+				mBound = false;
+				unbindService(mConnection);
 			}
-		}
-	}
-
-	void doBindService() {
-		bindService(new Intent(this, LocationService.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-
-	void doUnbindService() {
-		if (mIsBound) {
-			// Detach our existing connection.
-			mBoundService.removeListener(this);
-			unbindService(mConnection);
-			mIsBound = false;
 		}
 	}
 
@@ -199,18 +201,15 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
 	}
-	
-	/* (non-Javadoc)
-	 * @see fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged(int)
-	 */
+
 	@Override
 	public void onLocationProvidersChanged(int id) {
 		showDialog(id);
 	}
-	
-	@Override 
+
+	@Override
 	public void onStationsUpdated() {
-		//NOthing to do
+		// NOthing to do
 	}
 
 }

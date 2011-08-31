@@ -21,7 +21,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -48,9 +47,9 @@ import fr.openbike.android.IActivityHelper;
 import fr.openbike.android.R;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 import fr.openbike.android.database.StationsProvider;
-import fr.openbike.android.service.ILocationService;
 import fr.openbike.android.service.ILocationServiceListener;
 import fr.openbike.android.service.LocationService;
+import fr.openbike.android.service.LocationService.LocationBinder;
 import fr.openbike.android.utils.ActivityHelper;
 import fr.openbike.android.utils.Utils;
 
@@ -77,14 +76,32 @@ public class StationDetails extends Activity implements
 	private Button mNavigate = null;
 	private Button mGoogleMaps = null;
 	private Button mShowMap = null;
-	private ServiceConnection mConnection = null;
-	private ILocationService mBoundService = null;
 	private SharedPreferences mSharedPreferences = null;
-	private boolean mIsBound = false;
 	private Uri mUri = null;
 	private int mLatitude;
 	private int mLongitude;
 	private ActivityHelper mActivityHelper = null;
+	boolean mBound = false;
+
+	private LocationService mService = null;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get
+			// LocalService instance
+			LocationBinder binder = (LocationBinder) service;
+			mService = binder.getService();
+			mBound = true;
+			mService.addListener(StationDetails.this);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -123,33 +140,6 @@ public class StationDetails extends Activity implements
 						.getColumnIndex(BaseColumns._ID)));
 			}
 		});
-		mConnection = new ServiceConnection() {
-			public void onServiceConnected(ComponentName className,
-					IBinder service) {
-				mBoundService = ((LocationService.LocationServiceBinder) service)
-						.getService();
-				mBoundService.addListener(StationDetails.this);
-			}
-
-			public void onServiceDisconnected(ComponentName className) {
-				mBoundService = null;
-			}
-		};
-		handleIntent();
-	}
-
-	void doBindService() {
-		bindService(new Intent(this, LocationService.class), mConnection,
-				Context.BIND_AUTO_CREATE);
-		mIsBound = true;
-	}
-
-	void doUnbindService() {
-		if (mIsBound) {
-			// Detach our existing connection.
-			unbindService(mConnection);
-			mIsBound = false;
-		}
 	}
 
 	private void showOnMap(Uri uri) {
@@ -276,18 +266,28 @@ public class StationDetails extends Activity implements
 
 	@Override
 	protected void onStop() {
-		if (mIsBound)
-			doUnbindService();
+		if (mBound) {
+			mService.removeListener(StationDetails.this);
+			unbindService(mConnection);
+			mBound = false;
+		}
+		super.onStop();
+	}
+
+	@Override
+	protected void onStart() {
+		if (mSharedPreferences.getBoolean(
+				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
+			Intent intent = new Intent(this, LocationService.class);
+			bindService(intent, mConnection, 0);
+		}
 		super.onStop();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (mSharedPreferences.getBoolean(
-				AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
-			doBindService();
-		}
+		handleIntent();
 		mStation = managedQuery(mUri, null, null, null, null);
 		if (mStation == null) {
 			finish();
@@ -369,16 +369,8 @@ public class StationDetails extends Activity implements
 
 	private void handleIntent() {
 		mUri = getIntent().getData();
-
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * fr.openbike.ILocationServiceListener#onLocationChanged(android.location
-	 * .Location, boolean)
-	 */
 	@Override
 	public void onLocationChanged(Location location, boolean alert) {
 		int distance = Utils.computeDistance(mLatitude, mLongitude, location);
@@ -391,11 +383,6 @@ public class StationDetails extends Activity implements
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see fr.openbike.IActivityHelper#getActivityHelper()
-	 */
 	@Override
 	public ActivityHelper getActivityHelper() {
 		return mActivityHelper;
@@ -407,10 +394,7 @@ public class StationDetails extends Activity implements
 		super.onCreateOptionsMenu(menu);
 		return true;
 	}
-	
-	/* (non-Javadoc)
-	 * @see fr.openbike.service.ILocationServiceListener#onLocationProvidersChanged(int)
-	 */
+
 	@Override
 	public void onLocationProvidersChanged(int id) {
 		showDialog(id);

@@ -69,7 +69,7 @@
 			android:value=".ui.OpenBikeListActivity" />
 
 		<provider android:name=".database.StationsProvider"
-			android:authorities="fr.openbike.StationsProvider" />
+			android:authorities="fr.openbike.android.StationsProvider" />
 	</application>
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

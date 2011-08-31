@@ -31,7 +31,7 @@ import android.provider.BaseColumns;
  */
 public class StationsProvider extends ContentProvider {
 
-	public static String AUTHORITY = "fr.openbike.StationsProvider";
+	public static String AUTHORITY = "fr.openbike.android.StationsProvider";
 	public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
 			+ "/station");
 
