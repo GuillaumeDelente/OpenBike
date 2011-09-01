@@ -40,7 +40,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -173,21 +172,13 @@ public class OpenBikeListActivity extends ListActivity implements
 					.setText(R.string.no_favorites);
 			mActivityHelper
 					.setActionBarTitle(getString(R.string.favorite_stations));
-			if (useLocation) {
-				// Create the list when receiving location
-				// doBindService();
-			} else {
+			if (!useLocation) {
 				executeCreateListAdaptorTask(null, null);
 			}
 		} else {
 			((TextView) findViewById(R.id.empty)).setText(R.string.no_stations);
 			mActivityHelper.setActionBarTitle(getString(R.string.station_list));
-			if (useLocation) {
-				// Create the list when receiving location
-				// doBindService();
-				Log.d("OpenBike", "wait for first fix");
-			} else {
-				Log.d("OpenBike", "not using location !");
+			if (!useLocation) {
 				executeCreateListAdaptorTask(null, null);
 			}
 		}
@@ -384,14 +375,12 @@ public class OpenBikeListActivity extends ListActivity implements
 	public void onLocationChanged(Location location, boolean firstFix) {
 		boolean distanceFiltering = mSharedPreferences.getBoolean(
 				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false);
-		Log.d("OpenBike", "Location changed " + location);
 		if (distanceFiltering || firstFix) {
 			String query = null;
 			Intent intent = getIntent();
 			if (Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
 				query = intent.getStringExtra(SearchManager.QUERY);
 			}
-			Log.d("OpenBike", "executeCreateListAdaptorTask " + location);
 			executeCreateListAdaptorTask(location, query);
 		} else {
 			executeUpdateDistanceTask(location);

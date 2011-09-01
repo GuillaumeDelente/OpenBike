@@ -67,13 +67,11 @@ public class LocationService extends Service implements LocationListener {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Log.d("OpenBike", "starting location service via intent");
 		super.onStart(intent, startId);
 	}
 
 	@Override
 	public void onCreate() {
-		Log.d("OpenBike", "LocationService onCreate");
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		new Thread(new Runnable() {
 			
@@ -87,7 +85,6 @@ public class LocationService extends Service implements LocationListener {
 
 			@Override
 			public void run() {
-				Log.d("OpenBike", "handler running");
 				stopSelf();
 			}
 		};
@@ -101,7 +98,6 @@ public class LocationService extends Service implements LocationListener {
 
 	// Ajout d'un listener
 	public void addListener(ILocationServiceListener listener) {
-		Log.d("OpenBike", "adding Listener");
 		listeners.add(listener);
 		listener.onLocationChanged(mLastFix, true);
 		mDelayedHandler.removeCallbacks(mStopServiceRunnable);
@@ -117,16 +113,13 @@ public class LocationService extends Service implements LocationListener {
 	// Suppression d'un listener
 	public void removeListener(ILocationServiceListener listener) {
 		listeners.remove(listener);
-		Log.d("OpenBike", "removeListener");
 		if (listeners.isEmpty()) {
-			Log.d("OpenBike", "isEmpty");
 			mDelayedHandler.postDelayed(mStopServiceRunnable, 2000);
 		}
 	}
 
 	// Notification des listeners
 	private void fireLocationChanged(Location l) {
-		Log.d("OpenBike", "fire location changed");
 		for (ILocationServiceListener listener : listeners) {
 			listener.onLocationChanged(l, false);
 		}
@@ -221,7 +214,6 @@ public class LocationService extends Service implements LocationListener {
 				&& !mIsGpsUsed) {
 			Log.i("OpenBike", "Network Fix " + location);
 			if (mLastFix == null || !mIsGpsUsed) {
-				Log.d("OpenBike", "is first or the only one " + location);
 				mLastFix = location;
 				fireLocationChanged(location);
 			}

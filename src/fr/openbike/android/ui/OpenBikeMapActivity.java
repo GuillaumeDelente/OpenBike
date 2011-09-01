@@ -316,6 +316,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 						false);
 		if (needUpdate) {
 			executePopulateOverlays();
+		} else if (ACTION_DETAIL.equals(getIntent().getAction())) {
+			setStation(getIntent().getData());
 		} else {
 			executeUpdateOverlays();
 		}

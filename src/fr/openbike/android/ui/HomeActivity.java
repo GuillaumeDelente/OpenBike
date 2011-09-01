@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -152,9 +151,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 
 	@Override
 	protected void onStop() {
-		Log.d("OpenBike", "onStop home");
 		if (mBound) {
-			Log.d("OpenBike", "unbind home");
 			mService.removeListener(HomeActivity.this);
 			unbindService(mConnection);
 			mBound = false;
