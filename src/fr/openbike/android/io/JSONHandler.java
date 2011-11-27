@@ -18,12 +18,12 @@ package fr.openbike.android.io;
 
 import java.io.IOException;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
 import android.content.ContentProvider;
+import android.util.Log;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 
 /**
@@ -35,18 +35,6 @@ import fr.openbike.android.database.OpenBikeDBAdapter;
  * This class is only designed to handle simple one-way synchronization.
  */
 public abstract class JSONHandler {
-
-	public void parseAndSave(JSONArray json, OpenBikeDBAdapter dbAdapter) throws HandlerException {
-		try {
-			parse(json, dbAdapter);
-		} catch (HandlerException e) {
-			throw e;
-		} catch (JSONException e) {
-			throw new HandlerException("Problem parsing JSON response", e);
-		} catch (IOException e) {
-			throw new HandlerException("Problem reading response", e);
-		}
-	}
 	
 	public void parseAndSave(JSONObject json, OpenBikeDBAdapter dbAdapter) throws HandlerException {
 		try {
@@ -65,26 +53,9 @@ public abstract class JSONHandler {
 	 * {@link ContentProviderOperation} that will bring the
 	 * {@link ContentProvider} into sync with the parsed data.
 	 */
-	public abstract void parse(JSONArray json, OpenBikeDBAdapter dbAdapter)
-    throws JSONException, IOException;
-	
-	
-
-	/**
-	 * Parse the given {@link XmlPullParser}, returning a set of
-	 * {@link ContentProviderOperation} that will bring the
-	 * {@link ContentProvider} into sync with the parsed data.
-	 */
-	public abstract void parse(JSONObject json, OpenBikeDBAdapter dbAdapter)
+	public abstract Object parse(JSONObject json, OpenBikeDBAdapter dbAdapter)
     throws JSONException, IOException;
 
-	/**
-	 * Parse the given {@link XmlPullParser}, returning a set of
-	 * {@link ContentProviderOperation} that will bring the
-	 * {@link ContentProvider} into sync with the parsed data.
-	 */
-	public abstract Object parseForResult(JSONArray json)
-    throws JSONException, IOException;
 	
 	/**
 	 * General {@link IOException} that indicates a problem occured while

@@ -89,6 +89,13 @@ public class DetachableResultReceiver extends ResultReceiver {
 						.setRefreshActionButtonCompatState(false);
 				mReceiver.onStationsUpdated();
 			}
+		}  else if (resultCode == SyncService.STATUS_UPDATE_STATIONS_FINISHED) {
+			mIsSync = false;
+			if (mReceiver != null) {
+				((IActivityHelper) mReceiver).getActivityHelper()
+						.setRefreshActionButtonCompatState(false);
+				mReceiver.onStationsUpdated();
+			}
 		} else if (resultCode == SyncService.STATUS_ERROR) {
 			mIsSync = false;
 			if (mReceiver != null) {

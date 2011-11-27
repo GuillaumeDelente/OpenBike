@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -63,7 +64,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 	private NetworkAdapter mNetworkAdapter;
 	private SharedPreferences mSharedPreferences;
 	private LayoutInflater mLayoutInflater;
-	private ProgressDialog mPdialog = null;
 	private ActivityHelper mActivityHelper = null;
 	protected DetachableResultReceiver mReceiver = null;
 	private boolean mBound = false;
@@ -97,9 +97,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		mActivityHelper.setupActionBar(null);
 		mLayoutInflater = LayoutInflater.from(this);
 		mNetworkAdapter = new NetworkAdapter(this);
-		mPdialog = new ProgressDialog(this);
-		mPdialog.setTitle(R.string.loading);
-		mPdialog.setMessage(getString(R.string.loading));
 		if (savedInstanceState != null) {
 			ArrayList<Network> networks = (ArrayList<Network>) savedInstanceState
 					.getSerializable(EXTRA_NETWORKS);
@@ -241,9 +238,6 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 	protected Dialog onCreateDialog(int id) {
 		final SharedPreferences.Editor editor = mSharedPreferences.edit();
 		switch (id) {
-		case R.id.progress:
-			mPdialog.setCancelable(false);
-			return mPdialog;
 		case R.id.choose_network:
 			final SharedPreferences preferences = PreferenceManager
 					.getDefaultSharedPreferences(this);
@@ -280,8 +274,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 												.insertNetwork(network);
 										editor.commit();
 										setCurrentNetwork(editor, network);
-										showProgressDialog();
-										getActivityHelper().startSync();
+										getActivityHelper().startUpdate();
 									} catch (SQLiteException e) {
 										dismissDialog(R.id.choose_network);
 										showDialog(R.id.database_error);
@@ -293,8 +286,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 									editor
 											.putString(
 													AbstractPreferencesActivity.UPDATE_SERVER_URL,
-													network.getServerUrl()
-															+ network.getId());
+													network.getServerUrl());
 									editor
 											.putInt(
 													AbstractPreferencesActivity.NETWORK_LATITUDE,
@@ -355,17 +347,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		}
 		return super.onCreateDialog(id);
 	}
-
-	public void showProgressDialog() {
-		if (!mPdialog.isShowing())
-			showDialog(R.id.progress);
-	}
-
-	public void dismissProgressDialog() {
-		if (mPdialog.isShowing())
-			dismissDialog(R.id.progress);
-	}
-
+	
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -423,6 +405,11 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 									.getCheckedItemPosition() != -1);
 			break;
 		default:
+			if (mNetworkDialog != null
+					&& mNetworkDialog.isShowing()
+					&& (id == R.id.json_error || id == R.id.database_error || id == R.id.network_error)) {
+				mNetworkDialog.dismiss();
+			}
 			getActivityHelper().onPrepareDialog(id, dialog);
 		}
 		super.onPrepareDialog(id, dialog);
@@ -436,8 +423,8 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 			ArrayList<Network> networks = resultData
 					.getParcelableArrayList(SyncService.EXTRA_RESULT);
 			displayNetworks(networks);
-		} else if (resultCode == SyncService.STATUS_SYNC_STATIONS_FINISHED) {
-			dismissProgressDialog();
+		} else {
+			getActivityHelper().onReceiveResult(resultCode, resultData);
 		}
 	}
 

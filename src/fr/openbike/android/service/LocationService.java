@@ -205,14 +205,14 @@ public class LocationService extends Service implements LocationListener {
 						: MINIMUM_DISTANCE_NETWORK))
 			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-			Log.i("OpenBike", "GPS Fix" + location);
+			//Log.i("OpenBike", "GPS Fix" + location);
 			mLastFix = location;
 			fireLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER)
 				&& !mIsGpsUsed) {
-			Log.i("OpenBike", "Network Fix " + location);
+			//Log.i("OpenBike", "Network Fix " + location);
 			if (mLastFix == null || !mIsGpsUsed) {
 				mLastFix = location;
 				fireLocationChanged(location);

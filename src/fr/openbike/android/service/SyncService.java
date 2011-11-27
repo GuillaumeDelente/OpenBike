@@ -52,9 +52,12 @@ import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.text.format.DateUtils;
-import fr.openbike.android.io.RemoteBikesHandler;
+import android.util.Log;
 import fr.openbike.android.io.RemoteExecutor;
 import fr.openbike.android.io.RemoteNetworksHandler;
+import fr.openbike.android.io.RemoteStationsSyncHandler;
+import fr.openbike.android.io.RemoteStationsUpdateHandler;
+import fr.openbike.android.io.JSONHandler.HandlerException;
 import fr.openbike.android.model.Network;
 import fr.openbike.android.ui.AbstractPreferencesActivity;
 
@@ -65,23 +68,24 @@ import fr.openbike.android.ui.AbstractPreferencesActivity;
  */
 public class SyncService extends IntentService {
 
-	private static final String TAG = "OpenBike";
-
 	public static final String EXTRA_STATUS_RECEIVER = "fr.openbike.android.extra.STATUS_RECEIVER";
 	public static final String EXTRA_RESULT = "extra_result";
 	public static final String ACTION_SYNC = "action_sync";
+	public static final String ACTION_UPDATE = "action_update";
 	public static final String ACTION_CHOOSE_NETWORK = "action_choose_network";
 	public static final String ACTION_RESULT_NETWORK = "action_result_network";
 	public static final String ACTION_RESULT_SYNC = "action_result_sync";
-	public static final String ACTION_START_SYNC = "action_start_sync";
+	public static final String ACTION_START_UPDATE = "action_start_update";
 	public static final String ACTION_START_NETWORK = "action_start_network";
-	public static final String NETWORKS_URL = "http://openbikeserver.appspot.com/networks";
+	public static final String NETWORKS_URL = "http://openbikeserver.appspot.com/v2/networks";
 
-	public static final int STATUS_SYNC_STATIONS = 0x1;
 	public static final int STATUS_ERROR = 0x2;
+	public static final int STATUS_SYNC_STATIONS = 0x1;
 	public static final int STATUS_SYNC_STATIONS_FINISHED = 0x3;
 	public static final int STATUS_SYNC_NETWORKS = 0x4;
 	public static final int STATUS_SYNC_NETWORKS_FINISHED = 0x5;
+	public static final int STATUS_UPDATE_STATIONS = 0x6;
+	public static final int STATUS_UPDATE_STATIONS_FINISHED = 0x7;
 
 	private static final int SECOND_IN_MILLIS = (int) DateUtils.SECOND_IN_MILLIS;
 
@@ -114,7 +118,7 @@ public class SyncService extends IntentService {
 				.getActiveNetworkInfo();
 		final ResultReceiver receiver = intent
 				.getParcelableExtra(EXTRA_STATUS_RECEIVER);
-		Bundle bundle = Bundle.EMPTY;
+		Bundle bundle = new Bundle();
 		int status = STATUS_ERROR;
 		if (activeNetwork == null || !activeNetwork.isConnectedOrConnecting()) {
 			bundle = new Bundle();
@@ -130,41 +134,73 @@ public class SyncService extends IntentService {
 				}
 				SharedPreferences prefs = PreferenceManager
 						.getDefaultSharedPreferences(this);
-				mRemoteExecutor
-						.executeGet(
-								mPreferences
-										.getString(
-												AbstractPreferencesActivity.UPDATE_SERVER_URL,
-												""),
-								new RemoteBikesHandler(
-										prefs
-												.getLong(
-														AbstractPreferencesActivity.STATIONS_VERSION,
-														0)), this);
-				status = STATUS_SYNC_STATIONS_FINISHED;
+				Object result = mRemoteExecutor.executeGet(mPreferences
+						.getString(
+								AbstractPreferencesActivity.UPDATE_SERVER_URL,
+								"")
+						+ "/v2/stations", new RemoteStationsSyncHandler(prefs
+						.getLong(AbstractPreferencesActivity.STATIONS_VERSION,
+								0)), this);
+				if (result == null) {
+					// Need stations update
+					action = ACTION_UPDATE;
+				} else {
+					String message = (String) result;
+					status = STATUS_SYNC_STATIONS_FINISHED;
+					if (!"".equals(message)) {
+						bundle.putString(EXTRA_RESULT, message);
+					}
+					prefs.edit().putLong(
+							AbstractPreferencesActivity.LAST_UPDATE,
+							System.currentTimeMillis()).commit();
+				}
+			}
+			if (ACTION_UPDATE.equals(action)) {
+				if (receiver != null) {
+					receiver.send(STATUS_UPDATE_STATIONS, Bundle.EMPTY);
+				}
+				SharedPreferences prefs = PreferenceManager
+						.getDefaultSharedPreferences(this);
+				Object result = mRemoteExecutor.executeGet(mPreferences
+						.getString(
+								AbstractPreferencesActivity.UPDATE_SERVER_URL,
+								"")
+						+ "/v2/stations/list",
+						new RemoteStationsUpdateHandler(), this);
+				status = STATUS_UPDATE_STATIONS_FINISHED;
+				if (result != null) {
+					bundle.putString(EXTRA_RESULT, (String) result);
+				}
 				prefs.edit().putLong(AbstractPreferencesActivity.LAST_UPDATE,
 						System.currentTimeMillis()).commit();
-			} else if (ACTION_CHOOSE_NETWORK.equals(action)) {
+			}
+			if (ACTION_CHOOSE_NETWORK.equals(action)) {
 				if (receiver != null) {
 					receiver.send(STATUS_SYNC_NETWORKS, Bundle.EMPTY);
-				}
-				if (receiver != null) {
 					bundle = new Bundle();
 					bundle.putParcelableArrayList(EXTRA_RESULT,
-							(ArrayList<Network>) mRemoteExecutor
-									.executeGetForResult(NETWORKS_URL,
-											new RemoteNetworksHandler(), this));
+							(ArrayList<Network>) mRemoteExecutor.executeGet(
+									NETWORKS_URL, new RemoteNetworksHandler(),
+									this));
 					status = STATUS_SYNC_NETWORKS_FINISHED;
 				}
 			}
 			if (receiver != null) {
 				receiver.send(status, bundle);
 			}
-		} catch (Exception e) {
+		} catch (HandlerException e) {
 			if (receiver != null) {
 				// Pass back error to surface listener
 				bundle = new Bundle();
 				bundle.putString(Intent.EXTRA_TEXT, e.toString());
+				receiver.send(STATUS_ERROR, bundle);
+			}
+		} catch (Exception e) {
+			if (receiver != null) {
+				// Pass back error to surface listener
+				e.printStackTrace();
+				bundle = new Bundle();
+				bundle.putString(Intent.EXTRA_TEXT, "Une erreur est survenue. Veuillez réessayer.");
 				receiver.send(STATUS_ERROR, bundle);
 			}
 		}

@@ -33,19 +33,14 @@ import fr.openbike.android.model.Network;
  */
 public class RemoteNetworksHandler extends JSONHandler {
 
-	/** {@inheritDoc} */
 	@Override
-	public void parse(JSONArray jsonBikes, OpenBikeDBAdapter dbAdapter)
+	public Object parse(JSONObject json, OpenBikeDBAdapter dbAdapter)
 			throws JSONException, IOException {
-	}
-
-	@Override
-	public Object parseForResult(JSONArray jsonArray) throws JSONException,
-			IOException {
-		JSONObject jsonNetwork;
+		JSONArray jsonNetworks = json.getJSONArray("networks");
 		ArrayList<Network> networks = new ArrayList<Network>();
-		for (int i = 0; i < jsonArray.length(); i++) {
-			jsonNetwork = jsonArray.getJSONObject(i);
+		JSONObject jsonNetwork;
+		for (int i = 0; i < jsonNetworks.length(); i++) {
+			jsonNetwork = jsonNetworks.getJSONObject(i);
 			networks.add(new Network(jsonNetwork.getInt(Network.ID), jsonNetwork
 					.getString(Network.NAME), jsonNetwork.getString(Network.CITY),
 					jsonNetwork.getString(Network.SERVER), jsonNetwork
@@ -54,11 +49,5 @@ public class RemoteNetworksHandler extends JSONHandler {
 							.getDouble(Network.LATITUDE)));
 		}
 		return networks;
-	}
-
-	@Override
-	public void parse(JSONObject json, OpenBikeDBAdapter dbAdapter)
-			throws JSONException, IOException {
-		// Do nothing
 	}
 }

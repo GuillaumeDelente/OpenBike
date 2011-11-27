@@ -7,7 +7,9 @@
 	<item type="id" name="enable_gps" />
 	<item type="id" name="no_location_provider" />
 	<item type="id" name="progress" />
+	<item type="id" name="stations_update" />
 	<item type="id" name="remove_from_favorite" />
 	<item type="id" name="welcome" />
+	<item type="id" name="message" />
 	
 </resources>

@@ -19,6 +19,7 @@ package fr.openbike.android.utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
@@ -55,8 +56,9 @@ import fr.openbike.android.ui.OpenBikeMapActivity;
 public class ActivityHelper {
 	protected Activity mActivity;
 	private Animation mRefreshAnimation = null;
-	private AlertDialog mErrorDialog = null;
+	private ProgressDialog mProgressDialog = null;
 	public static final long MIN_UPDATE_TIME = 2 * 1000 * 60;
+	private String mMessage = null;
 
 	private static final int[] mVisibleInBar = { R.id.action_refresh,
 			R.id.menu_search };
@@ -74,7 +76,6 @@ public class ActivityHelper {
 						dialog.cancel();
 					}
 				});
-		mErrorDialog = builder.create();
 	}
 
 	public void onPostCreate(Bundle savedInstanceState) {
@@ -247,7 +248,7 @@ public class ActivityHelper {
 
 	public Dialog onCreateDialog(int id) {
 		if (id == R.id.json_error || id == R.id.database_error
-				|| id == R.id.network_error) {
+				|| id == R.id.network_error || id == R.id.message) {
 			return new AlertDialog.Builder(mActivity).setCancelable(false)
 					.setPositiveButton(R.string.Ok, new OnClickListener() {
 
@@ -278,6 +279,9 @@ public class ActivityHelper {
 						}
 					}).setTitle(R.string.gps_disabled).setMessage(
 							R.string.location_disabled).create();
+		} else if (id == R.id.stations_update) {
+			mProgressDialog = new ProgressDialog(mActivity);
+			return mProgressDialog;
 		} else {
 			return null;
 		}
@@ -309,6 +313,32 @@ public class ActivityHelper {
 			((AlertDialog) dialog).setTitle(R.string.gps_disabled);
 			((AlertDialog) dialog).setMessage(mActivity
 					.getString(R.string.should_enable_gps));
+			break;
+		case R.id.stations_update:
+			((ProgressDialog) dialog).setMessage(mActivity
+					.getString(R.string.stations_update));
+			((ProgressDialog) dialog).setCancelable(false);
+			break;
+		case R.id.message:
+			((AlertDialog) dialog).setTitle(mActivity
+					.getString(R.string.important));
+			((AlertDialog) dialog).setMessage(mMessage);
+		}
+	}
+
+	public void onReceiveResult(int resultCode, Bundle resultData) {
+		if (resultCode == SyncService.STATUS_UPDATE_STATIONS) {
+			mActivity.showDialog(R.id.stations_update);
+		} else if (resultCode == SyncService.STATUS_UPDATE_STATIONS_FINISHED
+				|| resultCode == SyncService.STATUS_SYNC_STATIONS_FINISHED) {
+			if (resultCode == SyncService.STATUS_UPDATE_STATIONS_FINISHED) {
+				mActivity.dismissDialog(R.id.stations_update);
+			}
+			String message = resultData.getString(SyncService.EXTRA_RESULT);
+			if (message != null) {
+				mMessage = message;
+				mActivity.showDialog(R.id.message);
+			}
 		}
 	}
 
@@ -334,6 +364,22 @@ public class ActivityHelper {
 			return;
 		}
 		final Intent intent = new Intent(SyncService.ACTION_SYNC, null,
+				mActivity, SyncService.class);
+		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER,
+				DetachableResultReceiver.getInstance(new Handler()));
+		mActivity.startService(intent);
+	}
+
+	public void startUpdate() {
+		if (PreferenceManager.getDefaultSharedPreferences(mActivity).getInt(
+				AbstractPreferencesActivity.NETWORK_PREFERENCE,
+				AbstractPreferencesActivity.NO_NETWORK) == AbstractPreferencesActivity.NO_NETWORK) {
+			mActivity.startActivity(new Intent(mActivity, HomeActivity.class)
+					.setAction(HomeActivity.ACTION_CHOOSE_NETWORK).setFlags(
+							Intent.FLAG_ACTIVITY_CLEAR_TOP));
+			return;
+		}
+		final Intent intent = new Intent(SyncService.ACTION_UPDATE, null,
 				mActivity, SyncService.class);
 		intent.putExtra(SyncService.EXTRA_STATUS_RECEIVER,
 				DetachableResultReceiver.getInstance(new Handler()));

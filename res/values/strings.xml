@@ -44,6 +44,7 @@
 	<string name="gps_disabled">GPS désactivé</string>
 	<string name="location_disabled">Localisation désactivée</string>
 	<string name="updating">Rafraichissement...</string>
+	<string name="stations_update">Mise à jour de la liste des stations</string>
 	<string name="should_enable_location">La géolocalisation de votre appareil est
 		désactivée. Vous
 		n\'aurez accès à votre position que si vous modifiez
@@ -80,12 +81,7 @@
 	<string name="crash_toast_text">OpenBike a crashé mais un rapport a été envoyé au
 		développeur pour
 		réparer le bug au plus vite !</string>
-	<string name="welcome_message_title">Bienvenue dans OpenBike !</string>
-	<string name="welcome_message">Pour tirer le maximum d\'OpenBike, rendez-vous dans
-		Menu->Configuration
-		et jouez avec les réglages pour activer la
-		géolocalisation et les
-		filtres.</string>
+	<string name="important">Important</string>
 	<string name="choose_network_title">Choisissez votre ville</string>
 	<string name="loading">Chargement</string>
 	<string name="showing_load">Affichage des stations en cours...</string>

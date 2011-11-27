@@ -452,7 +452,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				mStationsOverlay.setItems(mOverlays);
 				mMapView.invalidate();
 			} else {
-				Log.e("OpenBike", "mOverlays null");
+				//Log.e("OpenBike", "mOverlays null");
 			}
 		}
 
@@ -505,7 +505,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mOverlays = mStationsOverlay.getOverlayList();
 			Iterator<StationOverlay> it = mOverlays.iterator();
 			StationOverlay stationOverlay;
-			while (it.hasNext() && !isCancelled()) {
+			while (it.hasNext() && !cursor.isLast() && !isCancelled()) {
 				stationOverlay = it.next();
 				cursor.moveToNext();
 				stationOverlay.setBikes(cursor.getInt(cursor
@@ -521,8 +521,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 		protected void onPostExecute(Boolean isListCreated) {
 			mMapView.invalidate();
 			if (mStationsOverlay.isBalloonShowing()) {
-				mStationsOverlay.updateBalloonData(mStationsOverlay
-						.getItem(mStationsOverlay.getLastFocusedIndex()));
+				int pos = mStationsOverlay.getLastFocusedIndex();
+				if (pos >= 0 && pos < mStationsOverlay.size()) {
+					mStationsOverlay.updateBalloonData(mStationsOverlay
+							.getItem(pos));
+				}
 			}
 			mUpdateOverlays = null;
 		}
@@ -530,8 +533,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
-		// TODO Auto-generated method stub
-
+		mActivityHelper.onReceiveResult(resultCode, resultData);
 	}
 
 	@Override

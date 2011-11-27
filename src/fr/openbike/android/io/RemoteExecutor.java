@@ -24,12 +24,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
 import android.content.Context;
+import android.util.Log;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 import fr.openbike.android.io.JSONHandler.HandlerException;
 import fr.openbike.android.utils.ParserUtils;
@@ -45,65 +45,13 @@ public class RemoteExecutor {
 		mHttpClient = httpClient;
 	}
 
-	public void executeGet(String url, JSONHandler handler, Context context)
+	public Object executeGet(String url, JSONHandler handler, Context context)
 			throws HandlerException {
-
-		//if (!url.contains("networks"))
-		//	url = "http://openbike.fr/test2";
-		
 		final HttpUriRequest request = new HttpGet(url);
-		execute(request, handler, context);
+		return execute(request, handler, context);
 	}
 
-	public Object executeGetForResult(String url, JSONHandler handler,
-			Context context) throws HandlerException {
-		final HttpUriRequest request = new HttpGet(url);
-		return executeForResult(request, handler, context);
-	}
-
-	public void execute(HttpUriRequest request, JSONHandler handler,
-			Context context) throws HandlerException {
-		InputStream input = null;
-		try {
-			final HttpResponse resp = mHttpClient.execute(request);
-			final int status = resp.getStatusLine().getStatusCode();
-			if (status != HttpStatus.SC_OK) {
-				throw new HandlerException("Unexpected server response "
-						+ resp.getStatusLine() + " for "
-						+ request.getRequestLine());
-			}
-
-			input = resp.getEntity().getContent();
-			final String result = ParserUtils.getString(input);
-			try {
-				handler.parseAndSave(new JSONArray(result), OpenBikeDBAdapter
-						.getInstance(context));
-			} catch (JSONException e) {
-				try {
-					handler.parseAndSave(new JSONObject(result),
-							OpenBikeDBAdapter.getInstance(context));
-				} catch (JSONException e2) {
-					throw new HandlerException("Malformed response for "
-							+ request.getRequestLine(), e2);
-				}
-			}
-		} catch (HandlerException e) {
-			throw e;
-		} catch (IOException e) {
-			throw new HandlerException("Problem closing stream "
-					+ request.getRequestLine(), e);
-		} finally {
-			if (input != null)
-				try {
-					input.close();
-				} catch (IOException e) {
-					throw new HandlerException("Problem closing stream "
-							+ request.getRequestLine(), e);
-				}
-		}
-	}
-
-	public Object executeForResult(HttpUriRequest request, JSONHandler handler,
+	public Object execute(HttpUriRequest request, JSONHandler handler,
 			Context context) throws HandlerException {
 		try {
 			final HttpResponse resp = mHttpClient.execute(request);
@@ -117,8 +65,9 @@ public class RemoteExecutor {
 			final InputStream input = resp.getEntity().getContent();
 			Object result = null;
 			try {
-				result = handler.parseForResult(new JSONArray(ParserUtils
-						.getString(input)));
+				result = handler.parse(new JSONObject(ParserUtils
+						.getString(input)), OpenBikeDBAdapter
+						.getInstance(context));
 				if (input != null)
 					input.close();
 				return result;

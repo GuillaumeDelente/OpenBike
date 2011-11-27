@@ -76,7 +76,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	public static final String ACTION_FAVORITE = "fr.openbike.action_favorite";
 
 	private OpenBikeArrayAdaptor mAdapter = null;
-	private ProgressDialog mPdialog = null;
 	private String mSelected = null;
 	private CreateListAdaptorTask mCreateListAdaptorTask = null;
 	private UpdateDistanceTask mUpdateDistanceTask = null;
@@ -118,7 +117,6 @@ public class OpenBikeListActivity extends ListActivity implements
 		mActivityHelper = new ActivityHelper(this);
 		mActivityHelper.setupActionBar(getString(R.string.station_list));
 		mListView = getListView();
-		mPdialog = new ProgressDialog(OpenBikeListActivity.this);
 		mSharedPreferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
@@ -320,9 +318,6 @@ public class OpenBikeListActivity extends ListActivity implements
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-		case R.id.progress:
-			mPdialog.setCancelable(false);
-			return mPdialog;
 		case R.id.remove_from_favorite:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.remove_favorite)).setMessage(
@@ -344,7 +339,7 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		case R.id.welcome:
+		/*case R.id.welcome:
 			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
 					getString(R.string.welcome_message_title)).setMessage(
 					(getString(R.string.welcome_message))).setPositiveButton(
@@ -353,6 +348,7 @@ public class OpenBikeListActivity extends ListActivity implements
 							dialog.cancel();
 						}
 					}).create();
+					*/
 		default:
 			Dialog dialog = getActivityHelper().onCreateDialog(id);
 			if (dialog != null)
@@ -708,8 +704,7 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
-		// TODO Auto-generated method stub
-
+		mActivityHelper.onReceiveResult(resultCode, resultData);
 	}
 
 	@Override

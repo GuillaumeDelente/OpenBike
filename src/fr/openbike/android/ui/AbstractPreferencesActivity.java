@@ -173,7 +173,7 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 					AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
 				Intent intent = new Intent(this, LocationService.class);
 				bindService(intent, mConnection, 0);
-			} else {
+			} else if (mBound){
 				mService.removeListener(AbstractPreferencesActivity.this);
 				mBound = false;
 				unbindService(mConnection);

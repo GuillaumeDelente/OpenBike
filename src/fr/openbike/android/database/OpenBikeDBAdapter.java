@@ -17,6 +17,8 @@
  */
 package fr.openbike.android.database;
 
+import java.util.HashSet;
+
 import org.acra.ErrorReporter;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +38,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 import fr.openbike.android.model.Network;
 import fr.openbike.android.model.Station;
 import fr.openbike.android.ui.AbstractPreferencesActivity;
@@ -48,7 +51,7 @@ public class OpenBikeDBAdapter {
 	public static final String STATIONS_TABLE = "stations";
 	private static final String STATIONS_VIRTUAL_TABLE = "virtual_stations";
 	private static final String NETWORKS_TABLE = "networks";
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
 
 	private SQLiteDatabase mDb;
 	private OpenBikeDBOpenHelper mDbHelper;
@@ -231,27 +234,23 @@ public class OpenBikeDBAdapter {
 		return true;
 	}
 
-	public void insertOrUpdateStations(long version, JSONArray jsonArray)
-			throws SQLiteException, JSONException {
-		if (!updateStations(jsonArray)) {
-			insertStations(jsonArray);
-		}
-		mPreferences.edit().putLong(
-				AbstractPreferencesActivity.STATIONS_VERSION, version).commit();
-	}
-
-	public boolean updateStations(JSONArray jsonArray) throws SQLiteException,
+	public boolean syncStations(JSONArray jsonBikes) throws SQLiteException,
 			JSONException {
-		boolean updateOnly = true;
-		final int size = jsonArray.length();
+		if ("".equals(jsonBikes))
+			return false;
+		boolean needUpdate = false;
+		final int size = jsonBikes.length();
 		JSONObject jsonStation;
 		try {
 			mDb.beginTransaction();
 			ContentValues contentValues = new ContentValues();
-			final int networkId = jsonArray.getJSONObject(0).getInt(
+			final int networkId = jsonBikes.getJSONObject(0).getInt(
 					Station.NETWORK);
+			HashSet<Integer> ids = new HashSet<Integer>(size);
 			for (int i = 0; i < size; i++) {
-				jsonStation = jsonArray.getJSONObject(i);
+				jsonStation = jsonBikes.getJSONObject(i);
+				int id = jsonStation.getInt("id");
+				ids.add(id);
 				contentValues.put(OpenBikeDBAdapter.KEY_BIKES, jsonStation
 						.getInt(Station.BIKES));
 				contentValues.put(OpenBikeDBAdapter.KEY_SLOTS, jsonStation
@@ -259,10 +258,27 @@ public class OpenBikeDBAdapter {
 				contentValues.put(OpenBikeDBAdapter.KEY_OPEN, jsonStation
 						.getBoolean(Station.OPEN));
 				if (mDb.update(STATIONS_TABLE, contentValues, BaseColumns._ID
-						+ " = " + jsonStation.getInt(Station.ID) + " AND "
-						+ KEY_NETWORK + " = " + networkId, null) == 0) {
-					updateOnly = false;
+						+ " = " + id + " AND " + KEY_NETWORK + " = "
+						+ networkId, null) == 0) {
+					needUpdate = true;
 					break;
+				}
+			}
+			if (!needUpdate) {
+				Cursor cursorIds = mDb.query(STATIONS_TABLE,
+						new String[] { BaseColumns._ID }, KEY_NETWORK + " = "
+								+ networkId, null, null, null, null);
+				HashSet<Integer> oldIds = new HashSet<Integer>(cursorIds
+						.getCount());
+				if (cursorIds.moveToFirst()) {
+					do {
+						oldIds.add(cursorIds.getInt(0));
+					} while (cursorIds.moveToNext());
+				}
+				oldIds.removeAll(ids);
+				for (Integer id : oldIds) {
+					mDb.delete(STATIONS_TABLE, BaseColumns._ID + " = " + id
+							+ " AND " + KEY_NETWORK + " = " + networkId, null);
 				}
 			}
 		} catch (SQLiteException e) {
@@ -274,11 +290,13 @@ public class OpenBikeDBAdapter {
 		}
 		mDb.setTransactionSuccessful();
 		mDb.endTransaction();
-		return updateOnly;
+		return needUpdate;
 	}
 
 	public void cleanAndInsertStations(long version, JSONArray jsonBikes)
 			throws JSONException {
+		if ("".equals(jsonBikes))
+			return;
 		Cursor favorites = getFilteredStationsCursor(
 				new String[] { BaseColumns._ID }, KEY_FAVORITE + " = 1", null);
 		// Get count : hack for forcing cursor query
@@ -698,6 +716,31 @@ public class OpenBikeDBAdapter {
 					oldVersion++;
 					db.setTransactionSuccessful();
 				} catch (Exception e) {
+					ErrorReporter.getInstance().handleException(e);
+				} finally {
+					db.endTransaction();
+				}
+			}
+			if (oldVersion == 4) {
+				try {
+					db.beginTransaction();
+					Cursor networks = db.query(NETWORKS_TABLE, new String[] {
+							BaseColumns._ID, KEY_SERVER }, null, null, null,
+							null, null);
+					while (networks.moveToNext()) {
+						db.execSQL("UPDATE networks SET " + KEY_SERVER
+								+ " = '" + networks.getString(1).replaceAll("/stations/.*", "")
+								+ "' WHERE " + BaseColumns._ID + " = " + networks.getInt(0));
+					}
+					oldVersion++;
+					db.setTransactionSuccessful();
+					String updateUrl = mPreferences.getString(
+							AbstractPreferencesActivity.UPDATE_SERVER_URL, "");
+					mPreferences.edit().putString(
+							AbstractPreferencesActivity.UPDATE_SERVER_URL,
+							updateUrl.replaceAll("/stations/.*", "")).commit();
+				} catch (Exception e) {
+					e.printStackTrace();
 					ErrorReporter.getInstance().handleException(e);
 				} finally {
 					db.endTransaction();
