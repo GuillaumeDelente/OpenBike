@@ -347,7 +347,7 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 		}
 		return super.onCreateDialog(id);
 	}
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -443,7 +443,9 @@ public class HomeActivity extends Activity implements ILocationServiceListener,
 
 	@Override
 	public void onLocationProvidersChanged(int id) {
-		showDialog(id);
+		if (!isFinishing()) {
+			showDialog(id);
+		}
 	}
 
 	@Override

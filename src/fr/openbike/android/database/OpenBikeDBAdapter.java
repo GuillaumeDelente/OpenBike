@@ -174,9 +174,6 @@ public class OpenBikeDBAdapter {
 			mDb.beginTransaction();
 			SQLiteStatement insert = mDb.compileStatement(sql);
 			SQLiteStatement insert_virtual = mDb.compileStatement(sql_virtual);
-			insert.bindLong(networkColumn, networkId);
-			insert.bindLong(favoriteColumn, 0); // Favorite
-			insert_virtual.bindLong(virtualNetworkColumn, networkId);
 			int id;
 			String name;
 			for (int i = 0; i < size; i++) {
@@ -199,8 +196,11 @@ public class OpenBikeDBAdapter {
 						.getBoolean(Station.PAYMENT) ? 1 : 0);
 				insert.bindLong(specialColumn, jsonStation
 						.getBoolean(Station.SPECIAL) ? 1 : 0);
+				insert.bindLong(networkColumn, networkId);
+				insert.bindLong(favoriteColumn, 0); // Favorite
 				insert.executeInsert();
 
+				insert_virtual.bindLong(virtualNetworkColumn, networkId);
 				insert_virtual.bindLong(virtualIdColumn, id);
 				insert_virtual.bindString(virtualNameColumn, name);
 				insert_virtual.executeInsert();
@@ -728,9 +728,12 @@ public class OpenBikeDBAdapter {
 							BaseColumns._ID, KEY_SERVER }, null, null, null,
 							null, null);
 					while (networks.moveToNext()) {
-						db.execSQL("UPDATE networks SET " + KEY_SERVER
-								+ " = '" + networks.getString(1).replaceAll("/stations/.*", "")
-								+ "' WHERE " + BaseColumns._ID + " = " + networks.getInt(0));
+						db.execSQL("UPDATE networks SET "
+								+ KEY_SERVER
+								+ " = '"
+								+ networks.getString(1).replaceAll(
+										"/stations/.*", "") + "' WHERE "
+								+ BaseColumns._ID + " = " + networks.getInt(0));
 					}
 					oldVersion++;
 					db.setTransactionSuccessful();

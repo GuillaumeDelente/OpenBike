@@ -290,8 +290,11 @@ public class OpenBikeMapActivity extends MapActivity implements
 			executePopulateOverlays();
 		} else {
 			if (mStationsOverlay.isBalloonShowing()) {
-				mStationsOverlay.updateBalloonData(mStationsOverlay
-						.getItem(mStationsOverlay.getLastFocusedIndex()));
+				int index = mStationsOverlay.getLastFocusedIndex();
+				if (index < mStationsOverlay.size()) {
+					mStationsOverlay.updateBalloonData(mStationsOverlay
+							.getItem(index));
+				}
 			}
 			mMapView.invalidate();
 		}
@@ -452,7 +455,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 				mStationsOverlay.setItems(mOverlays);
 				mMapView.invalidate();
 			} else {
-				//Log.e("OpenBike", "mOverlays null");
+				// Log.e("OpenBike", "mOverlays null");
 			}
 		}
 
@@ -543,6 +546,8 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onLocationProvidersChanged(int id) {
-		showDialog(id);
+		if (!isFinishing()) {
+			showDialog(id);
+		}
 	}
 }

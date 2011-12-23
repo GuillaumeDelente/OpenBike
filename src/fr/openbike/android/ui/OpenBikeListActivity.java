@@ -714,6 +714,8 @@ public class OpenBikeListActivity extends ListActivity implements
 
 	@Override
 	public void onLocationProvidersChanged(int id) {
-		showDialog(id);
+		if (!isFinishing()) {
+			showDialog(id);
+		}
 	}
 }

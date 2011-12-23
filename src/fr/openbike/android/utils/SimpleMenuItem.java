@@ -214,5 +214,4 @@ public class SimpleMenuItem implements MenuItem {
         // Noop
         return this;
     }
-
 }

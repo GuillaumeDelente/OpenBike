@@ -74,7 +74,7 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	private SharedPreferences mSharedPreferences = null;
 	private boolean mBound = false;
 	private LocationService mService = null;
-	
+
 	private ServiceConnection mConnection = new ServiceConnection() {
 
 		@Override
@@ -173,7 +173,7 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 					AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
 				Intent intent = new Intent(this, LocationService.class);
 				bindService(intent, mConnection, 0);
-			} else if (mBound){
+			} else if (mBound) {
 				mService.removeListener(AbstractPreferencesActivity.this);
 				mBound = false;
 				unbindService(mConnection);
@@ -204,7 +204,9 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 
 	@Override
 	public void onLocationProvidersChanged(int id) {
-		showDialog(id);
+		if (!isFinishing()) {
+			showDialog(id);
+		}
 	}
 
 	@Override

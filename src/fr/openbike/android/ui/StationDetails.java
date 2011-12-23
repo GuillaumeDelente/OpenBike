@@ -397,6 +397,8 @@ public class StationDetails extends Activity implements
 
 	@Override
 	public void onLocationProvidersChanged(int id) {
-		showDialog(id);
+		if (!isFinishing()) {
+			showDialog(id);
+		}
 	}
 }
