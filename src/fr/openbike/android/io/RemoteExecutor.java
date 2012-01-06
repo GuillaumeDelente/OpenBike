@@ -29,7 +29,6 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
 import android.content.Context;
-import android.util.Log;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 import fr.openbike.android.io.JSONHandler.HandlerException;
 import fr.openbike.android.utils.ParserUtils;

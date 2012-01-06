@@ -30,7 +30,6 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import fr.openbike.android.R;
 
 public class LocationService extends Service implements LocationListener {
@@ -73,13 +72,6 @@ public class LocationService extends Service implements LocationListener {
 	@Override
 	public void onCreate() {
 		mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				enableMyLocation();
-			}
-		}).run();
 		listeners = new ArrayList<ILocationServiceListener>();
 		mStopServiceRunnable = new Runnable() {
 
@@ -98,6 +90,15 @@ public class LocationService extends Service implements LocationListener {
 
 	// Ajout d'un listener
 	public void addListener(ILocationServiceListener listener) {
+		if (mIsInPause) {
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					enableMyLocation();
+				}
+			}).run();
+		}
 		listeners.add(listener);
 		listener.onLocationChanged(mLastFix, true);
 		mDelayedHandler.removeCallbacks(mStopServiceRunnable);
@@ -205,14 +206,14 @@ public class LocationService extends Service implements LocationListener {
 						: MINIMUM_DISTANCE_NETWORK))
 			return;
 		if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-			//Log.i("OpenBike", "GPS Fix" + location);
+			// Log.i("OpenBike", "GPS Fix" + location);
 			mLastFix = location;
 			fireLocationChanged(location);
 			mIsGpsUsed = true;
 		} else if (location.getProvider().equals(
 				LocationManager.NETWORK_PROVIDER)
 				&& !mIsGpsUsed) {
-			//Log.i("OpenBike", "Network Fix " + location);
+			// Log.i("OpenBike", "Network Fix " + location);
 			if (mLastFix == null || !mIsGpsUsed) {
 				mLastFix = location;
 				fireLocationChanged(location);

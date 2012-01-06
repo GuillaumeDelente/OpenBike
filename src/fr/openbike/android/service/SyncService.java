@@ -52,7 +52,6 @@ import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.text.format.DateUtils;
-import android.util.Log;
 import fr.openbike.android.io.RemoteExecutor;
 import fr.openbike.android.io.RemoteNetworksHandler;
 import fr.openbike.android.io.RemoteStationsSyncHandler;

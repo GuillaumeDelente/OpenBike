@@ -18,7 +18,6 @@
 package fr.openbike.android.ui;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import android.app.Dialog;
@@ -37,7 +36,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -76,7 +74,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 	private boolean mNeedZoom = true;
 	private SharedPreferences mSharedPreferences = null;
 	private MapView mMapView = null;
-	private UpdateOverlays mUpdateOverlays = null;
+	//private UpdateOverlays mUpdateOverlays = null;
 	private PopulateOverlays mPopulateOverlays = null;
 	private int mShowingBalloon = -1;
 	private boolean mForceTask = false;
@@ -291,7 +289,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 		} else {
 			if (mStationsOverlay.isBalloonShowing()) {
 				int index = mStationsOverlay.getLastFocusedIndex();
-				if (index < mStationsOverlay.size()) {
+				if (index >= 0 && index < mStationsOverlay.size()) {
 					mStationsOverlay.updateBalloonData(mStationsOverlay
 							.getItem(index));
 				}
@@ -309,20 +307,10 @@ public class OpenBikeMapActivity extends MapActivity implements
 
 	@Override
 	public void onStationsUpdated() {
-		boolean needUpdate = mSharedPreferences.getBoolean(
-				AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER, false)
-				|| mSharedPreferences.getBoolean(
-						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
-						false)
-				|| mSharedPreferences.getBoolean(
-						AbstractPreferencesActivity.ENABLE_DISTANCE_FILTER,
-						false);
-		if (needUpdate) {
-			executePopulateOverlays();
-		} else if (ACTION_DETAIL.equals(getIntent().getAction())) {
+		if (ACTION_DETAIL.equals(getIntent().getAction())) {
 			setStation(getIntent().getData());
 		} else {
-			executeUpdateOverlays();
+			executePopulateOverlays();
 		}
 	}
 
@@ -384,19 +372,18 @@ public class OpenBikeMapActivity extends MapActivity implements
 		}
 		mPopulateOverlays = (PopulateOverlays) new PopulateOverlays().execute();
 	}
-
+/*
 	private void executeUpdateOverlays() {
 		if (mPopulateOverlays != null) {
 			mPopulateOverlays.setUpdateOnPostExecute();
 			return;
 		}
 		if (mUpdateOverlays != null) {
-			mUpdateOverlays.cancel(true);
-			mUpdateOverlays = null;
+			mUpdateOverlays.setUpdateOnPostExecute();
 		}
 		mUpdateOverlays = (UpdateOverlays) new UpdateOverlays().execute();
 	}
-
+*/
 	private class PopulateOverlays extends AsyncTask<Void, Integer, Void> {
 
 		private OpenBikeDBAdapter mOpenBikeDBAdapter = OpenBikeDBAdapter
@@ -469,7 +456,7 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mShowingBalloon = -1;
 			mPopulateOverlays = null;
 			if (mUpdateOnPostExecute) {
-				executeUpdateOverlays();
+				executePopulateOverlays();
 			}
 		}
 
@@ -483,12 +470,13 @@ public class OpenBikeMapActivity extends MapActivity implements
 			mUpdateOnPostExecute = true;
 		}
 	}
-
+/*
 	private class UpdateOverlays extends AsyncTask<Void, Integer, Boolean> {
 
 		private OpenBikeDBAdapter mOpenBikeDBAdapter = OpenBikeDBAdapter
 				.getInstance(OpenBikeMapActivity.this);
 		private List<StationOverlay> mOverlays = null;
+		private boolean mUpdateOnPostExecute = false;
 
 		@Override
 		protected Boolean doInBackground(Void... unused) {
@@ -531,9 +519,17 @@ public class OpenBikeMapActivity extends MapActivity implements
 				}
 			}
 			mUpdateOverlays = null;
+			if (mUpdateOnPostExecute) {
+				executeUpdateOverlays();
+			}
+		}
+		
+
+		private void setUpdateOnPostExecute() {
+			mUpdateOnPostExecute = true;
 		}
 	}
-
+*/
 	@Override
 	public void onReceiveResult(int resultCode, Bundle resultData) {
 		mActivityHelper.onReceiveResult(resultCode, resultData);

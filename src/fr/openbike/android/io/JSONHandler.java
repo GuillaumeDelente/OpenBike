@@ -23,7 +23,6 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
 import android.content.ContentProvider;
-import android.util.Log;
 import fr.openbike.android.database.OpenBikeDBAdapter;
 
 /**

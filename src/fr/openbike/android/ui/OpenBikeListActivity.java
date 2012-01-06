@@ -23,7 +23,6 @@ import java.util.Iterator;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -339,16 +338,15 @@ public class OpenBikeListActivity extends ListActivity implements
 									dialog.cancel();
 								}
 							}).create();
-		/*case R.id.welcome:
-			return new AlertDialog.Builder(this).setCancelable(true).setTitle(
-					getString(R.string.welcome_message_title)).setMessage(
-					(getString(R.string.welcome_message))).setPositiveButton(
-					R.string.Ok, new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					}).create();
-					*/
+			/*
+			 * case R.id.welcome: return new
+			 * AlertDialog.Builder(this).setCancelable(true).setTitle(
+			 * getString(R.string.welcome_message_title)).setMessage(
+			 * (getString(R.string.welcome_message))).setPositiveButton(
+			 * R.string.Ok, new DialogInterface.OnClickListener() { public void
+			 * onClick(DialogInterface dialog, int id) { dialog.cancel(); }
+			 * }).create();
+			 */
 		default:
 			Dialog dialog = getActivityHelper().onCreateDialog(id);
 			if (dialog != null)

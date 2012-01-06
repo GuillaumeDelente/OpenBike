@@ -38,7 +38,6 @@ import android.database.sqlite.SQLiteStatement;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
 import fr.openbike.android.model.Network;
 import fr.openbike.android.model.Station;
 import fr.openbike.android.ui.AbstractPreferencesActivity;

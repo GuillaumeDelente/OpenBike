@@ -168,7 +168,6 @@ abstract public class AbstractPreferencesActivity extends PreferenceActivity
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
 		if (key.equals(AbstractPreferencesActivity.LOCATION_PREFERENCE)) {
-			// Log.i("OpenBike", "Location changed");
 			if (sharedPreferences.getBoolean(
 					AbstractPreferencesActivity.LOCATION_PREFERENCE, true)) {
 				Intent intent = new Intent(this, LocationService.class);
